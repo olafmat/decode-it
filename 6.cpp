@@ -18,27 +18,27 @@ struct Point {
     real angle;
 };
 
-Point point0;
+Point* point0;
 
-Point& extractSecond(stack<Point> &s) {
-    Point& aux = s.top();
+Point* extractSecond(stack<Point*> &s) {
+    Point* aux = s.top();
     s.pop();
-    Point& res = s.top();
+    Point* res = s.top();
     s.push(aux);
     return res;
 }
 
-real dist2(const Point &a, const Point &b) {
-    real dx = a.x - b.x;
-    real dy = a.y - b.y;
+real dist2(const Point* a, const Point* b) {
+    real dx = a -> x - b -> x;
+    real dy = a -> y - b -> y;
     return dx * dx + dy * dy;
 }
 
-real direction(const Point &a, const Point &b, const Point &c) {
-   return (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y);
+real direction(const Point* a, const Point* b, const Point* c) {
+   return (b -> y - a -> y) * (c -> x - b -> x) - (b -> x - a -> x) * (c -> y - b -> y);
 }
 
-bool comparator(const Point &point1, const Point &point2) {
+bool comparator(Point* &point1, Point* &point2) {
    real dir = direction(point0, point1, point2);
    if (dir == (real)0) {
       return dist2(point0, point2) >= dist2(point0, point1);
@@ -46,14 +46,14 @@ bool comparator(const Point &point1, const Point &point2) {
    return dir < (real)0;
 }
 
-vector<Point> findConvexHull(vector<Point> points, int n) {
-   vector<Point> res;
-   real minY = points[0].y;
+void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
+   real minY = points[0] -> y;
    int minI = 0;
+   int n = points.size();
    for (int i = 1; i < n; i++) {
-      real y = points[i].y;
-      if (y < minY || (minY == y && points[i].x < points[minI].x)) {
-         minY = points[i].y;
+      real y = points[i] -> y;
+      if (y < minY || (minY == y && points[i] -> x < points[minI] -> x)) {
+         minY = points[i] -> y;
          minI = i;
       }
    }
@@ -61,7 +61,7 @@ vector<Point> findConvexHull(vector<Point> points, int n) {
    swap(points[0], points[minI]);
    point0 = points[0];
    sort(points.begin() + 1, points.end(), comparator);    //sort points from 1 place to end
-   stack<Point> s;
+   stack<Point*> s;
 
    for (int i = 0; i < 3 && i < n; i++) {
        s.push(points[i]);
@@ -78,8 +78,6 @@ vector<Point> findConvexHull(vector<Point> points, int n) {
        res.push_back(s.top());
        s.pop();
    }
-
-   return res;
 }
 
 void outerTangle() {
@@ -88,13 +86,17 @@ void outerTangle() {
 int main() {
    Point arr[] = {{-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
       {3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4}};
-   int n = sizeof(arr) / sizeof(arr[0]);
 
-   vector<Point> points(arr, arr + n);
-   vector<Point> result;
-   result = findConvexHull(points, n);
-   vector<Point>::iterator it;
+   vector<Point*> points;
+   for (int j = 0; j < 2; j++) {
+   for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++) {
+        points.push_back(arr + i);
+   }
+   }
+   vector<Point*> result;
+   findConvexHull(result, points);
+   vector<Point*>::iterator it;
    for (it = result.begin(); it!=result.end(); it++)
-      cout << "(" << it->x << ", " <<it->y <<") ";
+      cout << "(" << (*it)->x << ", " <<(*it)->y <<") ";
    //(-9, -5) (-10, 3) (-10, 4) (-7, 8) (8, 6) (8, -7) (6, -10)
 }
