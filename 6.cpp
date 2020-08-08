@@ -37,76 +37,79 @@ real dist2(const Point* a, const Point* b) {
 }
 
 real direction(const Point* a, const Point* b, const Point* c) {
-   return (b -> y - a -> y) * (c -> x - b -> x) - (b -> x - a -> x) * (c -> y - b -> y);
+    return (b -> y - a -> y) * (c -> x - b -> x) - (b -> x - a -> x) * (c -> y - b -> y);
 }
 
 bool comparator(Point* &point1, Point* &point2) {
-   real dir = direction(point0, point1, point2);
-   if (dir > -epsilon && dir < epsilon) {
-       return dist2(point0, point2) >= dist2(point0, point1) + epsilon;
-   }
-   return dir < 0;
+    real dir = direction(point0, point1, point2);
+    if (dir > -epsilon && dir < epsilon) {
+        return dist2(point0, point2) >= dist2(point0, point1) + epsilon;
+    }
+    return dir < 0;
 }
 
 void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
-   real minY = points[0] -> y;
-   int minI = 0;
-   int n = points.size();
-   for (int i = 1; i < n; i++) {
-      real y = points[i] -> y;
-      if (y < minY || (minY == y && points[i] -> x < points[minI] -> x)) {
-         minY = points[i] -> y;
-         minI = i;
-      }
-   }
+    real minY = points[0] -> y;
+    int minI = 0;
+    int n = points.size();
+    for (int i = 1; i < n; i++) {
+        real y = points[i] -> y;
+        if (y < minY || (minY == y && points[i] -> x < points[minI] -> x)) {
+            minY = points[i] -> y;
+            minI = i;
+        }
+    }
 
-   swap(points[0], points[minI]);
-   point0 = points[0];
-   sort(points.begin() + 1, points.end(), comparator);    //sort points from 1 place to end
-   stack<Point*> s;
+    swap(points[0], points[minI]);
+    point0 = points[0];
+    sort(points.begin() + 1, points.end(), comparator);    //sort points from 1 place to end
+    stack<Point*> s;
 
-   for (int i = 0; i < n; i++) {
-       if (i >= 3) {
-           while (s.size() >= 2 && direction(extractSecond(s), s.top(), points[i]) > epsilon) {
-               s.pop();
-           }
-       }
+    for (int i = 0; i < n; i++) {
+        if (i >= 3) {
+            while (s.size() >= 2 && direction(extractSecond(s), s.top(), points[i]) > epsilon) {
+                s.pop();
+            }
+        }
 
-       if (i == 0 || dist2(points[i], points[i - 1]) > epsilon) {
-           s.push(points[i]);
-       }
+        if (i == 0 || dist2(points[i], points[i - 1]) > epsilon) {
+            s.push(points[i]);
+        }
+    }
 
-   }
-
-   while (!s.empty()) {
-       res.push_back(s.top());
-       s.pop();
-   }
+    while (!s.empty()) {
+        res.push_back(s.top());
+        s.pop();
+    }
 }
 
-void outerTangle() {
+void outerTangle(vector<Point*> points, vector<Circle*>circles) {
+    int size = circles.size();
+    vector<Circle*>::iterator it;
+    for (it = circles.begin(); it!=circles.end(); it++) {
+    }
 }
 
 int main() {
-   Point arr[] = {
-      //{0,0}, {1,0}, {10,0}, {3,0}, {-3,0}, {5,0}
-      {-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
-      {3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4},
-      //{-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
-      //{3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4}
-   };
+    Point arr[] = {
+        //{0,0}, {1,0}, {10,0}, {3,0}, {-3,0}, {5,0}
+        {-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
+        {3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4},
+        //{-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
+        //{3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4}
+    };
 
-   vector<Point*> points;
-   for (int j = 0; j < 1000000/18; j++) {
-       for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++) {
-           points.push_back(arr + i);
-       }
-   }
-   vector<Point*> result;
-   findConvexHull(result, points);
-   vector<Point*>::iterator it;
-   for (it = result.begin(); it!=result.end(); it++)
-      cout << "(" << (*it)->x << ", " << (*it)->y <<") ";
-   cout << points.size() << " " << result.size() << endl;
-   //(-9, -5) (-10, 3) (-10, 4) (-7, 8) (8, 6) (8, -7) (6, -10)
+    vector<Point*> points;
+    for (int j = 0; j < 1000000/18; j++) {
+        for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++) {
+            points.push_back(arr + i);
+        }
+    }
+    vector<Point*> result;
+    findConvexHull(result, points);
+    vector<Point*>::iterator it;
+    for (it = result.begin(); it!=result.end(); it++)
+        cout << "(" << (*it)->x << ", " << (*it)->y <<") ";
+    cout << points.size() << " " << result.size() << endl;
+    //(-9, -5) (-10, 3) (-10, 4) (-7, 8) (8, 6) (8, -7) (6, -10)
 }
