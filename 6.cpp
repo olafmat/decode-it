@@ -2,8 +2,14 @@
 #include <stack>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #define _USE_MATH_DEFINES
 #include <math.h>
+
+#include <execinfo.h>
+#include <signal.h>
+#include <unistd.h>
+
 using namespace std;
 
 typedef long double real;
@@ -45,13 +51,17 @@ real direction(const Point* a, const Point* b, const Point* c) {
 
 bool comparator(Point* &point1, Point* &point2) {
     real dir = direction(point0, point1, point2);
-    if (dir > -epsilon && dir < epsilon) {
-        return dist2(point0, point2) >= dist2(point0, point1) + epsilon;
+    if (dir == 0) {
+        return dist2(point0, point2) > dist2(point0, point1);
     }
     return dir < 0;
 }
 
 void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
+    if (points.empty()) {
+        return;
+    }
+
     real minY = points[0] -> y;
     int minI = 0;
     int n = points.size();
@@ -65,7 +75,10 @@ void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
 
     swap(points[0], points[minI]);
     point0 = points[0];
-    sort(points.begin() + 1, points.end(), comparator);    //sort points from 1 place to end
+
+    if (n > 1) {
+        sort(points.begin() + 1, points.end(), comparator);
+    }
     stack<Point*> s;
 
     for (int i = 0; i < n; i++) {
@@ -75,7 +88,7 @@ void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
             }
         }
 
-        if (i == 0 || dist2(points[i], points[i - 1]) > epsilon) {
+        if (!i || dist2(points[i], points[i - 1]) > epsilon) {
             s.push(points[i]);
         }
     }
@@ -89,10 +102,21 @@ void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
 void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
     int size = circles.size();
     for (vector<Circle*>::iterator i = circles.begin(); i != circles.end(); i++) {
+        const real x1 = (*i)->x;
+        const real y1 = (*i)->y;
+        const real r1 = (*i)->r;
+
+        /*for (int dir = 0; dir < 4; dir++) {
+            const real angle = PI2 * dir;
+            Point* p1 = new Point();
+            p1 -> x = x1 + r1 * cos(angle);
+            p1 -> y = y1 + r1 * sin(angle);
+            p1 -> circle = *i;
+            p1 -> angle = angle;
+            points.push_back(p1);
+        }*/
+
         for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
-            const real x1 = (*i)->x;
-            const real y1 = (*i)->y;
-            const real r1 = (*i)->r;
             const real x2 = (*j)->x;
             const real y2 = (*j)->y;
             const real r2 = (*j)->r;
@@ -114,18 +138,64 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
                 Point* p1 = new Point();
                 p1 -> x = x1 + r1 * sinAlpha;
                 p1 -> y = y1 + r1 * cosAlpha;
+                p1 -> circle = *i;
+                p1 -> angle = fmod(sign > 0 ? alpha + (real)M_PI * 2: alpha + (real)M_PI * 3, (real)M_PI * 2);
                 points.push_back(p1);
 
                 Point* p2 = new Point();
                 p2 -> x = x2 + r2 * sinAlpha;
                 p2 -> y = y2 + r2 * cosAlpha;
+                p2 -> circle = *j;
+                p2 -> angle = fmod(sign > 0 ? alpha + (real)M_PI * 2: alpha + (real)M_PI * 3, (real)M_PI * 2);
                 points.push_back(p2);
             }
         }
     }
 }
 
+real beltLength(const Point *a, const Point *b) {
+    if (a -> circle != b -> circle) {
+        //cout << "dist" << endl;
+        return sqrt(dist2(a, b));
+    } else if (a -> angle >= b -> angle - epsilon) {
+        //cout << "ang1 " << a -> angle * 180 / M_PI << " " << b -> angle * 180 / M_PI << endl;
+        return a -> circle -> r * (M_PI * 2 + b -> angle - a -> angle);
+    } else {
+        //cout << "ang2 " << a -> angle * 180 / M_PI << " " << b -> angle * 180 / M_PI << endl;
+        return a -> circle -> r * (b -> angle - a -> angle);
+    }
+}
+
+real beltLength(vector<Point*> &points) {
+    if (points.empty()) {
+        return 0;
+    }
+    real length = 0;
+    const Point* prev = points[points.size() - 1];
+    vector<Point*>::iterator it;
+    for (it = points.begin(); it != points.end(); it++) {
+        const Point* p = *it;
+        length += beltLength(prev, p);
+        prev = p;
+    }
+    return length;
+}
+
+void handler(int sig) {
+    void *array[10];
+    size_t size;
+
+    // get void*'s for all entries on the stack
+    size = backtrace(array, 10);
+
+    // print out all the frames to stderr
+    fprintf(stderr, "Error: signal %d:\n", sig);
+    backtrace_symbols_fd(array, size, STDERR_FILENO);
+    exit(1);
+}
+
 int main() {
+    signal(SIGSEGV, handler);
     /*Point arr[] = {
         //{0,0}, {1,0}, {10,0}, {3,0}, {-3,0}, {5,0}
         {-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
@@ -149,7 +219,7 @@ int main() {
     //(-9, -5) (-10, 3) (-10, 4) (-7, 8) (8, 6) (8, -7) (6, -10)
     */
 
-    Circle arr[] = {
+    /*Circle arr[] = {
         {0, 1, 0},
         {0, 0, 1},
     };
@@ -163,5 +233,37 @@ int main() {
     outerTangle(points, circles);
     vector<Point*>::iterator it;
     for (it = points.begin(); it!=points.end(); it++)
-        cout << "(" << (*it)->x << ", " << (*it)->y <<") ";
+        cout << "(" << (*it)->x << ", " << (*it)->y <<") ";*/
+
+    int t;
+    cin >> t;
+
+    for (int i = 0; i < t; i++) {
+        int n;
+        cin >> n;
+        vector<Circle*> circles;
+
+        for (int j = 0; j < n; j++) {
+            Circle* c = new Circle();
+            cin >> c -> x >> c -> y >> c -> r;
+            circles.push_back(c);
+        }
+
+        //cout << "circles=" << circles.size() << endl;
+
+        vector<Point*> points;
+        outerTangle(points, circles);
+        //cout << "points=" << points.size() << endl;
+
+        vector<Point*> result;
+        findConvexHull(result, points);
+
+        vector<Point*>::iterator it;
+        //for (it = result.begin(); it != result.end(); it++)
+          //  cout << "(" << (*it)->x << ", " << (*it)->y << " " << (*it)->circle << " " << (*it)->angle *180/M_PI << ")" << endl;
+        //cout << points.size() << " " << result.size() << endl;
+        cout << fixed << setprecision(10) << beltLength(result) << endl;
+    }
+
+    return 0;
 }
