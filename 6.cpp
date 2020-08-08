@@ -200,6 +200,7 @@ int main() {
         for (int j = 0; j < n; j++) {
             Circle* c = new Circle();
             cin >> c -> x >> c -> y >> c -> r;
+            c -> r = fabs(c -> r);
             circles.push_back(c);
         }
 
