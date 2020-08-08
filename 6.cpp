@@ -19,12 +19,15 @@ const real PI2 = (real)M_PI / 2;
 
 //Graham algorithm based on https://www.tutorialspoint.com/cplusplus-program-to-implement-graham-scan-algorithm-to-find-the-convex-hull
 
-struct Circle {
-    real x, y, r;
+struct Coordinates {
+    real x, y;
 };
 
-struct Point {
-    real x, y;
+struct Circle: public Coordinates {
+    real r;
+};
+
+struct Point: public Coordinates  {
     Circle *circle;
     real angle;
 };
@@ -39,13 +42,13 @@ Point* extractSecond(stack<Point*> &s) {
     return res;
 }
 
-real dist2(const Point* a, const Point* b) {
+real dist2(const Coordinates* a, const Coordinates* b) {
     real dx = a -> x - b -> x;
     real dy = a -> y - b -> y;
     return dx * dx + dy * dy;
 }
 
-real direction(const Point* a, const Point* b, const Point* c) {
+real direction(const Coordinates* a, const Coordinates* b, const Coordinates* c) {
     return (b -> y - a -> y) * (c -> x - b -> x) - (b -> x - a -> x) * (c -> y - b -> y);
 }
 
@@ -96,6 +99,27 @@ void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
     while (!s.empty()) {
         res.push_back(s.top());
         s.pop();
+    }
+}
+
+void removeInternal(vector<Circle*> &out, vector<Circle*> &in) {
+    for (vector<Circle*>::iterator i = in.begin(); i != in.end(); i++) {
+        const real r1 = (*i)->r;
+
+        bool enclosed = false;
+        for (vector<Circle*>::iterator j = in.begin(); j != in.end(); j++) {
+            const real r2 = (*j)->r;
+
+            const real d = sqrt(dist2(*i, *j)) + r1 - r2;
+            if (d < -epsilon) {
+                enclosed = true;
+                break;
+            }
+        }
+
+        if (!enclosed) {
+            out.push_back(*i);
+        }
     }
 }
 
@@ -249,16 +273,26 @@ int main() {
             circles.push_back(c);
         }
 
-        //cout << "circles=" << circles.size() << endl;
+        vector<Circle*> circles2;
+        removeInternal(circles2, circles);
+
+        vector<Circle*>::iterator it;
+        //cout << "circles=" << circles2.size() << endl;
+        //for (it = circles2.begin(); it != circles2.end(); it++) {
+         //   cout << "x=" << (*it)->x << " y=" << (*it)->y << " r=" << (*it)->r << endl;
+        //}
+        if (circles2.size() == 1) {
+            cout << fixed << setprecision(10) << circles2[0]->r * M_PI * 2 << endl;
+            continue;
+        }
 
         vector<Point*> points;
-        outerTangle(points, circles);
+        outerTangle(points, circles2);
         //cout << "points=" << points.size() << endl;
 
         vector<Point*> result;
         findConvexHull(result, points);
 
-        vector<Point*>::iterator it;
         //for (it = result.begin(); it != result.end(); it++)
           //  cout << "(" << (*it)->x << ", " << (*it)->y << " " << (*it)->circle << " " << (*it)->angle *180/M_PI << ")" << endl;
         //cout << points.size() << " " << result.size() << endl;
