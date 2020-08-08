@@ -6,6 +6,8 @@ using namespace std;
 
 typedef long double real;
 
+const real epsilon = (real)1e-20;
+
 //Graham algorithm based on https://www.tutorialspoint.com/cplusplus-program-to-implement-graham-scan-algorithm-to-find-the-convex-hull
 
 struct Circle {
@@ -40,10 +42,10 @@ real direction(const Point* a, const Point* b, const Point* c) {
 
 bool comparator(Point* &point1, Point* &point2) {
    real dir = direction(point0, point1, point2);
-   if (dir == (real)0) {
-      return dist2(point0, point2) >= dist2(point0, point1);
-   }
-   return dir < (real)0;
+   //if (dir == (real)0) {
+     //  return dist2(point0, point2) > dist2(point0, point1);
+   //}
+   return dir < -epsilon;
 }
 
 void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
@@ -68,7 +70,7 @@ void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
    }
 
    for (int i = 3; i < n; i++) {
-       while (direction(extractSecond(s), s.top(), points[i]) >= (real)0) {
+       while (direction(extractSecond(s), s.top(), points[i]) > (real)epsilon) {
            s.pop();
        }
        s.push(points[i]);
@@ -84,19 +86,24 @@ void outerTangle() {
 }
 
 int main() {
-   Point arr[] = {{-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
-      {3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4}};
+   Point arr[] = {
+      {-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
+      {3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4},
+      //{-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
+      //{3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4}
+   };
 
    vector<Point*> points;
-   for (int j = 0; j < 2; j++) {
-   for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++) {
-        points.push_back(arr + i);
-   }
+   for (int j = 0; j < 1/*000000/18*/; j++) {
+       for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++) {
+           points.push_back(arr + i);
+       }
    }
    vector<Point*> result;
    findConvexHull(result, points);
    vector<Point*>::iterator it;
    for (it = result.begin(); it!=result.end(); it++)
       cout << "(" << (*it)->x << ", " <<(*it)->y <<") ";
+   cout << points.size() << " " << result.size() << endl;
    //(-9, -5) (-10, 3) (-10, 4) (-7, 8) (8, 6) (8, -7) (6, -10)
 }
