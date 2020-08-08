@@ -12,12 +12,12 @@
 
 using namespace std;
 
+//Graham algorithm based on https://www.tutorialspoint.com/cplusplus-program-to-implement-graham-scan-algorithm-to-find-the-convex-hull
+
 typedef long double real;
 
 const real epsilon = (real)1e-15;
 const real PI2 = (real)M_PI / 2;
-
-//Graham algorithm based on https://www.tutorialspoint.com/cplusplus-program-to-implement-graham-scan-algorithm-to-find-the-convex-hull
 
 struct Coordinates {
     real x, y;
@@ -130,16 +130,6 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
         const real y1 = (*i)->y;
         const real r1 = (*i)->r;
 
-        /*for (int dir = 0; dir < 4; dir++) {
-            const real angle = PI2 * dir;
-            Point* p1 = new Point();
-            p1 -> x = x1 + r1 * cos(angle);
-            p1 -> y = y1 + r1 * sin(angle);
-            p1 -> circle = *i;
-            p1 -> angle = angle;
-            points.push_back(p1);
-        }*/
-
         for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
             const real x2 = (*j)->x;
             const real y2 = (*j)->y;
@@ -179,13 +169,10 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
 
 real beltLength(const Point *a, const Point *b) {
     if (a -> circle != b -> circle) {
-        //cout << "dist" << endl;
         return sqrt(dist2(a, b));
     } else if (a -> angle >= b -> angle - epsilon) {
-        //cout << "ang1 " << a -> angle * 180 / M_PI << " " << b -> angle * 180 / M_PI << endl;
         return a -> circle -> r * (M_PI * 2 + b -> angle - a -> angle);
     } else {
-        //cout << "ang2 " << a -> angle * 180 / M_PI << " " << b -> angle * 180 / M_PI << endl;
         return a -> circle -> r * (b -> angle - a -> angle);
     }
 }
@@ -205,60 +192,7 @@ real beltLength(vector<Point*> &points) {
     return length;
 }
 
-void handler(int sig) {
-    void *array[10];
-    size_t size;
-
-    // get void*'s for all entries on the stack
-    size = backtrace(array, 10);
-
-    // print out all the frames to stderr
-    fprintf(stderr, "Error: signal %d:\n", sig);
-    backtrace_symbols_fd(array, size, STDERR_FILENO);
-    exit(1);
-}
-
 int main() {
-    signal(SIGSEGV, handler);
-    /*Point arr[] = {
-        //{0,0}, {1,0}, {10,0}, {3,0}, {-3,0}, {5,0}
-        {-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
-        {3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4},
-        //{-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
-        //{3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4}
-    };
-
-    vector<Point*> points;
-    for (int j = 0; j < 1000000/18; j++) {
-        for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++) {
-            points.push_back(arr + i);
-        }
-    }
-    vector<Point*> result;
-    findConvexHull(result, points);
-    vector<Point*>::iterator it;
-    for (it = result.begin(); it!=result.end(); it++)
-        cout << "(" << (*it)->x << ", " << (*it)->y <<") ";
-    cout << points.size() << " " << result.size() << endl;
-    //(-9, -5) (-10, 3) (-10, 4) (-7, 8) (8, 6) (8, -7) (6, -10)
-    */
-
-    /*Circle arr[] = {
-        {0, 1, 0},
-        {0, 0, 1},
-    };
-
-    vector<Circle*> circles;
-    for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++) {
-        circles.push_back(arr + i);
-    }
-
-    vector<Point*> points;
-    outerTangle(points, circles);
-    vector<Point*>::iterator it;
-    for (it = points.begin(); it!=points.end(); it++)
-        cout << "(" << (*it)->x << ", " << (*it)->y <<") ";*/
-
     int t;
     cin >> t;
 
@@ -276,11 +210,6 @@ int main() {
         vector<Circle*> circles2;
         removeInternal(circles2, circles);
 
-        vector<Circle*>::iterator it;
-        //cout << "circles=" << circles2.size() << endl;
-        //for (it = circles2.begin(); it != circles2.end(); it++) {
-         //   cout << "x=" << (*it)->x << " y=" << (*it)->y << " r=" << (*it)->r << endl;
-        //}
         if (circles2.size() == 1) {
             cout << fixed << setprecision(10) << circles2[0]->r * M_PI * 2 << endl;
             continue;
@@ -288,15 +217,11 @@ int main() {
 
         vector<Point*> points;
         outerTangle(points, circles2);
-        //cout << "points=" << points.size() << endl;
 
         vector<Point*> result;
         findConvexHull(result, points);
 
-        //for (it = result.begin(); it != result.end(); it++)
-          //  cout << "(" << (*it)->x << ", " << (*it)->y << " " << (*it)->circle << " " << (*it)->angle *180/M_PI << ")" << endl;
-        //cout << points.size() << " " << result.size() << endl;
-        cout << fixed << setprecision(10) << beltLength(result) << endl;
+        cout << fixed << setprecision(10) << beltLength(result) + 1e-9 << endl;
     }
 
     return 0;

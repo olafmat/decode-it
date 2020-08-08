@@ -32,12 +32,14 @@ int main() {
     int eof = std::char_traits<char>::eof();
     while (std::cin.peek() != eof) {
         char op = cin.get();
+        if (op == 10) {
+            continue;
+        }
         if (op != 'T' && op != 'B') {
             break;
         }
         unsigned ip1 = root(readIP());
         unsigned ip2 = root(readIP());
-        cin.get();
 
         if (op == 'B') {
             if (ip1 != ip2) {
