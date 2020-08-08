@@ -1,12 +1,12 @@
 #include <iostream>
 #include <unordered_map>
+#include <cstdlib>
 using namespace std;
 
-unordered_map<unsigned, unsigned> net;
+unordered_map<__uint32_t, __uint32_t> net;
 
-inline unsigned readIP() {
-    unsigned a0, a1, a2, a3;
-    cin.get();
+inline __uint32_t readIP() {
+    __uint32_t a0, a1, a2, a3;
     cin >> a0;
     cin.get();
     cin >> a1;
@@ -17,8 +17,8 @@ inline unsigned readIP() {
     return (a0 << 24) | (a1 << 16) | (a2 << 8) | a3;
 }
 
-inline unsigned root(unsigned node) {
-    unordered_map<unsigned, unsigned>::iterator it, end = net.end();
+inline __uint32_t root(__uint32_t node) {
+    unordered_map<__uint32_t, __uint32_t>::iterator it, end = net.end();
     while (true) {
         it = net.find(node);
         if (it == end) {
@@ -28,22 +28,34 @@ inline unsigned root(unsigned node) {
     }
 }
 
+void test() {
+    for (int n = 1; n < 255; n++) {
+        int m = (rand() % n) / 5 * 5 + (n % 5);
+        if (rand() % 2) {
+            cout << "B 1.1.1." << n << " 1.1.1." << m << endl;
+        } else {
+            cout << "B 1.1.1." << m << " 1.1.1." << n << endl;
+        }
+    }
+    for (int n = 1; n < 255; n++) {
+        cout << "T 1.1.1." << n << " 1.1.1.100" << endl;
+    }
+}
+
 int main() {
+    //test();
     int eof = std::char_traits<char>::eof();
     while (std::cin.peek() != eof) {
         char op = cin.get();
-        if (op == 10) {
+        if (op != 'T' && op != 'B') {
             continue;
         }
-        if (op != 'T' && op != 'B') {
-            break;
-        }
-        unsigned ip1 = root(readIP());
-        unsigned ip2 = root(readIP());
+        __uint32_t ip1 = root(readIP());
+        __uint32_t ip2 = root(readIP());
 
         if (op == 'B') {
             if (ip1 != ip2) {
-                net[ip1] = ip2;
+                net[ip2] = ip1;
             }
         } else {
             cout << (ip1 == ip2 ? 'T' : 'N') << endl;
