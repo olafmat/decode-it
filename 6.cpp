@@ -6,7 +6,7 @@ using namespace std;
 
 typedef long double real;
 
-const real epsilon = (real)1e-20;
+const real epsilon = (real)1e-15;
 
 //Graham algorithm based on https://www.tutorialspoint.com/cplusplus-program-to-implement-graham-scan-algorithm-to-find-the-convex-hull
 
@@ -42,10 +42,10 @@ real direction(const Point* a, const Point* b, const Point* c) {
 
 bool comparator(Point* &point1, Point* &point2) {
    real dir = direction(point0, point1, point2);
-   //if (dir == (real)0) {
-     //  return dist2(point0, point2) > dist2(point0, point1);
-   //}
-   return dir < -epsilon;
+   if (dir > -epsilon && dir < epsilon) {
+       return dist2(point0, point2) >= dist2(point0, point1) + epsilon;
+   }
+   return dir < 0;
 }
 
 void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
@@ -65,15 +65,17 @@ void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
    sort(points.begin() + 1, points.end(), comparator);    //sort points from 1 place to end
    stack<Point*> s;
 
-   for (int i = 0; i < 3 && i < n; i++) {
-       s.push(points[i]);
-   }
-
-   for (int i = 3; i < n; i++) {
-       while (direction(extractSecond(s), s.top(), points[i]) > (real)epsilon) {
-           s.pop();
+   for (int i = 0; i < n; i++) {
+       if (i >= 3) {
+           while (s.size() >= 2 && direction(extractSecond(s), s.top(), points[i]) > epsilon) {
+               s.pop();
+           }
        }
-       s.push(points[i]);
+
+       if (i == 0 || dist2(points[i], points[i - 1]) > epsilon) {
+           s.push(points[i]);
+       }
+
    }
 
    while (!s.empty()) {
@@ -87,6 +89,7 @@ void outerTangle() {
 
 int main() {
    Point arr[] = {
+      //{0,0}, {1,0}, {10,0}, {3,0}, {-3,0}, {5,0}
       {-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
       {3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4},
       //{-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
@@ -94,7 +97,7 @@ int main() {
    };
 
    vector<Point*> points;
-   for (int j = 0; j < 1/*000000/18*/; j++) {
+   for (int j = 0; j < 1000000/18; j++) {
        for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++) {
            points.push_back(arr + i);
        }
@@ -103,7 +106,7 @@ int main() {
    findConvexHull(result, points);
    vector<Point*>::iterator it;
    for (it = result.begin(); it!=result.end(); it++)
-      cout << "(" << (*it)->x << ", " <<(*it)->y <<") ";
+      cout << "(" << (*it)->x << ", " << (*it)->y <<") ";
    cout << points.size() << " " << result.size() << endl;
    //(-9, -5) (-10, 3) (-10, 4) (-7, 8) (8, 6) (8, -7) (6, -10)
 }
