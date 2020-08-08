@@ -2,11 +2,14 @@
 #include <stack>
 #include <vector>
 #include <iostream>
+#define _USE_MATH_DEFINES
+#include <math.h>
 using namespace std;
 
 typedef long double real;
 
 const real epsilon = (real)1e-15;
+const real PI2 = (real)M_PI / 2;
 
 //Graham algorithm based on https://www.tutorialspoint.com/cplusplus-program-to-implement-graham-scan-algorithm-to-find-the-convex-hull
 
@@ -83,15 +86,47 @@ void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
     }
 }
 
-void outerTangle(vector<Point*> points, vector<Circle*>circles) {
+void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
     int size = circles.size();
-    vector<Circle*>::iterator it;
-    for (it = circles.begin(); it!=circles.end(); it++) {
+    for (vector<Circle*>::iterator i = circles.begin(); i != circles.end(); i++) {
+        for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
+            const real x1 = (*i)->x;
+            const real y1 = (*i)->y;
+            const real r1 = (*i)->r;
+            const real x2 = (*j)->x;
+            const real y2 = (*j)->y;
+            const real r2 = (*j)->r;
+            const real dx = x2 - x1;
+            const real dy = y2 - y1;
+            const real dr = r2 - r1;
+            const real d = sqrt(dx * dx + dy * dy);
+            if (d < epsilon || abs(dr) > d + epsilon) {
+                continue;
+            }
+            const real beta1 = dr > d - epsilon ? PI2 : dr < -d + epsilon ? -PI2 : asin(dr / d);
+            const real gamma = -atan2(dy, dx);
+            for (int sign = -1; sign <= 1; sign += 2) {
+                const real beta = beta1 * sign;
+                const real alpha = gamma - beta;
+                const real sinAlpha = sin(alpha) * sign;
+                const real cosAlpha = cos(alpha) * sign;
+
+                Point* p1 = new Point();
+                p1 -> x = x1 + r1 * sinAlpha;
+                p1 -> y = y1 + r1 * cosAlpha;
+                points.push_back(p1);
+
+                Point* p2 = new Point();
+                p2 -> x = x2 + r2 * sinAlpha;
+                p2 -> y = y2 + r2 * cosAlpha;
+                points.push_back(p2);
+            }
+        }
     }
 }
 
 int main() {
-    Point arr[] = {
+    /*Point arr[] = {
         //{0,0}, {1,0}, {10,0}, {3,0}, {-3,0}, {5,0}
         {-7,8},{-4,6},{2,6},{6,4},{8,6},{7,-2},{4,-6},{8,-7},{0,0},
         {3,-2},{6,-10},{0,-6},{-9,-5},{-8,-2},{-8,0},{-10,3},{-2,2},{-10,4},
@@ -112,4 +147,21 @@ int main() {
         cout << "(" << (*it)->x << ", " << (*it)->y <<") ";
     cout << points.size() << " " << result.size() << endl;
     //(-9, -5) (-10, 3) (-10, 4) (-7, 8) (8, 6) (8, -7) (6, -10)
+    */
+
+    Circle arr[] = {
+        {0, 1, 0},
+        {0, 0, 1},
+    };
+
+    vector<Circle*> circles;
+    for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); i++) {
+        circles.push_back(arr + i);
+    }
+
+    vector<Point*> points;
+    outerTangle(points, circles);
+    vector<Point*>::iterator it;
+    for (it = points.begin(); it!=points.end(); it++)
+        cout << "(" << (*it)->x << ", " << (*it)->y <<") ";
 }
