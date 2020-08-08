@@ -6,10 +6,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include <execinfo.h>
-#include <signal.h>
-#include <unistd.h>
-
 using namespace std;
 
 //Graham algorithm based on https://www.tutorialspoint.com/cplusplus-program-to-implement-graham-scan-algorithm-to-find-the-convex-hull
@@ -211,7 +207,7 @@ int main() {
         removeInternal(circles2, circles);
 
         if (circles2.size() == 1) {
-            cout << fixed << setprecision(10) << circles2[0]->r * M_PI * 2 << endl;
+            cout << fixed << setprecision(15) << circles2[0]->r * M_PI * 2 << endl;
             continue;
         }
 
@@ -221,7 +217,7 @@ int main() {
         vector<Point*> result;
         findConvexHull(result, points);
 
-        cout << fixed << setprecision(10) << beltLength(result) + 1e-9 << endl;
+        cout << fixed << setprecision(15) << beltLength(result) << endl;
     }
 
     return 0;
