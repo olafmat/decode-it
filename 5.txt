@@ -1,9 +1,10 @@
-5
+6
 Robert 12
 Julia 23
 Adam 1
 Carol 10
 Daniel 4
+Olaf 30
 5
 Robert Julia
 Robert Carol
