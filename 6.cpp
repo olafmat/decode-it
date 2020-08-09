@@ -12,7 +12,7 @@ using namespace std;
 
 typedef double real;
 
-const real epsilon = (real)1e-15;
+const real epsilon = 0;//(real)1e-15;
 const real PI2 = (real)M_PI / 2;
 
 struct Coordinates {
@@ -103,11 +103,19 @@ void removeInternal(vector<Circle*> &out, vector<Circle*> &in) {
         const real r1 = (*i)->r;
 
         bool enclosed = false;
+        bool wasI = false;
         for (vector<Circle*>::iterator j = in.begin(); j != in.end(); j++) {
+            if (*i == *j) {
+                wasI = true;
+                continue;
+            }
             const real r2 = (*j)->r;
-
-            const real d = sqrt(dist2(*i, *j)) + r1 - r2;
-            if (d < -epsilon) {
+            real d2 = dist2(*i, *j);
+            if (d2 < 0) {
+                d2 = 0;
+            }
+            const real d = sqrt(d2) + r1 - r2;
+            if (d < -epsilon || (d <= epsilon && wasI)) {
                 enclosed = true;
                 break;
             }
@@ -125,8 +133,8 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
         const real x1 = (*i)->x;
         const real y1 = (*i)->y;
         const real r1 = (*i)->r;
-        for (int a = 0; a < 500; a++) {
-            const real angle = (real) M_PI * a / 250;
+        for (int a = 0; a < 600; a++) {
+            const real angle = (real) M_PI * a / 300;
             Point* p1 = new Point();
             p1 -> x = x1 + r1 * sin(angle);
             p1 -> y = y1 + r1 * cos(angle);
@@ -141,7 +149,8 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
             const real dx = x2 - x1;
             const real dy = y2 - y1;
             const real dr = r2 - r1;
-            const real d = sqrt(dx * dx + dy * dy);
+            const real d2 = dx * dx + dy * dy;
+            const real d = d2 > 0 ? sqrt(d2) : 0.0;
             if (d < epsilon || abs(dr) > d + epsilon) {
                 continue;
             }
