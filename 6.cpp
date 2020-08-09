@@ -10,7 +10,7 @@ using namespace std;
 
 //Graham algorithm based on https://www.tutorialspoint.com/cplusplus-program-to-implement-graham-scan-algorithm-to-find-the-convex-hull
 
-typedef long double real;
+typedef double real;
 
 const real epsilon = (real)1e-15;
 const real PI2 = (real)M_PI / 2;
@@ -134,7 +134,7 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
             p1 -> angle = angle;
             points.push_back(p1);
         }
-        /*for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
+        for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
             const real x2 = (*j)->x;
             const real y2 = (*j)->y;
             const real r2 = (*j)->r;
@@ -167,13 +167,14 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
                 p2 -> angle = fmod(sign > 0 ? alpha + (real)M_PI * 2: alpha + (real)M_PI * 3, (real)M_PI * 2);
                 points.push_back(p2);
             }
-        }*/
+        }
     }
 }
 
 real beltLength(const Point *a, const Point *b) {
     if (a -> circle != b -> circle) {
-        return sqrt(dist2(a, b));
+        real d2 = dist2(a, b);
+        return d2 > 0 ? sqrt(d2) : 0.0;
     } else if (a -> angle >= b -> angle - epsilon) {
         return a -> circle -> r * (M_PI * 2 + b -> angle - a -> angle);
     } else {
