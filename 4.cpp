@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <cstdlib>
+#include <string>
 using namespace std;
 
 unordered_map<__uint32_t, __uint32_t> net;
@@ -45,6 +46,7 @@ void test() {
 int main() {
     //test();
     int eof = std::char_traits<char>::eof();
+    string out;
     while (std::cin.peek() != eof) {
         char op = cin.get();
         if (op != 'T' && op != 'B') {
@@ -58,9 +60,10 @@ int main() {
                 net[ip2] = ip1;
             }
         } else {
-            cout << (ip1 == ip2 ? 'T' : 'N') << endl;
+            out += (ip1 == ip2 ? "T\n" : "N\n");
         }
     }
 
+    cout << out;
     return 0;
 }
