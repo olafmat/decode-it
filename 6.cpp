@@ -8,9 +8,7 @@
 
 using namespace std;
 
-//Graham algorithm based on https://www.tutorialspoint.com/cplusplus-program-to-implement-graham-scan-algorithm-to-find-the-convex-hull
-
-typedef double real;
+typedef long double real;
 
 const real epsilon = 0;//(real)1e-15;
 const real PI2 = (real)M_PI / 2;
@@ -28,74 +26,59 @@ struct Point: public Coordinates  {
     real angle;
 };
 
-Point* point0;
-
-Point* extractSecond(stack<Point*> &s) {
-    Point* aux = s.top();
-    s.pop();
-    Point* res = s.top();
-    s.push(aux);
-    return res;
-}
-
 real dist2(const Coordinates* a, const Coordinates* b) {
     real dx = a -> x - b -> x;
     real dy = a -> y - b -> y;
     return dx * dx + dy * dy;
 }
 
-real direction(const Coordinates* a, const Coordinates* b, const Coordinates* c) {
-    return (b -> y - a -> y) * (c -> x - b -> x) - (b -> x - a -> x) * (c -> y - b -> y);
+real direction(const Coordinates* z, const Coordinates* a, const Coordinates* b) {
+    return (a -> x - z -> x) * (b -> y - z -> y) - (a -> y - z -> y) * (b -> x - z -> x);
 }
 
-bool comparator(Point* &point1, Point* &point2) {
-    real dir = direction(point0, point1, point2);
-    if (dir == 0) {
-        return dist2(point0, point2) > dist2(point0, point1);
-    }
-    return dir < 0;
+bool comparator(Point* a, Point* b) {
+    return a->x < b->x || (a->x == b->x && a->y < b->y) || (a->x == b->x && a->y == b->y && (long)(void*)a < (long)(void*)b);
 }
 
-void findConvexHull(vector<Point*> &res, vector<Point*> &points) {
-    if (points.empty()) {
-        return;
-    }
-
-    real minY = points[0] -> y;
-    int minI = 0;
+vector<Point*> findConvexHull(vector<Point*> &points) {
     int n = points.size();
-    for (int i = 1; i < n; i++) {
-        real y = points[i] -> y;
-        if (y < minY || (minY == y && points[i] -> x < points[minI] -> x)) {
-            minY = points[i] -> y;
-            minI = i;
-        }
+    if (n <= 3) {
+        return points;
     }
 
-    swap(points[0], points[minI]);
-    point0 = points[0];
+    sort(points.begin(), points.end(), comparator);
 
-    if (n > 1) {
-        sort(points.begin() + 1, points.end(), comparator);
-    }
-    stack<Point*> s;
+    /*for (int i = 0; i < n; i++) {
+        Point *p = points[i];
+        cout << p->x << " " << p->y << " " << p->circle << " " << p->angle * 180 / M_PI << endl;
+    }*/
 
+    vector<Point*> hull(n << 1);
+
+    int k = 0;
     for (int i = 0; i < n; i++) {
-        if (i >= 3) {
-            while (s.size() >= 2 && direction(extractSecond(s), s.top(), points[i]) > epsilon) {
-                s.pop();
-            }
+        while (k >= 2 && direction(hull[k - 2], hull[k - 1], points[i]) <= 0) {
+            k--;
         }
-
-        if (!i || dist2(points[i], points[i - 1]) > epsilon) {
-            s.push(points[i]);
+        hull[k++] = points[i];
+    }
+    
+    for (int i = n - 1, t = k + 1; i > 0; i--) {
+        while (k >= t && direction(hull[k - 2], hull[k - 1], points[i - 1]) <= 0) {
+            k--;
         }
+        hull[k++] = points[i - 1];
     }
 
-    while (!s.empty()) {
-        res.push_back(s.top());
-        s.pop();
-    }
+    /*for (int i = n - 1; i > 0; i--) {
+        while (k >= 2 && direction(hull[k - 2], hull[k - 1], points[i - 1]) <= 0) {
+            k--;
+        }
+        hull[k++] = points[i - 1];
+    }*/
+
+    hull.resize(k - 1);
+    return hull;
 }
 
 void removeInternal(vector<Circle*> &out, vector<Circle*> &in) {
@@ -133,8 +116,8 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
         const real x1 = (*i)->x;
         const real y1 = (*i)->y;
         const real r1 = (*i)->r;
-        for (int a = 0; a < 600; a++) {
-            const real angle = (real) M_PI * a / 300;
+        for (int a = 0; a < 360; a++) {
+            const real angle = (real) M_PI * a / 180;
             Point* p1 = new Point();
             p1 -> x = x1 + r1 * sin(angle);
             p1 -> y = y1 + r1 * cos(angle);
@@ -142,7 +125,7 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
             p1 -> angle = angle;
             points.push_back(p1);
         }
-        for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
+        /*for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
             const real x2 = (*j)->x;
             const real y2 = (*j)->y;
             const real r2 = (*j)->r;
@@ -176,7 +159,7 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
                 p2 -> angle = fmod(sign > 0 ? alpha + (real)M_PI * 2: alpha + (real)M_PI * 3, (real)M_PI * 2);
                 points.push_back(p2);
             }
-        }
+        }*/
     }
 }
 
@@ -200,7 +183,9 @@ real beltLength(vector<Point*> &points) {
     vector<Point*>::iterator it;
     for (it = points.begin(); it != points.end(); it++) {
         const Point* p = *it;
-        length += beltLength(prev, p);
+        real len = beltLength(p, prev);
+        //cout << p->x << " " << p->y << " " << len << " " << p->circle << " " << p->angle * 180 / M_PI << endl;
+        length += len;
         prev = p;
     }
     return length;
@@ -226,17 +211,16 @@ int main() {
         removeInternal(circles2, circles);
 
         if (circles2.size() == 1) {
-            cout << fixed << setprecision(10) << circles2[0]->r * M_PI * 2 << endl;
+            cout << setprecision(10) << circles2[0]->r * M_PI * 2 << endl;
             continue;
         }
 
         vector<Point*> points;
         outerTangle(points, circles2);
 
-        vector<Point*> result;
-        findConvexHull(result, points);
+        vector<Point*> result = findConvexHull(points);
 
-        cout << fixed << setprecision(10) << beltLength(result) << endl;
+        cout << setprecision(10) << beltLength(result) << endl;
     }
 
     return 0;
