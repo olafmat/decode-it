@@ -125,8 +125,16 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
         const real x1 = (*i)->x;
         const real y1 = (*i)->y;
         const real r1 = (*i)->r;
-
-        for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
+        for (int a = 0; a < 500; a++) {
+            const real angle = (real) M_PI * a / 250;
+            Point* p1 = new Point();
+            p1 -> x = x1 + r1 * sin(angle);
+            p1 -> y = y1 + r1 * cos(angle);
+            p1 -> circle = *i;
+            p1 -> angle = angle;
+            points.push_back(p1);
+        }
+        /*for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
             const real x2 = (*j)->x;
             const real y2 = (*j)->y;
             const real r2 = (*j)->r;
@@ -159,7 +167,7 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
                 p2 -> angle = fmod(sign > 0 ? alpha + (real)M_PI * 2: alpha + (real)M_PI * 3, (real)M_PI * 2);
                 points.push_back(p2);
             }
-        }
+        }*/
     }
 }
 
@@ -208,7 +216,7 @@ int main() {
         removeInternal(circles2, circles);
 
         if (circles2.size() == 1) {
-            cout << fixed << setprecision(15) << circles2[0]->r * M_PI * 2 << endl;
+            cout << fixed << setprecision(10) << circles2[0]->r * M_PI * 2 << endl;
             continue;
         }
 
@@ -218,7 +226,7 @@ int main() {
         vector<Point*> result;
         findConvexHull(result, points);
 
-        cout << fixed << setprecision(15) << beltLength(result) << endl;
+        cout << fixed << setprecision(10) << beltLength(result) << endl;
     }
 
     return 0;
