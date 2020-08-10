@@ -12,6 +12,7 @@ struct Node {
     int freq;
 };
 
+unordered_set<Node*> all;
 unordered_set<Node*> nodes;
 unordered_map<string, Node*> names;
 unordered_set<Node*> dom;
@@ -65,6 +66,7 @@ void loadData() {
         Node * node = new Node();
         cin >> node -> name >> node -> weight;
         node->freq = 1;
+        all.insert(node);
         nodes.insert(node);
         ndom.insert(node);
         names[node->name] = node;
@@ -204,6 +206,19 @@ void printResults() {
     cout << total << endl;
 }
 
+void freeMemory() {
+    for (unordered_set<Node*>::iterator it = all.begin(); it != all.end(); it++) {
+        Node *node = *it;
+        node->edges.clear();
+        delete node;
+    }
+    all.clear();
+    nodes.clear();
+    dom.clear();
+    ndom.clear();
+    names.clear();
+}
+
 int main() {
     loadData();
     if (nodes.size() <= 20) {
@@ -212,5 +227,6 @@ int main() {
         findDominatingSet();
     }
     printResults();
-	return 0;
+    freeMemory();
+    return 0;
 }
