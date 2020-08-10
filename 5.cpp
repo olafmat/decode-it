@@ -24,44 +24,26 @@ unordered_set<Node*> dom;
 unordered_set<Node*> ndom;
 
 void removeNode(Node* node) {
-//cout << __LINE__ <<endl;
     nodes.erase(node);
-//cout << __LINE__ <<endl;
     ndom.erase(node);
-//cout << __LINE__ <<endl;
     unordered_set<Node*>::iterator it;
-//cout << __LINE__ <<endl;
     for (it = node->edges.begin(); it != node->edges.end(); it++) {
-//cout << __LINE__ <<endl;
         Node* node2 = *it;
-//cout << __LINE__ <<endl;
         node2->edges.erase(node);
-//cout << __LINE__ <<endl;
     }
-//cout << __LINE__ <<endl;
     node->edges.clear();
-//cout << __LINE__ <<endl;
 }
 
 bool isDominated(Node *node, Node* excl) {
-//cout << __LINE__ <<endl;
     if (node != excl && dom.count(node)) {
-//cout << "is dom" << endl;
         return true;
     }
-//cout << "count " << node->edges.size() << endl;
-//cout << __LINE__ <<endl;
     for (unordered_set<Node*>::iterator it = node->edges.begin(); it != node->edges.end(); it++) {
-//cout << __LINE__ <<endl;
         Node* node2 = *it;
-//cout << __LINE__ <<endl;
         if (node2 != excl && dom.count(node2)) {
-//cout << __LINE__ <<endl;
-//cout << "dom by " << node2->name << endl;
             return true;
         }
     }
-//cout << __LINE__ <<endl;
     return false;
 }
 
@@ -104,6 +86,40 @@ void loadData() {
         node1->edges.insert(node2);
         node2->edges.insert(node1);
     }
+}
+
+void bruteForce() {
+    uint32_t max = uint32_t(1) << ndom.size();
+    unordered_set<Node*> bestDom;
+    int32_t bestCost = 0x7FFFFFFF;
+    for (uint32_t iter = 1; iter < max; iter++) {
+        int cost = 0;
+        uint32_t c = iter;
+        dom.clear();
+        for (unordered_set<Node*>::iterator it = nodes.begin(); c != 0 && it != nodes.end(); it++, c >>= 1) {
+            if (c & 1) {
+                Node *node = *it;
+                dom.insert(node);
+                cost += node->weight;
+            }
+        }
+        if (cost > bestCost) {
+            continue;
+        }
+
+        bool ok = true;
+        for (unordered_set<Node*>::iterator it = nodes.begin(); it != nodes.end(); it++) {
+            if (!isDominated(*it, NULL)) {
+                ok = false;
+                break;
+            }
+        }
+        if (ok) {
+            bestCost = cost;
+            bestDom = dom;
+        }
+    }
+    dom = bestDom;
 }
 
 void findDominatingSet() {
@@ -169,49 +185,38 @@ void findDominatingSet() {
     while(repeat) {
         double bestScore = 0;
         Node *best;
-//cout << __LINE__ <<endl;
         for (unordered_set<Node*>::iterator it = ndom.begin(); it != ndom.end(); it++) {
-//cout << __LINE__ <<endl;
             Node *node = *it;
-//cout << __LINE__ <<endl;
             double sc = score(node);
-//cout << "score of " << node -> name << " = " << sc << endl;
-//cout << __LINE__ <<endl;
             if (sc > bestScore) {
-//cout << __LINE__ <<endl;
                 bestScore = sc;
                 best = node;
             }
-//cout << __LINE__ <<endl;
         }
-//cout << __LINE__ <<endl;
         if (bestScore == 0) {
             break;
         }
-//cout << __LINE__ <<endl;
         dom.insert(best);
-//cout << __LINE__ <<endl;
         unordered_set<Node*> nndom;
 
         repeat = false;
-//cout << __LINE__ <<endl;
         for (unordered_set<Node*>::iterator it = ndom.begin(); it != ndom.end(); it++) {
-//cout << __LINE__ <<endl;
             Node *node = *it;
-//cout << __LINE__ <<endl;
-//cout << node->name <<endl;
             if (!isDominated(node, NULL)) {
-//cout << __LINE__ <<endl;
-//cout << "repeat" << endl;
                 repeat = true;
                 nndom.insert(node);
-//cout << __LINE__ <<endl;
                 node->freq++;
             }
-//cout << __LINE__ <<endl;
         }
         ndom = nndom;
-//cout << __LINE__ <<endl;
+    }
+
+    unordered_set<Node*> ndom = dom;
+    for (unordered_set<Node*>::iterator it = ndom.begin(); it != ndom.end(); it++) {
+        Node *node = *it;
+        if (score(node) == 0) {
+            dom.erase(node);
+        }
     }
 }
 
@@ -242,7 +247,11 @@ void handler(int sig) {
 int main() {
     signal(SIGSEGV, handler);
     loadData();
-    findDominatingSet();
+    if (nodes.size() <= 20) {
+        bruteForce();
+    } else {
+        findDominatingSet();
+    }
     printResults();
 	return 0;
 }
