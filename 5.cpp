@@ -5,12 +5,6 @@
 #include <unordered_map>
 using namespace std;
 
-#include <execinfo.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include "dirent.h"
-
 struct Node {
     string name;
     int weight;
@@ -123,64 +117,43 @@ void bruteForce() {
 }
 
 void findDominatingSet() {
-/*    bool change = true;
-//cout << __LINE__ <<endl;
+    /*bool change = true;
     while(change) {
         change = false;
-//cout << __LINE__ <<endl;
-        for (unordered_set<Node*>::iterator it = nodes.begin(); it != nodes.end(); it++) {
-//cout << __LINE__ <<endl;
+        unordered_set<Node*> nodes2 = nodes;
+        for (unordered_set<Node*>::iterator it = nodes2.begin(); it != nodes2.end(); it++) {
             Node* node = *it;
-//cout << __LINE__ <<endl;
             int size = node->edges.size();
-//cout << __LINE__ <<endl;
             if (size == 0) {
-//cout << __LINE__ <<endl;
                 removeNode(node);
-//cout << __LINE__ <<endl;
                 dom.insert(node);
-//cout << __LINE__ <<endl;
                 ndom.erase(node);
-//cout << __LINE__ <<endl;
                 change = true;
             };
 
-//cout << __LINE__ <<endl;
             int total = 0;
-//cout << __LINE__ <<endl;
             for (unordered_set<Node*>::iterator it2 = node->edges.begin(); it2 != node->edges.end(); it2++) {
                 Node *node2 = *it2;
-//cout << __LINE__ <<endl;
                 if (node2->edges.size() == 1) {
-//cout << __LINE__ <<endl;
                     total += node2->weight;
                 }
             };
-//cout << __LINE__ <<endl;
             if (total > node->weight) {
-//cout << __LINE__ <<endl;
-                for (unordered_set<Node*>::iterator it2 = node->edges.begin(); it2 != node->edges.end(); it2++) {
-//cout << __LINE__ <<endl;
+                unordered_set<Node*> edges = node->edges;
+                for (unordered_set<Node*>::iterator it2 = edges.begin(); it2 != edges.end(); it2++) {
                     Node *node2 = *it2;
-//cout << __LINE__ <<endl;
                     if (node2->edges.size() == 1) {
-//cout << __LINE__ <<endl;
                         removeNode(node2);
-//cout << __LINE__ <<endl;
                     }
                 }
-//cout << __LINE__ <<endl;
                 removeNode(node);
-//cout << __LINE__ <<endl;
                 dom.insert(node);
-//cout << __LINE__ <<endl;
                 ndom.erase(node);
-//cout << __LINE__ <<endl;
                 change =true;
             }
         }
-    }
-*/
+    }*/
+
     bool repeat = !ndom.empty();
     while(repeat) {
         double bestScore = 0;
@@ -231,21 +204,7 @@ void printResults() {
     cout << total << endl;
 }
 
-void handler(int sig) {
-    void *array[10];
-    size_t size;
-
-    // get void*'s for all entries on the stack
-    size = backtrace(array, 10);
-
-    // print out all the frames to stderr
-    fprintf(stderr, "Error: signal %d:\n", sig);
-    backtrace_symbols_fd(array, size, STDERR_FILENO);
-    exit(1);
-}
-
 int main() {
-    signal(SIGSEGV, handler);
     loadData();
     if (nodes.size() <= 20) {
         bruteForce();

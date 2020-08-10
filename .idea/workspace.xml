@@ -4,7 +4,6 @@
     <list default="true" id="e1ee3db6-84ec-41fe-a64e-435d39344c90" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/5.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/5.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/5.txt" beforeDir="false" afterPath="$PROJECT_DIR$/5.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/a.out" beforeDir="false" afterPath="$PROJECT_DIR$/a.out" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -73,9 +72,9 @@
       <screen x="0" y="23" width="1440" height="812" />
     </state>
     <state x="508" y="350" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.23.1440.812@0.23.1440.812" timestamp="1596913031538" />
-    <state x="384" y="159" width="670" height="676" key="search.everywhere.popup" timestamp="1596912852661">
+    <state x="384" y="159" width="670" height="676" key="search.everywhere.popup" timestamp="1597019130906">
       <screen x="0" y="23" width="1440" height="812" />
     </state>
-    <state x="384" y="159" width="670" height="676" key="search.everywhere.popup/0.23.1440.812@0.23.1440.812" timestamp="1596912852661" />
+    <state x="384" y="159" width="670" height="676" key="search.everywhere.popup/0.23.1440.812@0.23.1440.812" timestamp="1597019130906" />
   </component>
 </project>
