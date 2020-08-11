@@ -14,10 +14,10 @@ struct ShapeList;
 uint64_t used[MAX_WIDTH];
 
 struct Shape {
-    int minX, maxX, minY, maxY;
-    int y;
-    int size;
+    int8_t minX, maxX, minY, maxY;
+    int16_t size;
     char c;
+    int8_t y;
 
     int score() {
         return size * (size - 1);
@@ -96,10 +96,10 @@ struct Board {
         memset(used + shape.minX, 0, sizeof(uint64_t) * (shape.maxX - shape.minX + 1));
         addPoint(shape.minX, shape.y, shape.c);
         for (int x = shape.minX; x <= shape.maxX; x++) {
-            uint64_t mask = used[x];
-            char* src = board[x];
+            uint64_t mask = used[x] >> shape.minY;
+            char* src = board[x] + shape.minY;
             char* dest = src;
-            for (int y = 0; y < h; y++) {
+            for (int y = shape.minY; y < h; y++) {
                 if ((mask & 1) == uint64_t(0)) {
                     if (src != dest)
                         *dest = *src;
@@ -173,17 +173,24 @@ struct ShapeList {
         }
 
         Shape* src = shapes;
-        Shape* dest = shapes;
+        //Shape* dest = shapes + size;
         for (int i = 0; i < size; i++) {
-            if (src->maxX < minX || src->minX > maxX || src->maxY < minY) {
+            /*if (src->maxX < minX || src->minX > maxX || src->maxY < minY) {
                 if (dest != src) {
                     //cout << __LINE__ << " " << src-shapes << " " << dest-shapes << endl;
                     *dest = *src;
                 }
                 dest++;
+            }*/
+            if (src->maxX >= minX && src->minX <= maxX && src->maxY >= minY) {
+                size--;
+                *src = shapes[size];
+                i--;
+                continue;
             }
             src++;
         }
+        Shape* dest = shapes + size;
 
 //cout << __LINE__ << " " << minX << " " << maxX << " " << minY << endl;
         memset(used, 0, sizeof(uint64_t) * w);
@@ -437,9 +444,9 @@ void play() {
 }
 
 void stats() {
-    int width = 50;
+    int width = 20;
     int height = 50;
-    for (int ncols = 2; ncols < 26; ncols+=2) {
+    for (int ncols = 2; ncols < 20; ncols += 2) {
         long total[NCOMP + 1] = {0};
         for (int i = 0; i < 1000; i++) {
             Board* board = Board::randomBoard(width, height, ncols);
@@ -472,7 +479,7 @@ void stats() {
 }
 
 int main() {
-    stats();
-    //play();
+    //stats();
+    play();
     return 0;
 }
