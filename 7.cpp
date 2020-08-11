@@ -24,7 +24,8 @@ struct Shape {
     }
 
     void print() {
-        cout << "minX=" << minX << " maxX=" << maxX << " minY=" << minY << " y=" << y << " size=" << size << " c=" << char('A' + c) << " score=" << score() << endl;
+        cout << "minX=" << (int)minX << " maxX=" << (int)maxX << " minY=" << (int)minY << " maxY=" << (int)maxY <<
+            " y=" << (int)y << " size=" << (int)size << " c=" << char('A' + c) << " score=" << score() << endl;
     }
 };
 
@@ -93,6 +94,8 @@ struct Board {
     }
 
     void remove(Shape& shape) {
+        //cout << "remove ";
+        //shape.print();
         memset(used + shape.minX, 0, sizeof(uint64_t) * (shape.maxX - shape.minX + 1));
         addPoint(shape.minX, shape.y, shape.c);
         for (int x = shape.minX; x <= shape.maxX; x++) {
@@ -182,7 +185,8 @@ struct ShapeList {
                 }
                 dest++;
             }*/
-            if (src->maxX >= minX && src->minX <= maxX && src->maxY >= minY) {
+            if (src->maxX >= minX && src->minX <= maxX /*&& src->maxY >= minY*/) {
+                //src->print();
                 size--;
                 *src = shapes[size];
                 i--;
@@ -199,11 +203,11 @@ struct ShapeList {
 //cout << __LINE__ << endl;
 
         for (int x = minX; x <= maxX; x++) {
-            char* col = board->board[x] + minY;
+            char* col = &board->board[x][0/*minY*/];
             /*for (int x2 = 0; x2 < w; x2++)
                 cout << " " << used[x2];
             cout<< endl;*/
-            for (int y = minY; y < h; y++) {
+            for (int y = 0/*minY*/; y < h; y++) {
                 //cout << "check " << x << " " << y << " col=" << char('A' + *col) << " " << *usedCol << " " << ((*usedCol >> y) & 1) << endl;
                 if (*col && !((*usedCol >> y) & 1)) {
                     addShape(board, x, y, dest);
@@ -362,6 +366,51 @@ int byColorAndFromTop(const void *va, const void *vb) {
     return b->y - a->y;
 }
 
+void validate(Board *board, ShapeList& list) {
+    int total = 0;
+    for (int i = 0; i < list.size; i++) {
+        total += list.shapes[i].size;
+        int x = list.shapes[i].minX;
+        int y = list.shapes[i].y;
+        if (board->board[x][y] != list.shapes[i].c || !list.shapes[i].c) {
+            cout << "B " << char('A' + board->board[x][y]) << char('A' + list.shapes[i].c) << endl;
+            list.shapes[i].print();
+        }
+        if (list.shapes[i].y < list.shapes[i].minY || list.shapes[i].y > list.shapes[i].maxY) {
+            cout << "D " << endl;
+            list.shapes[i].print();
+        }
+        int sum =
+            (x > 0 && board->board[x - 1][y] == list.shapes[i].c) +
+            (x < board->w - 1 && board->board[x + 1][y] == list.shapes[i].c) +
+            (y > 0 && board->board[x][y - 1] == list.shapes[i].c) +
+            (y < board->h - 1 && board->board[x][y + 1] == list.shapes[i].c);
+        if (!sum) {
+            cout << "C" << endl;
+        }
+    }
+    int total2 = 0;
+    for (int x = 0; x < board->w; x++) {
+        for (int y = 0; y < board->h; y++) {
+            int sum =
+                (x > 0 && board->board[x - 1][y] == board->board[x][y]) +
+                (x < board->w - 1 && board->board[x + 1][y] == board->board[x][y]) +
+                (y > 0 && board->board[x][y - 1] == board->board[x][y]) +
+                (y < board->h - 1 && board->board[x][y + 1] == board->board[x][y]);
+            if (!sum) {
+                total++;
+            }
+            if (board->board[x][y]) {
+                total2++;
+            }
+        }
+    }
+    if (total != total2) {
+        cout << "A " << total << " " << total2 << endl;
+        board->print();
+    }
+}
+
 void test(Board *board, int (*comparator)(const void*, const void*), Game &game) {
     //board->print();
 
@@ -370,6 +419,7 @@ void test(Board *board, int (*comparator)(const void*, const void*), Game &game)
         list.update(board);
     }*/
     list.update(board);
+    validate(board, list);
     //list.print();
 
     //cout << endl;
@@ -400,6 +450,7 @@ void test(Board *board, int (*comparator)(const void*, const void*), Game &game)
 //cout << __LINE__ << endl;
         //board->print();
         //list.print();
+        validate(board, list);
     }
 //cout << __LINE__ << endl;
 }
@@ -444,11 +495,13 @@ void play() {
 }
 
 void stats() {
-    int width = 20;
-    int height = 50;
-    for (int ncols = 2; ncols < 20; ncols += 2) {
+    //int width = 20;
+    //int height = 50;
+    for (int ncols = 2; ncols <= 20; ncols += 2) {
         long total[NCOMP + 1] = {0};
         for (int i = 0; i < 1000; i++) {
+            int width = (rand() % 47) + 4;
+            int height = (rand() % 47) + 4;
             Board* board = Board::randomBoard(width, height, ncols);
             /*for (int c = 0; c < NCOMP; c++) {
                 Board board2 = *board;
@@ -471,7 +524,7 @@ void stats() {
         }
         cout << ncols << " " << best << " " << bestV << " " << bestV * ncols * ncols / width / height <<
             " " << total[NCOMP] << " " << total[NCOMP] * ncols * ncols / width / height << endl;*/
-        cout << ncols << " " << total[NCOMP] << " " << total[NCOMP] * ncols * ncols / width / height << endl;
+        cout << ncols << " " << total[NCOMP] /*<< " " << total[NCOMP] * ncols * ncols / width / height*/ << endl;
         for (int i = 0; i < NCOMP; i++) {
             cout << ncols << " " << i << " " << hist[i] << endl;
         }
@@ -479,7 +532,7 @@ void stats() {
 }
 
 int main() {
-    //stats();
-    play();
+    stats();
+    //play();
     return 0;
 }
