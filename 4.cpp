@@ -43,8 +43,23 @@ void test() {
     }
 }
 
+void test2() {
+    for (int n = 1; n < 1000000; n++) {
+        int a1 = (rand() % 255) + 1;
+        int b1 = (rand() % 255) + 1;
+        int a2 = (rand() % 255) + 1;
+        int b2 = (rand() % 255) + 1;
+        cout << (rand() % 2 ? "T " : "B ") << (rand() % 2 ? "  " : "")
+            << (rand() % 2 ? "0" : "") << a1 << ".255.1." << b1 << (rand() % 2 ? "  " : " ")
+            << (rand() % 2 ? "0" : "") << a2 << ".255.1." << b2 << (rand() % 2 ? "  " : "")
+            << endl;
+    }
+}
+
 int main() {
     //test();
+    //test2();
+
     int eof = std::char_traits<char>::eof();
     string out;
     while (std::cin.peek() != eof) {
