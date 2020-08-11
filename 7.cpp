@@ -11,6 +11,23 @@ using namespace std;
 struct Shape;
 struct ShapeList;
 
+uint64_t used[MAX_WIDTH];
+
+struct Shape {
+    int minX, maxX, minY, maxY;
+    int y;
+    int size;
+    char c;
+
+    int score() {
+        return size * (size - 1);
+    }
+
+    void print() {
+        cout << "minX=" << minX << " maxX=" << maxX << " minY=" << minY << " y=" << y << " size=" << size << " c=" << char('A' + c) << " score=" << score() << endl;
+    }
+};
+
 struct Board {
     int w, h;
     char board[MAX_WIDTH][MAX_HEIGHT2];
@@ -20,6 +37,18 @@ struct Board {
         h = src.h;
         for (int j = 0; j < w; j++) {
             memcpy(board[j], src.board[j], h);
+        }
+    }
+
+    void loadFromCin() {
+        int nc;
+        cin >> h >> w >> nc;
+        for (int y = h - 1; y >= 0; y--) {
+            for (int x = 0; x < w; x++) {
+                int c;
+                cin >> c;
+                board[x][y] = c + 1;
+            }
         }
     }
 
@@ -44,27 +73,48 @@ struct Board {
         }
     }
 
-    void remove(Shape *shape) {
+    void addPoint(int x, int y, char c) {
+        const uint64_t mask = uint64_t(1) << y;
+        if ((used[x] & mask) == uint64_t(0) && board[x][y] == c) {
+            used[x] |= mask;
+            if (x > 0) {
+                addPoint(x - 1, y, c);
+            }
+            if (x < w - 1) {
+                addPoint(x + 1, y, c);
+            }
+            if (y > 0) {
+                addPoint(x, y - 1, c);
+            }
+            if (y < h - 1) {
+                addPoint(x, y + 1, c);
+            }
+        }
+    }
 
+    void remove(Shape& shape) {
+        memset(used + shape.minX, 0, sizeof(uint64_t) * (shape.maxX - shape.minX + 1));
+        addPoint(shape.minX, shape.y, shape.c);
+        for (int x = shape.minX; x <= shape.maxX; x++) {
+            uint64_t mask = used[x];
+            char* src = board[x];
+            char* dest = src;
+            for (int y = 0; y < h; y++) {
+                if ((mask & 1) == uint64_t(0)) {
+                    if (src != dest)
+                        *dest = *src;
+                    dest++;
+                }
+                src++;
+                mask >>= 1;
+            }
+            while(dest != src) {
+                *dest = 0;
+                dest++;
+            }
+        }
     }
 };
-
-struct Shape {
-    int minX, maxX;
-    int y;
-    int size;
-    char c;
-
-    int score() {
-        return size * (size - 1);
-    }
-
-    void print() {
-        cout << "minX=" << minX << " maxX=" << maxX << " y=" << y << " size=" << size << " c=" << char('A' + c) << " score=" << score() << endl;
-    }
-};
-
-uint64_t used[MAX_WIDTH];
 
 struct ShapeList {
     int size;
@@ -84,6 +134,12 @@ struct ShapeList {
             if (x > dest->maxX) {
                 dest->maxX = x;
             }
+            if (y < dest->minY) {
+                dest->minY = y;
+            }
+            if (y > dest->maxY) {
+                dest->maxY = y;
+            }
             return 1
                 + (x > 0 ? addPoint(board, x - 1, y, dest) : 0)
                 + (x < board->w - 1 ? addPoint(board, x + 1, y, dest) : 0)
@@ -96,11 +152,14 @@ struct ShapeList {
     void addShape(Board* board, int x, int y, Shape* dest) {
         dest->minX = board->w;
         dest->maxX = -1;
+        dest->minY = board->h;
+        dest->maxY = -1;
         dest->c = board->board[x][y];
         dest->size = addPoint(board, x, y, dest);
     }
 
-    void update(Board *board, int minX = 0, int maxX = MAX_WIDTH) {
+    void update(Board *board, int minX = 0, int maxX = MAX_WIDTH, int minY = 0) {
+//cout << __LINE__ << " " << minX << " " << maxX << " " << minY << endl;
         if (minX < 0) {
             minX = 0;
         }
@@ -109,12 +168,16 @@ struct ShapeList {
         if (maxX >= w) {
             maxX = w - 1;
         }
+        if (minY < 0) {
+            minY = 0;
+        }
 
         Shape* src = shapes;
         Shape* dest = shapes;
         for (int i = 0; i < size; i++) {
-            if (src->maxX < minX || src->minX > maxX) {
+            if (src->maxX < minX || src->minX > maxX || src->maxY < minY) {
                 if (dest != src) {
+                    //cout << __LINE__ << " " << src-shapes << " " << dest-shapes << endl;
                     *dest = *src;
                 }
                 dest++;
@@ -122,21 +185,32 @@ struct ShapeList {
             src++;
         }
 
+//cout << __LINE__ << " " << minX << " " << maxX << " " << minY << endl;
         memset(used, 0, sizeof(uint64_t) * w);
-        uint64_t* usedCol = used;
+//cout << __LINE__ << endl;
+        uint64_t* usedCol = used + minX;
+//cout << __LINE__ << endl;
+
         for (int x = minX; x <= maxX; x++) {
-            char* col = board->board[x];
-            for (int y = 0; y < h; y++) {
-                if (col[y] && !((*usedCol >> y) & 1)) {
+            char* col = board->board[x] + minY;
+            /*for (int x2 = 0; x2 < w; x2++)
+                cout << " " << used[x2];
+            cout<< endl;*/
+            for (int y = minY; y < h; y++) {
+                //cout << "check " << x << " " << y << " col=" << char('A' + *col) << " " << *usedCol << " " << ((*usedCol >> y) & 1) << endl;
+                if (*col && !((*usedCol >> y) & 1)) {
                     addShape(board, x, y, dest);
+        //cout << __LINE__ << " " << x << " " << y << " " << dest-shapes << endl;
                     if (dest->size > 1) {
                         dest++;
                     }
                 }
+                col++;
             }
             usedCol++;
         }
         size = dest - shapes;
+//cout << __LINE__ << endl;
     }
 
     void operator= (const ShapeList& src) {
@@ -152,6 +226,23 @@ struct ShapeList {
         return total;
     }
 
+    Shape& findBest(int (*comparator)(const void*, const void*)) {
+//cout << __LINE__ << " " << (void*)comparator << " " << size << endl;
+        Shape* best = &shapes[0];
+        for (int i = 1; i < size; i++) {
+//cout << __LINE__ << " " << comparator << " " << i << " " << best << " " << size << endl;
+            if (comparator(&shapes[i], best) < 0) {
+//cout << __LINE__ << endl;
+                best = &shapes[i];
+            }
+        }
+        return *best;
+    }
+
+    /*void sort(int (*comparator)(const void*, const void*)) {
+        qsort(shapes, size, sizeof(shapes[0]), comparator);
+    }*/
+
     void print() {
         for (int i = 0; i < size; i++) {
             shapes[i].print();
@@ -160,19 +251,122 @@ struct ShapeList {
     }
 };
 
-int main() {
-    Board* board = Board::randomBoard(8, 8, 7);
-    board->print();
+struct Move {
+    int x, y;
+};
+
+struct Game {
+    long total;
+    int nmoves;
+    Move moves[MAX_WIDTH * MAX_HEIGHT];
+
+    void move(Shape &shape) {
+    //cout << __LINE__ << " " << nmoves << endl;
+    //shape.print();
+
+        total += shape.score();
+        moves[nmoves].x = shape.minX;
+        moves[nmoves].y = shape.y;
+        nmoves++;
+    }
+
+    void send(int height) {
+        cout << "Y" << endl;
+        for (int i = 0; i < nmoves; i++) {
+            cout << moves[i].x << " " << (height - 1 - moves[i].y) << endl;
+        }
+        cout << "-1 -1" << endl;
+    }
+};
+
+//19357152
+int fromSmallest(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    return a->size - b->size;
+}
+
+//19165658
+int fromLargest(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    return b->size - a->size;
+}
+
+//15176502
+int fromTop(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    return b->y - a->y;
+}
+
+//14243270
+int fromBottom(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    return a->y - b->y;
+}
+
+//16285218
+int fromLeft(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    return a->minX - b->minX;
+}
+
+//49493600
+int fromSmallestWithoutOne(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    int ca = a->c == 1;
+    int cb = b->c == 1;
+    if (ca != cb) {
+        return ca - cb;
+    }
+    return a->size - b->size;
+}
+
+//52317838
+int byColorAndFromSmallest(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    if (a->c != b->c) {
+        return a->c - b->c;
+    }
+    return a->size - b->size;
+}
+
+//49356910
+int byColorAndFromLargest(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    if (a->c != b->c) {
+        return a->c - b->c;
+    }
+    return b->size - a->size;
+}
+
+int byColorAndFromTop(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    if (a->c != b->c) {
+        return a->c - b->c;
+    }
+    return b->y - a->y;
+}
+
+void test(Board *board, int (*comparator)(const void*, const void*), Game &game) {
+    //board->print();
 
     ShapeList list;
     /*for (int i = 0; i < 1000000; i++) {
         list.update(board);
     }*/
     list.update(board);
-    list.print();
+    //list.print();
 
-    cout << endl;
-    ShapeList list2;
+    //cout << endl;
+    /*ShapeList list2;
     list2.update(board, 2, 3);
     list2.update(board, 6, 6);
     list2.update(board, 7, 7);
@@ -180,6 +374,105 @@ int main() {
     list2.update(board, 3, 5);
     list2.update(board, 1, 1);
     list2.update(board, 4, 5);
-    list2.print();
+    list2.print();*/
+
+    game.total = 0;
+    game.nmoves = 0;
+//cout << __LINE__ << endl;
+    while(list.size) {
+        //list.sort(comparator);
+//cout << __LINE__ << endl;
+        Shape& move = list.findBest(comparator);
+//cout << __LINE__ << endl;
+        game.move(move);
+//cout << __LINE__ << endl;
+        board->remove(move);
+//cout << __LINE__ << endl;
+//cout << __LINE__ << " " << move.minX << " " << move.maxX << " " << move.minY << endl;
+        list.update(board, move.minX - 1, move.maxX + 1, move.minY - 1);
+//cout << __LINE__ << endl;
+        //board->print();
+        //list.print();
+    }
+//cout << __LINE__ << endl;
+}
+
+/*const int NCOMP = 9;
+int (*comparators[NCOMP])(const void*, const void*) = {
+    fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
+    byColorAndFromLargest, byColorAndFromTop
+};*/
+const int NCOMP = 3;
+int (*comparators[NCOMP])(const void*, const void*) = {
+    fromTop, byColorAndFromLargest, byColorAndFromTop
+};
+
+Game games[NCOMP];
+int hist[NCOMP] = {0};
+Game* test2(Board *board) {
+    int bestGame;
+    long bestScore = -1;
+    for (int i = 0; i < NCOMP; i++) {
+        Board board2 = *board;
+        test(&board2, comparators[i], games[i]);
+        if (games[i].total > bestScore) {
+            bestGame = i;
+            bestScore = games[i].total;
+        }
+    }
+    hist[bestGame]++;
+    return games + bestGame;
+}
+
+void play() {
+    int t;
+    cin >> t;
+    for (int i = 0; i < t; i++) {
+        Board board;
+        board.loadFromCin();
+        Game* game = test2(&board);
+        game->send(board.h);
+        //cout << game->total << endl;
+    }
+}
+
+void stats() {
+    int width = 50;
+    int height = 50;
+    for (int ncols = 2; ncols < 26; ncols+=2) {
+        long total[NCOMP + 1] = {0};
+        for (int i = 0; i < 1000; i++) {
+            Board* board = Board::randomBoard(width, height, ncols);
+            /*for (int c = 0; c < NCOMP; c++) {
+                Board board2 = *board;
+                Game game;
+                test(&board2, comparators[c], game);
+                total[c] += game.total;
+            }*/
+            Board board2 = *board;
+            Game *game = test2(&board2);
+            total[NCOMP] += game->total;
+            delete board;
+        }
+        /*int best = -1;
+        long bestV = -1;
+        for (int c = 0; c < NCOMP; c++) {
+            if (total[c] > bestV) {
+                bestV = total[c];
+                best = c;
+            }
+        }
+        cout << ncols << " " << best << " " << bestV << " " << bestV * ncols * ncols / width / height <<
+            " " << total[NCOMP] << " " << total[NCOMP] * ncols * ncols / width / height << endl;*/
+        cout << ncols << " " << total[NCOMP] << " " << total[NCOMP] * ncols * ncols / width / height << endl;
+        for (int i = 0; i < NCOMP; i++) {
+            cout << ncols << " " << i << " " << hist[i] << endl;
+        }
+    }
+}
+
+int main() {
+    stats();
+    //play();
     return 0;
 }
