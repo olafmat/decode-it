@@ -537,7 +537,8 @@ void play() {
 void stats() {
     //int width = 20;
     //int height = 50;
-    for (int ncols = 2; ncols <= 20; ncols += 2) {
+    long total2 = 0;
+    for (int ncols = 4; ncols <= 20; ncols += 2) {
         long total[NCOMP + 1] = {0};
         for (int i = 0; i < 1000; i++) {
             int width = (rand() % 47) + 4;
@@ -552,6 +553,7 @@ void stats() {
             Board board2 = *board;
             Game *game = test2(&board2);
             total[NCOMP] += game->total;
+            total2 += game->total * ncols * ncols / width / height;
             delete board;
         }
         /*int best = -1;
@@ -564,15 +566,17 @@ void stats() {
         }
         cout << ncols << " " << best << " " << bestV << " " << bestV * ncols * ncols / width / height <<
             " " << total[NCOMP] << " " << total[NCOMP] * ncols * ncols / width / height << endl;*/
-        cout << ncols << " " << total[NCOMP] /*<< " " << total[NCOMP] * ncols * ncols / width / height*/ << endl;
+        cout << ncols << " " << total[NCOMP] << /*" " << total[NCOMP] * ncols * ncols / width / height <<*/ endl;
         for (int i = 0; i < NCOMP; i++) {
             cout << ncols << " " << i << " " << hist[i] << endl;
         }
     }
+    cout << total2 << endl;
 }
 
 int main() {
-    //stats();
-    play();
+    stats();
+    //play();
     return 0;
 }
+//1904074   71  2261.7  2.35
