@@ -193,6 +193,11 @@ struct ShapeList {
     ShapeList(): size(0) {
     }
 
+    void operator=(const ShapeList& src) {
+        size = src.size;
+        memcpy(shapes, src.shapes, size * sizeof(Shape));
+    }
+
     int addPoint(Board* board, int x, int y, Shape* dest) {
         const uint64_t mask = uint64_t(1) << y;
         if ((used[x] & mask) == uint64_t(0) && board->board[x][y] == dest->c) {
@@ -235,7 +240,6 @@ struct ShapeList {
     }
 
     void update(Board *board, int minX = 0, int maxX = MAX_WIDTH, int minY = 0) {
-//cout << __LINE__ << " " << minX << " " << maxX << " " << minY << endl;
         if (minX < 0) {
             minX = 0;
         }
@@ -269,22 +273,14 @@ struct ShapeList {
         }
         Shape* dest = shapes + size;
 
-//cout << __LINE__ << " " << minX << " " << maxX << " " << minY << endl;
         memset(used, 0, sizeof(uint64_t) * w);
-//cout << __LINE__ << endl;
         uint64_t* usedCol = used + minX;
-//cout << __LINE__ << endl;
 
         for (int x = minX; x <= maxX; x++) {
             char* col = &board->board[x][0/*minY*/];
-            /*for (int x2 = 0; x2 < w; x2++)
-                cout << " " << used[x2];
-            cout<< endl;*/
             for (int y = 0/*minY*/; y < h; y++) {
-                //cout << "check " << x << " " << y << " col=" << char('A' + *col) << " " << *usedCol << " " << ((*usedCol >> y) & 1) << endl;
                 if (*col && !((*usedCol >> y) & 1)) {
                     addShape(board, x, y, dest);
-        //cout << __LINE__ << " " << x << " " << y << " " << dest-shapes << endl;
                     if (dest->size > 1) {
                         dest++;
                     }
@@ -294,12 +290,6 @@ struct ShapeList {
             usedCol++;
         }
         size = dest - shapes;
-//cout << __LINE__ << endl;
-    }
-
-    void operator= (const ShapeList& src) {
-        size = src.size;
-        memcpy(shapes, src.shapes, sizeof(shapes[0]) * size);
     }
 
     int score() {
@@ -311,12 +301,9 @@ struct ShapeList {
     }
 
     Shape& findBest(int (*comparator)(const Shape*, const Shape*)) {
-//cout << __LINE__ << " " << (void*)comparator << " " << size << endl;
         Shape* best = &shapes[0];
         for (int i = 1; i < size; i++) {
-//cout << __LINE__ << " " << comparator << " " << i << " " << best << " " << size << endl;
             if (comparator(&shapes[i], best) < 0) {
-//cout << __LINE__ << endl;
                 best = &shapes[i];
             }
         }
@@ -339,6 +326,17 @@ struct Game {
     long total;
     int nmoves;
     Move moves[MAX_WIDTH * MAX_HEIGHT];
+
+    void reset() {
+        total = 0;
+        nmoves = 0;
+    }
+
+    void operator=(const Game& src) {
+        total = src.total;
+        nmoves = src.nmoves;
+        memcpy(moves, src.moves, total * sizeof(Move));
+    }
 
     void move(Shape &shape) {
         total += shape.score();
@@ -571,47 +569,16 @@ void calcHistogram(Board *board) {
 }
 
 void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &game) {
-    //board->print();
-
     ShapeList list;
-    /*for (int i = 0; i < 1000000; i++) {
-        list.update(board);
-    }*/
     list.update(board);
-    //validate(board, list);
-    //list.print();
 
-    //cout << endl;
-    /*ShapeList list2;
-    list2.update(board, 2, 3);
-    list2.update(board, 6, 6);
-    list2.update(board, 7, 7);
-    list2.update(board, 0, 0);
-    list2.update(board, 3, 5);
-    list2.update(board, 1, 1);
-    list2.update(board, 4, 5);
-    list2.print();*/
-
-    game.total = 0;
-    game.nmoves = 0;
-//cout << __LINE__ << endl;
+    game.reset();
     while(list.size) {
-        //list.sort(comparator);
-//cout << __LINE__ << endl;
         Shape& move = list.findBest(comparator);
-//cout << __LINE__ << endl;
         game.move(move);
-//cout << __LINE__ << endl;
         board->remove(move);
-//cout << __LINE__ << endl;
-//cout << __LINE__ << " " << move.minX << " " << move.maxX << " " << move.minY << endl;
         list.update(board, move.minX - 1, move.maxX + 1, move.minY - 1);
-//cout << __LINE__ << endl;
-        //board->print();
-        //list.print();
-        //validate(board, list);
     }
-//cout << __LINE__ << endl;
 }
 
 /*const int NCOMP = 12;
@@ -701,8 +668,7 @@ Move pickFirstMove(Board *board) {
 }
 
 void randomPlayer(Board *board, Game &game) {
-    game.total = 0;
-    game.nmoves = 0;
+    game.reset();
     for (int x = 0; x < board->w; x++) {
         board->size[x] = board->h;
     }
