@@ -6,6 +6,7 @@
 #define MAX_HEIGHT 50
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
+//#define USE_RAND
 
 using namespace std;
 
@@ -24,7 +25,9 @@ struct Shape {
     char c;
     int8_t y;
     char vs;
+    #ifdef USE_RAND
     char rand;
+    #endif
 
     int score() {
         return size * (size - 1);
@@ -226,7 +229,9 @@ struct ShapeList {
         dest->vs = (dest->maxX == dest->minX && (dest->maxY >= board->h - 1 || !board->board[dest->minX][dest->maxY + 1]))/* ||
             !(dest->maxX == dest->minX && dest->minY > 0 && dest->maxY < board->h - 1 &&
                 board->board[dest->minX][dest->minY - 1] == board->board[dest->minX][dest->maxY + 1])*/;
+        #ifdef USE_RAND
         dest->rand = random();
+        #endif
     }
 
     void update(Board *board, int minX = 0, int maxX = MAX_WIDTH, int minY = 0) {
@@ -490,13 +495,14 @@ int byColorNoAndFromTop(const Shape *a, const Shape *b) {
     return b->y - a->y;
 }
 
+#ifdef USE_RAND
 int randomStrategy(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
     return a->rand - b->rand;
 }
-
+#endif
 
 void validate(Board *board, ShapeList& list) {
     int total = 0;
@@ -554,9 +560,9 @@ void calcHistogram(Board *board) {
         }
     }
 
-    char mostPopularColor = -1;
+    mostPopularColor = -1;
     int mostPopularCount = 0;
-    for (int c = 0; c <= MAX_COLOR; c++) {
+    for (int c = 1; c <= MAX_COLOR; c++) {
         if (colorHistogram[c] > mostPopularCount) {
             mostPopularColor = c;
             mostPopularCount = colorHistogram[c];
@@ -615,7 +621,7 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
 };*/
 const int NCOMP = 10;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
-    fromLargest, fromTop, fromSmallestWithoutOne, fromLargestWithoutMostPop, byColorAndFromSmallest,
+    fromLargest, fromTop, /*fromSmallestWithoutOne, */fromLargestWithoutMostPop, fromSmallestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };
 /*const int NCOMP = 3;
@@ -641,6 +647,8 @@ Game* test2(Board *board) {
     return games + bestGame;
 }
 
+
+#ifdef USE_RAND
 Move pickRandomMove(Board *board) {
     Move move;
     for (int i = 0; i < board->w * board->h; i++) {
@@ -731,6 +739,7 @@ Game* randomPlayer2(Board *board) {
     }
     return randomGames + bestGame;
 }
+#endif
 
 void play() {
     int t;
@@ -744,6 +753,7 @@ void play() {
     }
 }
 
+#ifdef USE_RAND
 void randomPlay() {
     int t;
     cin >> t;
@@ -755,6 +765,7 @@ void randomPlay() {
         //cout << game->total << endl;
     }
 }
+#endif
 
 void stats() {
     //int width = 20;
@@ -776,10 +787,12 @@ void stats() {
             Game *game = test2(&board2);
             total[NCOMP] += game->total;
             total2 += game->total * ncols * ncols / width / height;
+            #ifdef USE_RAND
             board2 = *board;
             game = randomPlayer2(&board2);
             total[NCOMP + 1] += game->total;
             total3 += game->total * ncols * ncols / width / height;
+            #endif
             delete board;
         }
         /*int best = -1;
@@ -792,18 +805,26 @@ void stats() {
         }
         cout << ncols << " " << best << " " << bestV << " " << bestV * ncols * ncols / width / height <<
             " " << total[NCOMP] << " " << total[NCOMP] * ncols * ncols / width / height << endl;*/
-        cout << ncols << " " << total[NCOMP] << " " << total[NCOMP + 1] << /*" " << total[NCOMP] * ncols * ncols / width / height <<*/ endl;
+        cout << ncols << " " << total[NCOMP];
+        #ifdef USE_RAND
+        cout << " " << total[NCOMP + 1];
+        #endif
+        cout << /*" " << total[NCOMP] * ncols * ncols / width / height <<*/ endl;
         for (int i = 0; i < NCOMP; i++) {
             cout << ncols << " " << i << " " << hist[i] << endl;
         }
     }
-    cout << total2 << " " << total3 << endl;
+    cout << total2;
+    #ifdef USE_RAND
+    cout << " " << total3;
+    #endif
+    cout << endl;
 }
 
 int main() {
     //stats();
-    //play();
-    randomPlay();
+    play();
+    //randomPlay();
     return 0;
 }
 //1904074   71  2261.7  2.35
