@@ -470,15 +470,15 @@ void test(Board *board, int (*comparator)(const void*, const void*), Game &game)
 //cout << __LINE__ << endl;
 }
 
-/*const int NCOMP = 9;
+const int NCOMP = 9;
 int (*comparators[NCOMP])(const void*, const void*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop
-};*/
-const int NCOMP = 3;
+};
+/*const int NCOMP = 3;
 int (*comparators[NCOMP])(const void*, const void*) = {
     fromTop, byColorAndFromLargest, byColorAndFromTop
-};
+};*/
 
 Game games[NCOMP];
 int hist[NCOMP] = {0};
