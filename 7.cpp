@@ -333,6 +333,18 @@ int fromSmallestWithoutOne(const void *va, const void *vb) {
 }
 
 int colorHistogram[MAX_COLOR + 1];
+char mostPopularColor;
+
+int fromSmallestWithoutMostPop(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    int ca = a->c == mostPopularColor;
+    int cb = b->c == mostPopularColor;
+    if (ca != cb) {
+        return ca - cb;
+    }
+    return a->size - b->size;
+}
 
 int byColorAndFromSmallest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
@@ -387,6 +399,7 @@ int byColorNoAndFromTop(const void *va, const void *vb) {
     }
     return b->y - a->y;
 }
+
 
 void validate(Board *board, ShapeList& list) {
     int total = 0;
@@ -443,6 +456,15 @@ void calcHistogram(Board *board) {
             col++;
         }
     }
+
+    char mostPopularColor = -1;
+    int mostPopularCount = 0;
+    for (int c = 0; c <= MAX_COLOR; c++) {
+        if (colorHistogram[c] > mostPopularCount) {
+            mostPopularColor = c;
+            mostPopularCount = colorHistogram[c];
+        }
+    }
 }
 
 void test(Board *board, int (*comparator)(const void*, const void*), Game &game) {
@@ -494,9 +516,9 @@ int (*comparators[NCOMP])(const void*, const void*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };*/
-const int NCOMP = 9;
+const int NCOMP = 10;
 int (*comparators[NCOMP])(const void*, const void*) = {
-    fromLargest, fromTop, fromSmallestWithoutOne, byColorAndFromSmallest,
+    fromLargest, fromTop, fromSmallestWithoutOne, fromSmallestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };
 /*const int NCOMP = 3;
@@ -580,3 +602,7 @@ int main() {
     return 0;
 }
 //1904074   71  2261.7  2.35
+//1906054 fromLeft
+//1904217 fromSmallest
+//1904166 fromBottom
+//1904217 fromSmallestWithoutMostPop
