@@ -8,7 +8,7 @@
 
 using namespace std;
 
-typedef long double real;
+typedef double real;
 
 const real epsilon = 0;//(real)1e-15;
 const real PI2 = (real)M_PI / 2;
@@ -116,8 +116,8 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
         const real x1 = (*i)->x;
         const real y1 = (*i)->y;
         const real r1 = (*i)->r;
-        for (int a = 0; a < 360; a++) {
-            const real angle = (real) M_PI * a / 180;
+        for (int a = 0; a < 50; a++) {
+            const real angle = (real) M_PI * a / 25;
             Point* p1 = new Point();
             p1 -> x = x1 + r1 * sin(angle);
             p1 -> y = y1 + r1 * cos(angle);
