@@ -284,7 +284,7 @@ struct Game {
     void send(int height) {
         cout << "Y" << endl;
         for (int i = 0; i < nmoves; i++) {
-            cout << moves[i].x << " " << (height - 1 - moves[i].y) << endl;
+            cout << (height - 1 - moves[i].y) << " " << moves[i].x << endl;
         }
         cout << "-1 -1" << endl;
     }
@@ -419,7 +419,7 @@ void test(Board *board, int (*comparator)(const void*, const void*), Game &game)
         list.update(board);
     }*/
     list.update(board);
-    validate(board, list);
+    //validate(board, list);
     //list.print();
 
     //cout << endl;
@@ -450,7 +450,7 @@ void test(Board *board, int (*comparator)(const void*, const void*), Game &game)
 //cout << __LINE__ << endl;
         //board->print();
         //list.print();
-        validate(board, list);
+        //validate(board, list);
     }
 //cout << __LINE__ << endl;
 }
@@ -532,7 +532,7 @@ void stats() {
 }
 
 int main() {
-    stats();
-    //play();
+    //stats();
+    play();
     return 0;
 }
