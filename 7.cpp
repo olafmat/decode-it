@@ -291,42 +291,36 @@ struct Game {
     }
 };
 
-//19357152
 int fromSmallest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
     return a->size - b->size;
 }
 
-//19165658
 int fromLargest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
     return b->size - a->size;
 }
 
-//15176502
 int fromTop(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
     return b->y - a->y;
 }
 
-//14243270
 int fromBottom(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
     return a->y - b->y;
 }
 
-//16285218
 int fromLeft(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
     return a->minX - b->minX;
 }
 
-//49493600
 int fromSmallestWithoutOne(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
@@ -340,7 +334,6 @@ int fromSmallestWithoutOne(const void *va, const void *vb) {
 
 int colorHistogram[MAX_COLOR + 1];
 
-//52317838
 int byColorAndFromSmallest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
@@ -350,7 +343,6 @@ int byColorAndFromSmallest(const void *va, const void *vb) {
     return a->size - b->size;
 }
 
-//49356910
 int byColorAndFromLargest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
@@ -365,6 +357,33 @@ int byColorAndFromTop(const void *va, const void *vb) {
     const Shape* b = (Shape*) vb;
     if (a->c != b->c) {
         return colorHistogram[a->c] - colorHistogram[b->c];
+    }
+    return b->y - a->y;
+}
+
+int byColorNoAndFromSmallest(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    if (a->c != b->c) {
+        return a->c - b->c;
+    }
+    return a->size - b->size;
+}
+
+int byColorNoAndFromLargest(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    if (a->c != b->c) {
+        return a->c - b->c;
+    }
+    return b->size - a->size;
+}
+
+int byColorNoAndFromTop(const void *va, const void *vb) {
+    const Shape* a = (Shape*) va;
+    const Shape* b = (Shape*) vb;
+    if (a->c != b->c) {
+        return a->c - b->c;
     }
     return b->y - a->y;
 }
@@ -470,10 +489,15 @@ void test(Board *board, int (*comparator)(const void*, const void*), Game &game)
 //cout << __LINE__ << endl;
 }
 
-const int NCOMP = 9;
+/*const int NCOMP = 12;
 int (*comparators[NCOMP])(const void*, const void*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
-    byColorAndFromLargest, byColorAndFromTop
+    byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
+};*/
+const int NCOMP = 9;
+int (*comparators[NCOMP])(const void*, const void*) = {
+    fromLargest, fromTop, fromSmallestWithoutOne, byColorAndFromSmallest,
+    byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };
 /*const int NCOMP = 3;
 int (*comparators[NCOMP])(const void*, const void*) = {
