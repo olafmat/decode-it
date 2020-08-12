@@ -377,6 +377,16 @@ int byColorAndFromLargest(const Shape *a, const Shape *b) {
     return b->size - a->size;
 }
 
+int byColorDescAndFromLargest(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
+    if (a->c != b->c) {
+        return colorHistogram[b->c] - colorHistogram[a->c];
+    }
+    return b->size - a->size;
+}
+
 int byColorAndFromTop(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
@@ -533,7 +543,7 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };*/
-const int NCOMP = 10;
+const int NCOMP = 11;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromLargest, fromTop, fromSmallestWithoutOne, fromLargestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
