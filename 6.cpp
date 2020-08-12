@@ -112,12 +112,19 @@ void removeInternal(vector<Circle*> &out, vector<Circle*> &in) {
 
 void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
     int size = circles.size();
+    int pcount = 160000 / size;
+    if (pcount < 16) {
+        pcount = 16;
+    }
+    if (pcount > 500) {
+        pcount = 500;
+    }
     for (vector<Circle*>::iterator i = circles.begin(); i != circles.end(); i++) {
         const real x1 = (*i)->x;
         const real y1 = (*i)->y;
         const real r1 = (*i)->r;
-        for (int a = 0; a < 50; a++) {
-            const real angle = (real) M_PI * a / 25;
+        for (int a = 0; a < pcount; a++) {
+            const real angle = (real) M_PI * a * 2 / pcount;
             Point* p1 = new Point();
             p1 -> x = x1 + r1 * sin(angle);
             p1 -> y = y1 + r1 * cos(angle);
