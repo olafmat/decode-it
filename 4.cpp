@@ -20,12 +20,18 @@ inline __uint32_t readIP() {
 
 inline __uint32_t root(__uint32_t node) {
     unordered_map<__uint32_t, __uint32_t>::iterator it, end = net.end();
+    int n = 0;
+    __uint32_t node2 = node;
     while (true) {
-        it = net.find(node);
+        n++;
+        it = net.find(node2);
         if (it == end) {
-            return node;
+            if (n > 2) {
+                net[node] = node2;
+            }
+            return node2;
         }
-        node = it -> second;
+        node2 = it -> second;
     }
 }
 
