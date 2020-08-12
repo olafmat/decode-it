@@ -14,12 +14,17 @@ struct ShapeList;
 
 uint64_t used[MAX_WIDTH];
 
+struct Move {
+    int x, y;
+};
+
 struct Shape {
     int8_t minX, maxX, minY, maxY;
     int16_t size;
     char c;
     int8_t y;
     char vs;
+    char rand;
 
     int score() {
         return size * (size - 1);
@@ -34,6 +39,7 @@ struct Shape {
 struct Board {
     int w, h;
     char board[MAX_WIDTH][MAX_HEIGHT2];
+    int size[MAX_WIDTH];
 
     void operator= (const Board& src) {
         w = src.w;
@@ -119,6 +125,62 @@ struct Board {
             }
         }
     }
+
+    int addPoint2(int x, int y, char c) {
+        const uint64_t mask = uint64_t(1) << y;
+        int total = 0;
+        if ((used[x] & mask) == uint64_t(0) && board[x][y] == c) {
+            used[x] |= mask;
+            total++;
+            if (x > 0) {
+                total += addPoint2(x - 1, y, c);
+            }
+            if (x < w - 1) {
+                total += addPoint2(x + 1, y, c);
+            }
+            if (y > 0) {
+                total += addPoint2(x, y - 1, c);
+            }
+            if (y < h - 1) {
+                total += addPoint2(x, y + 1, c);
+            }
+        }
+        return total;
+    }
+
+    int remove2(Move move) {
+        memset(used, 0, sizeof(uint64_t) * w);
+        int size = addPoint2(move.x, move.y, board[move.x][move.y]);
+        if (!size) {
+            return 0;
+        }
+        int x = 0;
+        while(used[x] == uint64_t(0)) {
+            x++;
+        }
+        for (; x < w; x++) {
+            uint64_t mask = used[x];
+            if (mask == uint64_t(0)) {
+                break;
+            }
+            char* src = board[x];
+            char* dest = src;
+            for (int y = 0; y < h; y++) {
+                if ((mask & 1) == uint64_t(0)) {
+                    if (src != dest)
+                        *dest = *src;
+                    dest++;
+                }
+                src++;
+                mask >>= 1;
+            }
+            while(dest != src) {
+                *dest = 0;
+                dest++;
+            }
+        }
+        return size * (size - 1);
+    }
 };
 
 struct ShapeList {
@@ -164,6 +226,7 @@ struct ShapeList {
         dest->vs = (dest->maxX == dest->minX && (dest->maxY >= board->h - 1 || !board->board[dest->minX][dest->maxY + 1]))/* ||
             !(dest->maxX == dest->minX && dest->minY > 0 && dest->maxY < board->h - 1 &&
                 board->board[dest->minX][dest->minY - 1] == board->board[dest->minX][dest->maxY + 1])*/;
+        dest->rand = random();
     }
 
     void update(Board *board, int minX = 0, int maxX = MAX_WIDTH, int minY = 0) {
@@ -267,22 +330,22 @@ struct ShapeList {
     }
 };
 
-struct Move {
-    int x, y;
-};
-
 struct Game {
     long total;
     int nmoves;
     Move moves[MAX_WIDTH * MAX_HEIGHT];
 
     void move(Shape &shape) {
-    //cout << __LINE__ << " " << nmoves << endl;
-    //shape.print();
-
         total += shape.score();
         moves[nmoves].x = shape.minX;
         moves[nmoves].y = shape.y;
+        nmoves++;
+    }
+
+    void move(Move move, int score) {
+        total += score;
+        moves[nmoves].x = move.x;
+        moves[nmoves].y = move.y;
         nmoves++;
     }
 
@@ -427,6 +490,13 @@ int byColorNoAndFromTop(const Shape *a, const Shape *b) {
     return b->y - a->y;
 }
 
+int randomStrategy(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
+    return a->rand - b->rand;
+}
+
 
 void validate(Board *board, ShapeList& list) {
     int total = 0;
@@ -543,7 +613,7 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };*/
-const int NCOMP = 11;
+const int NCOMP = 10;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromLargest, fromTop, fromSmallestWithoutOne, fromLargestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
@@ -571,6 +641,97 @@ Game* test2(Board *board) {
     return games + bestGame;
 }
 
+Move pickRandomMove(Board *board) {
+    Move move;
+    for (int i = 0; i < board->w * board->h; i++) {
+        int x = random() % board->w;
+        int h = board->size[x];
+        if (h == 0) {
+            continue;
+        }
+        int y = random() % h;
+        char c = board->board[x][y];
+        if (!c) {
+            board->size[x] = y;
+            continue;
+        }
+        if ((x > 0 && board->board[x - 1][y] == c) ||
+            (x < board->w - 1 && board->board[x + 1][y] == c) ||
+            (y > 0 && board->board[x][y - 1] == c) ||
+            (y < board->h - 1 && board->board[x][y + 1] == c)) {
+            move.x = x;
+            move.y = y;
+            return move;
+        }
+    }
+    move.x = -1;
+    return move;
+}
+
+Move pickFirstMove(Board *board) {
+    Move move;
+    for (int x = 0; x < board->w; x++) {
+        int h = board->size[x];
+        for (int y = h - 1; y >= 0; y--) {
+            char c = board->board[x][y];
+            if (!c) {
+                board->size[x] = y;
+                continue;
+            }
+            if ((x > 0 && board->board[x - 1][y] == c) ||
+                (x < board->w - 1 && board->board[x + 1][y] == c) ||
+                (y > 0 && board->board[x][y - 1] == c) ||
+                (y < board->h - 1 && board->board[x][y + 1] == c)) {
+                move.x = x;
+                move.y = y;
+                return move;
+            }
+        }
+    }
+    move.x = -1;
+    return move;
+}
+
+void randomPlayer(Board *board, Game &game) {
+    game.total = 0;
+    game.nmoves = 0;
+    for (int x = 0; x < board->w; x++) {
+        board->size[x] = board->h;
+    }
+    while(true) {
+        Move move = pickRandomMove(board);
+        if (move.x < 0) {
+            break;
+        }
+        int score = board->remove2(move);
+        game.move(move, score);
+    }
+    while(true) {
+        Move move = pickFirstMove(board);
+        if (move.x < 0) {
+            break;
+        }
+        int score = board->remove2(move);
+        game.move(move, score);
+    }
+}
+
+const int NRAND = 100;
+static Game randomGames[NRAND];
+Game* randomPlayer2(Board *board) {
+    int bestGame;
+    long bestScore = -1;
+    for (int i = 0; i < NRAND; i++) {
+        Board board2 = *board;
+        randomPlayer(&board2, randomGames[i]);
+        if (randomGames[i].total > bestScore) {
+            bestGame = i;
+            bestScore = randomGames[i].total;
+        }
+    }
+    return randomGames + bestGame;
+}
+
 void play() {
     int t;
     cin >> t;
@@ -583,12 +744,24 @@ void play() {
     }
 }
 
+void randomPlay() {
+    int t;
+    cin >> t;
+    for (int i = 0; i < t; i++) {
+        Board board;
+        board.loadFromCin();
+        Game* game = randomPlayer2(&board);
+        game->send(board.h);
+        //cout << game->total << endl;
+    }
+}
+
 void stats() {
     //int width = 20;
     //int height = 50;
-    long total2 = 0;
+    long total2 = 0, total3 = 0;
     for (int ncols = 4; ncols <= 20; ncols += 2) {
-        long total[NCOMP + 1] = {0};
+        long total[NCOMP + 2] = {0};
         for (int i = 0; i < 1000; i++) {
             int width = (rand() % 47) + 4;
             int height = (rand() % 47) + 4;
@@ -603,6 +776,10 @@ void stats() {
             Game *game = test2(&board2);
             total[NCOMP] += game->total;
             total2 += game->total * ncols * ncols / width / height;
+            board2 = *board;
+            game = randomPlayer2(&board2);
+            total[NCOMP + 1] += game->total;
+            total3 += game->total * ncols * ncols / width / height;
             delete board;
         }
         /*int best = -1;
@@ -615,17 +792,18 @@ void stats() {
         }
         cout << ncols << " " << best << " " << bestV << " " << bestV * ncols * ncols / width / height <<
             " " << total[NCOMP] << " " << total[NCOMP] * ncols * ncols / width / height << endl;*/
-        cout << ncols << " " << total[NCOMP] << /*" " << total[NCOMP] * ncols * ncols / width / height <<*/ endl;
+        cout << ncols << " " << total[NCOMP] << " " << total[NCOMP + 1] << /*" " << total[NCOMP] * ncols * ncols / width / height <<*/ endl;
         for (int i = 0; i < NCOMP; i++) {
             cout << ncols << " " << i << " " << hist[i] << endl;
         }
     }
-    cout << total2 << endl;
+    cout << total2 << " " << total3 << endl;
 }
 
 int main() {
     //stats();
-    play();
+    //play();
+    randomPlay();
     return 0;
 }
 //1904074   71  2261.7  2.35
@@ -635,3 +813,6 @@ int main() {
 //1904217 fromSmallestWithoutMostPop
 
 //1919433
+
+//1915248
+//1912668
