@@ -7,6 +7,8 @@
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
 //#define USE_RAND
+//#define USE_ELECTIONS
+//#define VALIDATION
 
 using namespace std;
 
@@ -42,7 +44,10 @@ struct Shape {
 struct Board {
     int w, h;
     char board[MAX_WIDTH][MAX_HEIGHT2];
+
+    #ifdef USE_RAND
     int size[MAX_WIDTH];
+    #endif
 
     void operator= (const Board& src) {
         w = src.w;
@@ -335,7 +340,7 @@ struct Game {
     void operator=(const Game& src) {
         total = src.total;
         nmoves = src.nmoves;
-        memcpy(moves, src.moves, total * sizeof(Move));
+        memcpy(moves, src.moves, nmoves * sizeof(Move));
     }
 
     void move(Shape &shape) {
@@ -502,6 +507,7 @@ int randomStrategy(const Shape *a, const Shape *b) {
 }
 #endif
 
+#ifdef VALIDATION
 void validate(Board *board, ShapeList& list) {
     int total = 0;
     for (int i = 0; i < list.size; i++) {
@@ -546,6 +552,7 @@ void validate(Board *board, ShapeList& list) {
         board->print();
     }
 }
+#endif
 
 void calcHistogram(Board *board) {
     memset(colorHistogram, 0, sizeof(colorHistogram));
@@ -571,6 +578,9 @@ void calcHistogram(Board *board) {
 void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &game) {
     ShapeList list;
     list.update(board);
+    #ifdef VALIDATION
+    validate(board, list);
+    #endif
 
     game.reset();
     while(list.size) {
@@ -578,6 +588,9 @@ void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &gam
         game.move(move);
         board->remove(move);
         list.update(board, move.minX - 1, move.maxX + 1, move.minY - 1);
+        #ifdef VALIDATION
+        validate(board, list);
+        #endif
     }
 }
 
@@ -595,8 +608,20 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromTop, byColorAndFromLargest, byColorAndFromTop
 };*/
+const int NCOMP2 = 10;
+int (*comparators2[NCOMP2])(const Shape*, const Shape*) = {
+    fromLargest, fromTop, /*fromSmallestWithoutOne, */fromLargestWithoutMostPop, fromSmallestWithoutMostPop, byColorAndFromSmallest,
+    byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
+};
+/*const int NCOMP2 = 6;
+int (*comparators2[NCOMP2])(const Shape*, const Shape*) = {
+    fromTop, fromSmallestWithoutMostPop, byColorAndFromSmallest,
+    byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromTop
+};*/
 
-Game games[NCOMP];
+
+
+Game games2[NCOMP];
 int hist[NCOMP] = {0};
 Game* test2(Board *board) {
     calcHistogram(board);
@@ -604,16 +629,87 @@ Game* test2(Board *board) {
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
         Board board2 = *board;
-        test(&board2, comparators[i], games[i]);
+        test(&board2, comparators[i], games2[i]);
+        if (games2[i].total > bestScore) {
+            bestGame = i;
+            bestScore = games2[i].total;
+        }
+    }
+    hist[bestGame]++;
+    return games2 + bestGame;
+}
+
+int findBestGame(Game* games, int cnt) {
+    int bestGame;
+    long bestScore = -1;
+    for (int i = 0; i < cnt; i++) {
         if (games[i].total > bestScore) {
             bestGame = i;
             bestScore = games[i].total;
         }
     }
-    hist[bestGame]++;
-    return games + bestGame;
+    return bestGame;
 }
 
+#ifdef USE_ELECTIONS
+Game games[NCOMP2];
+Board boards[NCOMP2];
+ShapeList lists[NCOMP2];
+int hist2[NCOMP2] = {0};
+Game* test3(Board *board, int electionPeriod) {
+    calcHistogram(board);
+//cout << __LINE__ << endl;
+    for (int i = 0; i < NCOMP2; i++) {
+        boards[i] = *board;
+        games[i].reset();
+    }
+//cout << __LINE__ << endl;
+    lists[0].update(board);
+//cout << __LINE__ << endl;
+    for (int i = 1; i < NCOMP2; i++) {
+        lists[i] = lists[0];
+    }
+//cout << __LINE__ << endl;
+
+    int moveNo = 0;
+    bool change = true;
+    while(change) {
+        change = false;
+        for (int i = 0; i < NCOMP2; i++) {
+            if (lists[i].size) {
+                Shape& move = lists[i].findBest(comparators2[i]);
+                games[i].move(move);
+                boards[i].remove(move);
+                lists[i].update(boards + i, move.minX - 1, move.maxX + 1, move.minY - 1);
+                change = true;
+            }
+        }
+//cout << __LINE__ << endl;
+        moveNo++;
+        if (moveNo % electionPeriod == 0) {
+            int bestGame = findBestGame(games, NCOMP2);
+            for (int i = 0; i < NCOMP2; i++) {
+                if (i != bestGame) {
+//cout << __LINE__ << " " << i << " " << bestGame << endl;
+                    games[i] = games[bestGame];
+//cout << __LINE__ << endl;
+                    boards[i] = boards[bestGame];
+//cout << __LINE__ << endl;
+                    lists[i] = lists[bestGame];
+//cout << __LINE__ << endl;
+                }
+            }
+            calcHistogram(&boards[0]);
+//cout << __LINE__ << endl;
+            hist2[bestGame]++;
+//cout << __LINE__ << endl;
+        }
+    }
+
+//cout << __LINE__ << endl;
+    return games + findBestGame(games, NCOMP2);
+}
+#endif
 
 #ifdef USE_RAND
 Move pickRandomMove(Board *board) {
@@ -736,9 +832,9 @@ void randomPlay() {
 void stats() {
     //int width = 20;
     //int height = 50;
-    long total2 = 0, total3 = 0;
+    long total2 = 0, total3 = 0, total4 = 0;
     for (int ncols = 4; ncols <= 20; ncols += 2) {
-        long total[NCOMP + 2] = {0};
+        long total[NCOMP + 3] = {0};
         for (int i = 0; i < 1000; i++) {
             int width = (rand() % 47) + 4;
             int height = (rand() % 47) + 4;
@@ -753,12 +849,20 @@ void stats() {
             Game *game = test2(&board2);
             total[NCOMP] += game->total;
             total2 += game->total * ncols * ncols / width / height;
+
             #ifdef USE_RAND
             board2 = *board;
             game = randomPlayer2(&board2);
             total[NCOMP + 1] += game->total;
             total3 += game->total * ncols * ncols / width / height;
             #endif
+
+            #ifdef USE_ELECTIONS
+            game = test3(board, 5);
+            total[NCOMP + 2] += game->total;
+            total4 += game->total * ncols * ncols / width / height;
+            #endif
+
             delete board;
         }
         /*int best = -1;
@@ -775,21 +879,34 @@ void stats() {
         #ifdef USE_RAND
         cout << " " << total[NCOMP + 1];
         #endif
+        #ifdef USE_ELECTIONS
+        cout << " " << total[NCOMP + 2];
+        #endif
         cout << /*" " << total[NCOMP] * ncols * ncols / width / height <<*/ endl;
         for (int i = 0; i < NCOMP; i++) {
-            cout << ncols << " " << i << " " << hist[i] << endl;
+            cout << ncols << " " << i << " " << hist[i];
+            cout << endl;
         }
+        #ifdef USE_ELECTIONS
+        for (int i = 0; i < NCOMP2; i++) {
+            cout << ncols << " N" << i << " " << hist2[i];
+            cout << endl;
+        }
+        #endif
     }
     cout << total2;
     #ifdef USE_RAND
     cout << " " << total3;
     #endif
+    #ifdef USE_ELECTIONS
+    cout << " " << total4;
+    #endif
     cout << endl;
 }
 
 int main() {
-    //stats();
-    play();
+    stats();
+    //play();
     //randomPlay();
     return 0;
 }
@@ -803,3 +920,7 @@ int main() {
 
 //1915248
 //1912668
+
+//50 1943072 1162410
+//100 1943072 1704132
+
