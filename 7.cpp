@@ -5,6 +5,7 @@
 #define MAX_WIDTH 50
 #define MAX_HEIGHT 50
 #define MAX_HEIGHT2 64
+#define MAX_COLOR 20
 
 using namespace std;
 
@@ -337,12 +338,14 @@ int fromSmallestWithoutOne(const void *va, const void *vb) {
     return a->size - b->size;
 }
 
+int colorHistogram[MAX_COLOR + 1];
+
 //52317838
 int byColorAndFromSmallest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
     if (a->c != b->c) {
-        return a->c - b->c;
+        return colorHistogram[a->c] - colorHistogram[b->c];
     }
     return a->size - b->size;
 }
@@ -352,7 +355,7 @@ int byColorAndFromLargest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
     if (a->c != b->c) {
-        return a->c - b->c;
+        return colorHistogram[a->c] - colorHistogram[b->c];
     }
     return b->size - a->size;
 }
@@ -361,7 +364,7 @@ int byColorAndFromTop(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
     if (a->c != b->c) {
-        return a->c - b->c;
+        return colorHistogram[a->c] - colorHistogram[b->c];
     }
     return b->y - a->y;
 }
@@ -408,6 +411,18 @@ void validate(Board *board, ShapeList& list) {
     if (total != total2) {
         cout << "A " << total << " " << total2 << endl;
         board->print();
+    }
+}
+
+void calcHistogram(Board *board) {
+    memset(colorHistogram, 0, sizeof(colorHistogram));
+
+    for (int x = 0; x < board->w; x++) {
+        char* col = board->board[x];
+        for (int y = 0; y < board->h; y++) {
+            colorHistogram[*col]++;
+            col++;
+        }
     }
 }
 
@@ -468,6 +483,7 @@ int (*comparators[NCOMP])(const void*, const void*) = {
 Game games[NCOMP];
 int hist[NCOMP] = {0};
 Game* test2(Board *board) {
+    calcHistogram(board);
     int bestGame;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
