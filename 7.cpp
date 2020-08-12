@@ -19,6 +19,7 @@ struct Shape {
     int16_t size;
     char c;
     int8_t y;
+    char vs;
 
     int score() {
         return size * (size - 1);
@@ -160,6 +161,7 @@ struct ShapeList {
         dest->maxY = -1;
         dest->c = board->board[x][y];
         dest->size = addPoint(board, x, y, dest);
+        dest->vs = dest->maxX == dest->minX && (dest->maxY >= board->h - 1 || !board->board[dest->minX][dest->maxY + 1]);
     }
 
     void update(Board *board, int minX = 0, int maxX = MAX_WIDTH, int minY = 0) {
@@ -318,12 +320,18 @@ int fromBottom(const void *va, const void *vb) {
 int fromLeft(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
     return a->minX - b->minX;
 }
 
 int fromSmallestWithoutOne(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
     int ca = a->c == 1;
     int cb = b->c == 1;
     if (ca != cb) {
@@ -338,6 +346,9 @@ char mostPopularColor;
 int fromSmallestWithoutMostPop(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
     int ca = a->c == mostPopularColor;
     int cb = b->c == mostPopularColor;
     if (ca != cb) {
@@ -349,6 +360,9 @@ int fromSmallestWithoutMostPop(const void *va, const void *vb) {
 int byColorAndFromSmallest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
     if (a->c != b->c) {
         return colorHistogram[a->c] - colorHistogram[b->c];
     }
@@ -358,6 +372,9 @@ int byColorAndFromSmallest(const void *va, const void *vb) {
 int byColorAndFromLargest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
     if (a->c != b->c) {
         return colorHistogram[a->c] - colorHistogram[b->c];
     }
@@ -367,6 +384,9 @@ int byColorAndFromLargest(const void *va, const void *vb) {
 int byColorAndFromTop(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
     if (a->c != b->c) {
         return colorHistogram[a->c] - colorHistogram[b->c];
     }
@@ -376,6 +396,9 @@ int byColorAndFromTop(const void *va, const void *vb) {
 int byColorNoAndFromSmallest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
     if (a->c != b->c) {
         return a->c - b->c;
     }
@@ -385,6 +408,9 @@ int byColorNoAndFromSmallest(const void *va, const void *vb) {
 int byColorNoAndFromLargest(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
     if (a->c != b->c) {
         return a->c - b->c;
     }
@@ -394,6 +420,9 @@ int byColorNoAndFromLargest(const void *va, const void *vb) {
 int byColorNoAndFromTop(const void *va, const void *vb) {
     const Shape* a = (Shape*) va;
     const Shape* b = (Shape*) vb;
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
     if (a->c != b->c) {
         return a->c - b->c;
     }
@@ -597,8 +626,8 @@ void stats() {
 }
 
 int main() {
-    stats();
-    //play();
+    //stats();
+    play();
     return 0;
 }
 //1904074   71  2261.7  2.35
