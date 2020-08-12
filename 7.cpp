@@ -161,7 +161,9 @@ struct ShapeList {
         dest->maxY = -1;
         dest->c = board->board[x][y];
         dest->size = addPoint(board, x, y, dest);
-        dest->vs = dest->maxX == dest->minX && (dest->maxY >= board->h - 1 || !board->board[dest->minX][dest->maxY + 1]);
+        dest->vs = (dest->maxX == dest->minX && (dest->maxY >= board->h - 1 || !board->board[dest->minX][dest->maxY + 1]))/* ||
+            !(dest->maxX == dest->minX && dest->minY > 0 && dest->maxY < board->h - 1 &&
+                board->board[dest->minX][dest->minY - 1] == board->board[dest->minX][dest->maxY + 1])*/;
     }
 
     void update(Board *board, int minX = 0, int maxX = MAX_WIDTH, int minY = 0) {
@@ -240,7 +242,7 @@ struct ShapeList {
         return total;
     }
 
-    Shape& findBest(int (*comparator)(const void*, const void*)) {
+    Shape& findBest(int (*comparator)(const Shape*, const Shape*)) {
 //cout << __LINE__ << " " << (void*)comparator << " " << size << endl;
         Shape* best = &shapes[0];
         for (int i = 1; i < size; i++) {
@@ -293,42 +295,30 @@ struct Game {
     }
 };
 
-int fromSmallest(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int fromSmallest(const Shape *a, const Shape *b) {
     return a->size - b->size;
 }
 
-int fromLargest(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int fromLargest(const Shape *a, const Shape *b) {
     return b->size - a->size;
 }
 
-int fromTop(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int fromTop(const Shape *a, const Shape *b) {
     return b->y - a->y;
 }
 
-int fromBottom(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int fromBottom(const Shape *a, const Shape *b) {
     return a->y - b->y;
 }
 
-int fromLeft(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int fromLeft(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
     return a->minX - b->minX;
 }
 
-int fromSmallestWithoutOne(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int fromSmallestWithoutOne(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
@@ -343,9 +333,7 @@ int fromSmallestWithoutOne(const void *va, const void *vb) {
 int colorHistogram[MAX_COLOR + 1];
 char mostPopularColor;
 
-int fromSmallestWithoutMostPop(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int fromSmallestWithoutMostPop(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
@@ -357,9 +345,19 @@ int fromSmallestWithoutMostPop(const void *va, const void *vb) {
     return a->size - b->size;
 }
 
-int byColorAndFromSmallest(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int fromLargestWithoutMostPop(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
+    int ca = a->c == mostPopularColor;
+    int cb = b->c == mostPopularColor;
+    if (ca != cb) {
+        return ca - cb;
+    }
+    return b->size - a->size;
+}
+
+int byColorAndFromSmallest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
@@ -369,9 +367,7 @@ int byColorAndFromSmallest(const void *va, const void *vb) {
     return a->size - b->size;
 }
 
-int byColorAndFromLargest(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int byColorAndFromLargest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
@@ -381,9 +377,7 @@ int byColorAndFromLargest(const void *va, const void *vb) {
     return b->size - a->size;
 }
 
-int byColorAndFromTop(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int byColorAndFromTop(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
@@ -393,9 +387,7 @@ int byColorAndFromTop(const void *va, const void *vb) {
     return b->y - a->y;
 }
 
-int byColorNoAndFromSmallest(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int byColorNoAndFromSmallest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
@@ -405,9 +397,7 @@ int byColorNoAndFromSmallest(const void *va, const void *vb) {
     return a->size - b->size;
 }
 
-int byColorNoAndFromLargest(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int byColorNoAndFromLargest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
@@ -417,9 +407,7 @@ int byColorNoAndFromLargest(const void *va, const void *vb) {
     return b->size - a->size;
 }
 
-int byColorNoAndFromTop(const void *va, const void *vb) {
-    const Shape* a = (Shape*) va;
-    const Shape* b = (Shape*) vb;
+int byColorNoAndFromTop(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
@@ -496,7 +484,7 @@ void calcHistogram(Board *board) {
     }
 }
 
-void test(Board *board, int (*comparator)(const void*, const void*), Game &game) {
+void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &game) {
     //board->print();
 
     ShapeList list;
@@ -541,17 +529,17 @@ void test(Board *board, int (*comparator)(const void*, const void*), Game &game)
 }
 
 /*const int NCOMP = 12;
-int (*comparators[NCOMP])(const void*, const void*) = {
+int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };*/
 const int NCOMP = 10;
-int (*comparators[NCOMP])(const void*, const void*) = {
-    fromLargest, fromTop, fromSmallestWithoutOne, fromSmallestWithoutMostPop, byColorAndFromSmallest,
+int (*comparators[NCOMP])(const Shape*, const Shape*) = {
+    fromLargest, fromTop, fromSmallestWithoutOne, fromLargestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };
 /*const int NCOMP = 3;
-int (*comparators[NCOMP])(const void*, const void*) = {
+int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromTop, byColorAndFromLargest, byColorAndFromTop
 };*/
 
@@ -635,3 +623,5 @@ int main() {
 //1904217 fromSmallest
 //1904166 fromBottom
 //1904217 fromSmallestWithoutMostPop
+
+//1919433
