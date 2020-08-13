@@ -135,8 +135,12 @@ struct Board {
             char* dest = src;
             for (int y = shape.minY; y <= h; y++) {
                 if ((mask & 1) == uint64_t(0)) {
-                    if (src != dest)
+                    if (src != dest) {
+                        if (!*dest) {
+                            break;
+                        }
                         *dest = *src;
+                    }
                     dest++;
                 }
                 src++;
@@ -711,6 +715,14 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3,
     byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop, /*byColorNoAndFromTop2, */byColorNoAndFromTop3
 };
+/*const int NCOMP = 23;
+int (*comparators[NCOMP])(const Shape*, const Shape*) = {
+    fromSmallest, fromLargest, fromBottom, fromTop, fromBottom2, fromTop2, fromBottom3, fromTop3, fromLeft,
+    fromSmallestWithoutOne, fromLargestWithoutMostPop,
+    fromSmallestWithoutMostPop, byColorAndFromSmallest,
+    byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3,
+    byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop, byColorNoAndFromTop2, byColorNoAndFromTop3
+};*/
 /*const int NCOMP = 3;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromTop, byColorAndFromLargest, byColorAndFromTop
@@ -1031,8 +1043,8 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
-    play();
+    stats();
+    //play();
     //randomPlay();
     return 0;
 }
