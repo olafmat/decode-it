@@ -282,9 +282,14 @@ struct ShapeList {
         uint64_t* usedCol = used + minX;
 
         for (int x = minX; x <= maxX; x++) {
+            char* pcol = x > 0 ? &board->board[x - 1][0/*minY*/] : NULL;
             char* col = &board->board[x][0/*minY*/];
+            char* ncol = x < board->w - 1 ? &board->board[x + 1][0/*minY*/] : NULL;
             for (int y = 0/*minY*/; y < h; y++) {
-                if (*col && !((*usedCol >> y) & 1)) {
+                char c = *col;
+                if (c && !((*usedCol >> y) & 1) &&
+                ((pcol && pcol[y] == c) || (ncol && ncol[y] == c) ||
+                 (y > 0 && col[-1] == c) || (y < board->h - 1 && col[1] == c)))  {
                     addShape(board, x, y, dest);
                     if (dest->size > 1) {
                         dest++;
@@ -830,6 +835,7 @@ void randomPlay() {
 #endif
 
 void stats() {
+    int64_t begin = clock();
     //int width = 20;
     //int height = 50;
     long total2 = 0, total3 = 0, total4 = 0;
@@ -902,6 +908,9 @@ void stats() {
     cout << " " << total4;
     #endif
     cout << endl;
+
+    int64_t end = clock();
+    cout << double(end - begin) / CLOCKS_PER_SEC << endl;
 }
 
 int main() {
