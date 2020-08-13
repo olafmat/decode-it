@@ -387,6 +387,22 @@ int fromBottom(const Shape *a, const Shape *b) {
     return a->y - b->y;
 }
 
+int fromTop2(const Shape *a, const Shape *b) {
+    return b->minY - a->minY;
+}
+
+int fromBottom2(const Shape *a, const Shape *b) {
+    return a->minY - b->minY;
+}
+
+int fromTop3(const Shape *a, const Shape *b) {
+    return b->maxY - a->maxY;
+}
+
+int fromBottom3(const Shape *a, const Shape *b) {
+    return a->maxY - b->maxY;
+}
+
 int fromLeft(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
@@ -473,6 +489,26 @@ int byColorAndFromTop(const Shape *a, const Shape *b) {
     return b->y - a->y;
 }
 
+int byColorAndFromTop2(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
+    if (a->c != b->c) {
+        return colorHistogram[a->c] - colorHistogram[b->c];
+    }
+    return b->minY - a->minY;
+}
+
+int byColorAndFromTop3(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
+    if (a->c != b->c) {
+        return colorHistogram[a->c] - colorHistogram[b->c];
+    }
+    return b->maxY - a->maxY;
+}
+
 int byColorNoAndFromSmallest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
@@ -501,6 +537,26 @@ int byColorNoAndFromTop(const Shape *a, const Shape *b) {
         return a->c - b->c;
     }
     return b->y - a->y;
+}
+
+int byColorNoAndFromTop2(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
+    if (a->c != b->c) {
+        return a->c - b->c;
+    }
+    return b->minY - a->minY;
+}
+
+int byColorNoAndFromTop3(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
+    if (a->c != b->c) {
+        return a->c - b->c;
+    }
+    return b->maxY - a->maxY;
 }
 
 #ifdef USE_RAND
@@ -604,11 +660,13 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };*/
-const int NCOMP = 14;
+const int NCOMP = 16;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
-    fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, fromLargestWithoutMostPop,
+    /*fromSmallest, fromLargest,*/ /*fromBottom, */fromTop, /*fromBottom2, */fromTop2, /*fromBottom3, */fromTop3, /*fromLeft,*/
+    fromSmallestWithoutOne, fromLargestWithoutMostPop,
     fromSmallestWithoutMostPop, byColorAndFromSmallest,
-    byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
+    byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3,
+    byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop, /*byColorNoAndFromTop2, */byColorNoAndFromTop3
 };
 /*const int NCOMP = 3;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
@@ -933,4 +991,10 @@ int main() {
 
 //50 1943072 1162410
 //100 1943072 1704132
+
+//top 1952129 105.261
+//top2 1946700 89
+//top3 1947936 67.5345
+//top2 top3 1966047 82.56
+//top top2 top3 1972862 97.1351
 
