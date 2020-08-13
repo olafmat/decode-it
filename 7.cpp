@@ -309,7 +309,10 @@ struct ShapeList {
             char* ncol = &board->board[x + 1][0/*minY*/];
             for (int y = 1/*minY*/; y <= h; y++) {
                 char c = *col;
-                if (c && !((*usedCol >> y) & 1) &&
+                if (!c) {
+                    break;
+                }
+                if (!((*usedCol >> y) & 1) &&
                 (pcol[y] == c || ncol[y] == c ||
                  col[-1] == c || col[1] == c))  {
                     addShape(board, x, y, dest);
@@ -1043,8 +1046,8 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
-    play();
+    stats();
+    //play();
     //randomPlay();
     return 0;
 }
