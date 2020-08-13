@@ -42,7 +42,7 @@ struct Shape {
 };
 
 struct Board {
-    int w, h;
+    int w, h, w1, h1;
     char board[MAX_WIDTH][MAX_HEIGHT2];
 
     #ifdef USE_RAND
@@ -52,6 +52,8 @@ struct Board {
     void operator= (const Board& src) {
         w = src.w;
         h = src.h;
+        w1 = w - 1;
+        h1 = h - 1;
         for (int j = 0; j < w; j++) {
             memcpy(board[j], src.board[j], h);
         }
@@ -60,7 +62,9 @@ struct Board {
     void loadFromCin() {
         int nc;
         cin >> h >> w >> nc;
-        for (int y = h - 1; y >= 0; y--) {
+        w1 = w - 1;
+        h1 = h - 1;
+        for (int y = h1; y >= 0; y--) {
             for (int x = 0; x < w; x++) {
                 int c;
                 cin >> c;
@@ -73,6 +77,8 @@ struct Board {
         Board* board = new Board();
         board->w = w;
         board->h = h;
+        board->w1 = w - 1;
+        board->h1 = h - 1;
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < w; j++) {
                 board->board[j][i] = (random() % c) + 1;
@@ -82,7 +88,7 @@ struct Board {
     }
 
     void print() {
-        for (int i = h - 1; i >= 0; i--) {
+        for (int i = h1; i >= 0; i--) {
             for (int j = 0; j < w; j++) {
                 cout << (board[j][i] ? char('A' + board[j][i]) : '-');
             }
@@ -97,13 +103,13 @@ struct Board {
             if (x > 0) {
                 addPoint(x - 1, y, c);
             }
-            if (x < w - 1) {
+            if (x < w1) {
                 addPoint(x + 1, y, c);
             }
             if (y > 0) {
                 addPoint(x, y - 1, c);
             }
-            if (y < h - 1) {
+            if (y < h1) {
                 addPoint(x, y + 1, c);
             }
         }
@@ -143,13 +149,13 @@ struct Board {
             if (x > 0) {
                 total += addPoint2(x - 1, y, c);
             }
-            if (x < w - 1) {
+            if (x < w1) {
                 total += addPoint2(x + 1, y, c);
             }
             if (y > 0) {
                 total += addPoint2(x, y - 1, c);
             }
-            if (y < h - 1) {
+            if (y < h1) {
                 total += addPoint2(x, y + 1, c);
             }
         }
@@ -222,9 +228,9 @@ struct ShapeList {
             }
             return 1
                 + (x > 0 ? addPoint(board, x - 1, y, dest) : 0)
-                + (x < board->w - 1 ? addPoint(board, x + 1, y, dest) : 0)
+                + (x < board->w1 ? addPoint(board, x + 1, y, dest) : 0)
                 + (y > 0 ? addPoint(board, x, y - 1, dest) : 0)
-                + (y < board->h - 1 ? addPoint(board, x, y + 1, dest) : 0);
+                + (y < board->h1 ? addPoint(board, x, y + 1, dest) : 0);
         }
         return 0;
     }
@@ -236,8 +242,8 @@ struct ShapeList {
         dest->maxY = -1;
         dest->c = board->board[x][y];
         dest->size = addPoint(board, x, y, dest);
-        dest->vs = (dest->maxX == dest->minX && (dest->maxY >= board->h - 1 || !board->board[dest->minX][dest->maxY + 1]))/* ||
-            !(dest->maxX == dest->minX && dest->minY > 0 && dest->maxY < board->h - 1 &&
+        dest->vs = (dest->maxX == dest->minX && (dest->maxY >= board->h1 || !board->board[dest->minX][dest->maxY + 1]))/* ||
+            !(dest->maxX == dest->minX && dest->minY > 0 && dest->maxY < board->h1 &&
                 board->board[dest->minX][dest->minY - 1] == board->board[dest->minX][dest->maxY + 1])*/;
         #ifdef USE_RAND
         dest->rand = random();
@@ -248,10 +254,10 @@ struct ShapeList {
         if (minX < 0) {
             minX = 0;
         }
-        const int w = board->w;
+        const int w1 = board->w1;
         const int h = board->h;
-        if (maxX >= w) {
-            maxX = w - 1;
+        if (maxX > w1) {
+            maxX = w1;
         }
         if (minY < 0) {
             minY = 0;
@@ -278,18 +284,18 @@ struct ShapeList {
         }
         Shape* dest = shapes + size;
 
-        memset(used, 0, sizeof(uint64_t) * w);
+        memset(used, 0, sizeof(uint64_t) * board->w);
         uint64_t* usedCol = used + minX;
 
         for (int x = minX; x <= maxX; x++) {
             char* pcol = x > 0 ? &board->board[x - 1][0/*minY*/] : NULL;
             char* col = &board->board[x][0/*minY*/];
-            char* ncol = x < board->w - 1 ? &board->board[x + 1][0/*minY*/] : NULL;
+            char* ncol = x < w1 ? &board->board[x + 1][0/*minY*/] : NULL;
             for (int y = 0/*minY*/; y < h; y++) {
                 char c = *col;
                 if (c && !((*usedCol >> y) & 1) &&
                 ((pcol && pcol[y] == c) || (ncol && ncol[y] == c) ||
-                 (y > 0 && col[-1] == c) || (y < board->h - 1 && col[1] == c)))  {
+                 (y > 0 && col[-1] == c) || (y < board->h1 && col[1] == c)))  {
                     addShape(board, x, y, dest);
                     if (dest->size > 1) {
                         dest++;
@@ -585,9 +591,9 @@ void validate(Board *board, ShapeList& list) {
         }
         int sum =
             (x > 0 && board->board[x - 1][y] == list.shapes[i].c) +
-            (x < board->w - 1 && board->board[x + 1][y] == list.shapes[i].c) +
+            (x < board->w1 && board->board[x + 1][y] == list.shapes[i].c) +
             (y > 0 && board->board[x][y - 1] == list.shapes[i].c) +
-            (y < board->h - 1 && board->board[x][y + 1] == list.shapes[i].c);
+            (y < board->h1 && board->board[x][y + 1] == list.shapes[i].c);
         if (!sum) {
             cout << "C" << endl;
         }
@@ -597,9 +603,9 @@ void validate(Board *board, ShapeList& list) {
         for (int y = 0; y < board->h; y++) {
             int sum =
                 (x > 0 && board->board[x - 1][y] == board->board[x][y]) +
-                (x < board->w - 1 && board->board[x + 1][y] == board->board[x][y]) +
+                (x < board->w1 && board->board[x + 1][y] == board->board[x][y]) +
                 (y > 0 && board->board[x][y - 1] == board->board[x][y]) +
-                (y < board->h - 1 && board->board[x][y + 1] == board->board[x][y]);
+                (y < board->h1 && board->board[x][y + 1] == board->board[x][y]);
             if (!sum) {
                 total++;
             }
@@ -791,9 +797,9 @@ Move pickRandomMove(Board *board) {
             continue;
         }
         if ((x > 0 && board->board[x - 1][y] == c) ||
-            (x < board->w - 1 && board->board[x + 1][y] == c) ||
+            (x < board->w1 && board->board[x + 1][y] == c) ||
             (y > 0 && board->board[x][y - 1] == c) ||
-            (y < board->h - 1 && board->board[x][y + 1] == c)) {
+            (y < board->h1 && board->board[x][y + 1] == c)) {
             move.x = x;
             move.y = y;
             return move;
@@ -807,16 +813,16 @@ Move pickFirstMove(Board *board) {
     Move move;
     for (int x = 0; x < board->w; x++) {
         int h = board->size[x];
-        for (int y = h - 1; y >= 0; y--) {
+        for (int y = h1; y >= 0; y--) {
             char c = board->board[x][y];
             if (!c) {
                 board->size[x] = y;
                 continue;
             }
             if ((x > 0 && board->board[x - 1][y] == c) ||
-                (x < board->w - 1 && board->board[x + 1][y] == c) ||
+                (x < board->w1 && board->board[x + 1][y] == c) ||
                 (y > 0 && board->board[x][y - 1] == c) ||
-                (y < board->h - 1 && board->board[x][y + 1] == c)) {
+                (y < board->h1 && board->board[x][y + 1] == c)) {
                 move.x = x;
                 move.y = y;
                 return move;
@@ -973,8 +979,8 @@ void stats() {
 }
 
 int main() {
-    //stats();
-    play();
+    stats();
+    //play();
     //randomPlay();
     return 0;
 }
