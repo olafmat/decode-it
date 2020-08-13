@@ -788,11 +788,13 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromTop, byColorAndFromLargest, byColorAndFromTop
 };*/
-const int NCOMP2 = 10;
-int (*comparators2[NCOMP2])(const Shape*, const Shape*) = {
-    fromLargest, fromTop, /*fromSmallestWithoutOne, */fromLargestWithoutMostPop, fromSmallestWithoutMostPop, byColorAndFromSmallest,
-    byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
-};
+//const int NCOMP2 = 10;
+//int (*comparators2[NCOMP2])(const Shape*, const Shape*) = {
+//    fromLargest, fromTop, /*fromSmallestWithoutOne, */fromLargestWithoutMostPop, fromSmallestWithoutMostPop, byColorAndFromSmallest,
+//    byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
+//};
+const int NCOMP2 = NCOMP;
+int (**comparators2)(const Shape*, const Shape*) = comparators;
 /*const int NCOMP2 = 6;
 int (*comparators2[NCOMP2])(const Shape*, const Shape*) = {
     fromTop, fromSmallestWithoutMostPop, byColorAndFromSmallest,
@@ -819,13 +821,14 @@ Game* test2(Board *board) {
     return games2 + bestGame;
 }
 
-int findBestGame(Game* games, int cnt) {
+int findBestGame(Game* games, ShapeList* lists, int cnt) {
     int bestGame;
     long bestScore = -1;
     for (int i = 0; i < cnt; i++) {
-        if (games[i].total > bestScore) {
+        long score = games[i].total + lists[i].score();
+        if (score > bestScore) {
             bestGame = i;
-            bestScore = games[i].total;
+            bestScore = score;
         }
     }
     return bestGame;
@@ -862,7 +865,7 @@ Game* test3(Board *board, int electionPeriod) {
         }
         moveNo++;
         if (moveNo % electionPeriod == 0) {
-            int bestGame = findBestGame(games, NCOMP2);
+            int bestGame = findBestGame(games, lists, NCOMP2);
             for (int i = 0; i < NCOMP2; i++) {
                 if (i != bestGame) {
                     games[i] = games[bestGame];
@@ -875,7 +878,7 @@ Game* test3(Board *board, int electionPeriod) {
         }
     }
 
-    return games + findBestGame(games, NCOMP2);
+    return games + findBestGame(games, lists, NCOMP2);
 }
 #endif
 
@@ -1027,7 +1030,7 @@ void stats() {
             #endif
 
             #ifdef USE_ELECTIONS
-            game = test3(board, 5);
+            game = test3(board, 1);
             total[NCOMP + 2] += game->total;
             total4 += game->total * ncols * ncols / width / height;
             #endif
