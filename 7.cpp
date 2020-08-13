@@ -707,13 +707,13 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };*/
-const int NCOMP = 16;
+const int NCOMP = 18;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
-    /*fromSmallest, fromLargest,*/ /*fromBottom, */fromTop, /*fromBottom2, */fromTop2, /*fromBottom3, */fromTop3, /*fromLeft,*/
+    /*fromSmallest, */fromLargest, /*fromBottom, */fromTop, /*fromBottom2, */fromTop2, /*fromBottom3, */fromTop3, /*fromLeft,*/
     fromSmallestWithoutOne, fromLargestWithoutMostPop,
     fromSmallestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3,
-    byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop, /*byColorNoAndFromTop2, */byColorNoAndFromTop3
+    byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop, byColorNoAndFromTop2, byColorNoAndFromTop3
 };
 /*const int NCOMP = 23;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
@@ -1043,8 +1043,8 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
-    //play();
+    //stats();
+    play();
     //randomPlay();
     return 0;
 }
