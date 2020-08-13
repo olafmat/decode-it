@@ -604,9 +604,10 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };*/
-const int NCOMP = 10;
+const int NCOMP = 14;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
-    fromLargest, fromTop, /*fromSmallestWithoutOne, */fromLargestWithoutMostPop, fromSmallestWithoutMostPop, byColorAndFromSmallest,
+    fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, fromLargestWithoutMostPop,
+    fromSmallestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };
 /*const int NCOMP = 3;
@@ -914,8 +915,8 @@ void stats() {
 }
 
 int main() {
-    stats();
-    //play();
+    //stats();
+    play();
     //randomPlay();
     return 0;
 }
