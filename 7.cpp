@@ -49,6 +49,10 @@ struct Shape {
     }
 };
 
+struct Segment {
+    uint8_t x, minY, maxY1;
+};
+
 struct Board {
     int w, h;
     char board[MAX_WIDTH][MAX_HEIGHT2];
@@ -109,7 +113,7 @@ struct Board {
         }
     }
 
-    void addSegment(int x, int minY, int maxY1, bool left, bool right, char c) {
+    void addSegment(int x, int minY, int maxY1, bool left, bool right, char c, Segment*& segments) {
         char *col = board[x];
         int nminY = minY;
         if (col[nminY] == c) {
@@ -132,7 +136,7 @@ struct Board {
         } while(col[nmaxY1] == c);
 
         if (maxY1 - nmaxY1 >= 2) {
-            addSegment(x, nmaxY1 + 1, maxY1, left, right, c);
+            addSegment(x, nmaxY1 + 1, maxY1, left, right, c, segments);
         }
 
         uint64_t mask = (uint64_t(1) << nmaxY1) - (uint64_t(1) << nminY);
@@ -140,27 +144,31 @@ struct Board {
             return;
         }
         used[x] |= mask;
+        Segment* segm = segments++;
+        segm->x = x;
+        segm->minY = nminY;
+        segm->maxY1 = nmaxY1;
 
         if (x > 1 && left) {
-            addSegment(x - 1, nminY, nmaxY1, true, false, c);
+            addSegment(x - 1, nminY, nmaxY1, true, false, c, segments);
         }
         if (x < w && right) {
-            addSegment(x + 1, nminY, nmaxY1, false, true, c);
+            addSegment(x + 1, nminY, nmaxY1, false, true, c, segments);
         }
         if (nmaxY1 - maxY1 >= 2) {
             if (x > 1 && !left) {
-                addSegment(x - 1, maxY1 + 1, nmaxY1, true, false, c);
+                addSegment(x - 1, maxY1 + 1, nmaxY1, true, false, c, segments);
             }
             if (x < w && !right) {
-                addSegment(x + 1, maxY1 + 1, nmaxY1, false, true, c);
+                addSegment(x + 1, maxY1 + 1, nmaxY1, false, true, c, segments);
             }
         }
         if (minY - nminY >= 2) {
             if (x > 1 && !left) {
-                addSegment(x - 1, nminY, minY - 1, true, false, c);
+                addSegment(x - 1, nminY, minY - 1, true, false, c, segments);
             }
             if (x < w && !right) {
-                addSegment(x + 1, nminY, minY - 1, false, true, c);
+                addSegment(x + 1, nminY, minY - 1, false, true, c, segments);
             }
         }
     }
@@ -176,11 +184,52 @@ struct Board {
         }
     }*/
 
+    static int segmentComparator(const void *va, const void *vb) {
+        const Segment* a = (const Segment*) va;
+        const Segment* b = (const Segment*) vb;
+        if (a->x != b->x) {
+            return a->x - b->x;
+        }
+        return a->maxY1 - b->maxY1;
+    }
+
     void remove(Shape& shape) {
         memset(used + shape.minX, 0, sizeof(uint64_t) * (shape.maxX - shape.minX + 1));
-        addSegment2(shape.minX, shape.y, shape.y + 1, true, true, shape.c);
+        Segment segments[MAX_WIDTH * MAX_HEIGHT];
+        Segment *segm = segments;
+        addSegment(shape.minX, shape.y, shape.y + 1, true, true, shape.c, segm);
+        qsort(segments, segm - segments, sizeof(Segment), segmentComparator);
+        segm->x = (MAX_WIDTH + 1);
+
+        Segment *s = segments;
+        char *col;
+        char *dest;
+        bool newLine = true;
+        while (s != segm) {
+            if (newLine) {
+                col = board[s->x];
+                dest = col + s->minY;
+            }
+            newLine = s[1].x != s->x;
+            char* src = col + s->maxY1;
+            if (*src) {
+                int nminY = newLine ? h + 1 : s[1].minY;
+                int len = nminY - s->maxY1;
+                memcpy(dest, src, len);
+                dest += len;
+            }
+            if (newLine) {
+                while(*dest) {
+                    *dest = 0;
+                    dest++;
+                }
+                //memset(dest, 0, h + 1 - (dest - col));
+            }
+            s++;
+        }
+
         //addPoint(shape.minX, shape.y, shape.c);
-        for (int x = shape.minX; x <= shape.maxX; x++) {
+        /*for (int x = shape.minX; x <= shape.maxX; x++) {
             uint64_t mask = used[x] >> shape.minY;
             char* src = board[x] + shape.minY;
             char* dest = src;
@@ -201,10 +250,10 @@ struct Board {
                 *dest = 0;
                 dest++;
             }
-        }
+        }*/
     }
 
-    int addSegment2(int x, int minY, int maxY1, bool left, bool right, char c) {
+    /*int addSegment2(int x, int minY, int maxY1, bool left, bool right, char c) {
         char *col = board[x];
         int nminY = minY;
         if (col[nminY] == c) {
@@ -263,7 +312,7 @@ struct Board {
         return total;
     }
 
-    /*int addPoint2(int x, int y, char c) {
+    int addPoint2(int x, int y, char c) {
         const uint64_t mask = uint64_t(1) << y;
         int total = 0;
         if ((used[x] & mask) == uint64_t(0) && board[x][y] == c) {
@@ -275,7 +324,7 @@ struct Board {
             total += addPoint2(x, y + 1, c);
         }
         return total;
-    }*/
+    }
 
     int remove2(Move move) {
         memset(used, 0, sizeof(uint64_t) * (w + 2));
@@ -309,6 +358,69 @@ struct Board {
             }
         }
         return size * (size - 1);
+    }*/
+
+    int remove2(Move move) {
+        memset(used, 0, sizeof(uint64_t) * (w + 2));
+        Segment segments[MAX_WIDTH * MAX_HEIGHT];
+        Segment *segm = segments;
+        addSegment(move.x, move.y, move.y + 1, true, true, board[move.x][move.y], segm);
+        qsort(segments, segm - segments, sizeof(Segment), segmentComparator);
+        segm->x = (MAX_WIDTH + 1);
+
+        Segment *s = segments;
+        char *col;
+        char *dest;
+        bool newLine = true;
+        int size = 0;
+        while (s != segm) {
+            size += s->maxY1 - s->minY;
+            if (newLine) {
+                col = board[s->x];
+                dest = col + s->minY;
+            }
+            newLine = s[1].x != s->x;
+            char* src = col + s->maxY1;
+            if (*src) {
+                int nminY = newLine ? h + 1 : s[1].minY;
+                int len = nminY - s->maxY1;
+                memcpy(dest, src, len);
+                dest += len;
+            }
+            if (newLine) {
+                while(*dest) {
+                    *dest = 0;
+                    dest++;
+                }
+                //memset(dest, 0, h + 1 - (dest - col));
+            }
+            s++;
+        }
+        return size * (size - 1);
+
+        //addPoint(shape.minX, shape.y, shape.c);
+        /*for (int x = shape.minX; x <= shape.maxX; x++) {
+            uint64_t mask = used[x] >> shape.minY;
+            char* src = board[x] + shape.minY;
+            char* dest = src;
+            for (int y = shape.minY; y <= h; y++) {
+                if ((mask & 1) == uint64_t(0)) {
+                    if (src != dest) {
+                        if (!*dest) {
+                            break;
+                        }
+                        *dest = *src;
+                    }
+                    dest++;
+                }
+                src++;
+                mask >>= 1;
+            }
+            while(dest != src) {
+                *dest = 0;
+                dest++;
+            }
+        }*/
     }
 };
 
