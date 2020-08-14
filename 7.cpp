@@ -581,39 +581,19 @@ template<int chosenOne> int fromWidestWithoutOne(const Shape *a, const Shape *b)
     return b->y - a->y;
 }
 
-int colorHistogram[MAX_COLOR + 1];
-char mostPopularColor;
+struct Color {
+    char c;
+    int count;
+};
 
-int fromSmallestWithoutMostPop(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs - b->vs;
-    }
-    int ca = a->c == mostPopularColor;
-    int cb = b->c == mostPopularColor;
-    if (ca != cb) {
-        return ca - cb;
-    }
-    return a->size - b->size;
-}
-
-int fromLargestWithoutMostPop(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs - b->vs;
-    }
-    int ca = a->c == mostPopularColor;
-    int cb = b->c == mostPopularColor;
-    if (ca != cb) {
-        return ca - cb;
-    }
-    return b->size - a->size;
-}
+Color colorHistogram[MAX_COLOR + 1];
 
 int byColorAndFromSmallest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
     if (a->c != b->c) {
-        return colorHistogram[a->c] - colorHistogram[b->c];
+        return b->c - a->c;
     }
     return a->size - b->size;
 }
@@ -623,7 +603,7 @@ int byColorAndFromLargest(const Shape *a, const Shape *b) {
         return a->vs - b->vs;
     }
     if (a->c != b->c) {
-        return colorHistogram[a->c] - colorHistogram[b->c];
+        return b->c - a->c;
     }
     return b->size - a->size;
 }
@@ -633,7 +613,7 @@ int byColorDescAndFromLargest(const Shape *a, const Shape *b) {
         return a->vs - b->vs;
     }
     if (a->c != b->c) {
-        return colorHistogram[b->c] - colorHistogram[a->c];
+        return a->c - b->c;
     }
     return b->size - a->size;
 }
@@ -643,7 +623,7 @@ int byColorAndFromTop(const Shape *a, const Shape *b) {
         return a->vs - b->vs;
     }
     if (a->c != b->c) {
-        return colorHistogram[a->c] - colorHistogram[b->c];
+        return b->c - a->c;
     }
     return b->y - a->y;
 }
@@ -653,7 +633,7 @@ int byColorAndFromTop2(const Shape *a, const Shape *b) {
         return a->vs - b->vs;
     }
     if (a->c != b->c) {
-        return colorHistogram[a->c] - colorHistogram[b->c];
+        return b->c - a->c;
     }
     return b->minY - a->minY;
 }
@@ -663,57 +643,7 @@ int byColorAndFromTop3(const Shape *a, const Shape *b) {
         return a->vs - b->vs;
     }
     if (a->c != b->c) {
-        return colorHistogram[a->c] - colorHistogram[b->c];
-    }
-    return b->maxY - a->maxY;
-}
-
-int byColorNoAndFromSmallest(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs - b->vs;
-    }
-    if (a->c != b->c) {
-        return a->c - b->c;
-    }
-    return a->size - b->size;
-}
-
-int byColorNoAndFromLargest(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs - b->vs;
-    }
-    if (a->c != b->c) {
-        return a->c - b->c;
-    }
-    return b->size - a->size;
-}
-
-int byColorNoAndFromTop(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs - b->vs;
-    }
-    if (a->c != b->c) {
-        return a->c - b->c;
-    }
-    return b->y - a->y;
-}
-
-int byColorNoAndFromTop2(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs - b->vs;
-    }
-    if (a->c != b->c) {
-        return a->c - b->c;
-    }
-    return b->minY - a->minY;
-}
-
-int byColorNoAndFromTop3(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs - b->vs;
-    }
-    if (a->c != b->c) {
-        return a->c - b->c;
+        return b->c - a->c;
     }
     return b->maxY - a->maxY;
 }
@@ -794,29 +724,44 @@ bool validate(const Board *board, const ShapeList& list) {
 }
 #endif
 
-void calcHistogram(const Board *board) {
+int colorComparator(const void* va, const void* vb) {
+    return ((const Color*) vb)->count - ((const Color*) va)->count;
+}
+
+void calcHistogram(Board *board) {
     memset(colorHistogram, 0, sizeof(colorHistogram));
 
     const int w = board->w;
     const int h = board->h;
 
+    for (int c = 1; c <= MAX_COLOR; c++) {
+        colorHistogram[c].c = c;
+    }
+
     for (int x = 1; x <= w; x++) {
         const char* col = board->board[x] + 1;
         for (int y = 1; y <= h; y++) {
-            colorHistogram[*col]++;
+            if (*col) {
+                colorHistogram[*col].count++;
+            }
             col++;
         }
     }
 
-    mostPopularColor = -1;
-    int mostPopularCount = 0;
+    qsort(colorHistogram + 1, MAX_COLOR, sizeof(Color), colorComparator);
+    int map[MAX_COLOR + 1];
     for (int c = 1; c <= MAX_COLOR; c++) {
-        if (colorHistogram[c] > mostPopularCount) {
-            mostPopularColor = c;
-            mostPopularCount = colorHistogram[c];
+        map[colorHistogram[c].c] = c;
+    }
+
+    for (int x = 1; x <= w; x++) {
+        char* col = board->board[x];
+        for (int y = 1; y <= h; y++) {
+            col[y] = map[col[y]];
         }
     }
 }
+
 
 void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &game) {
     ShapeList list;
@@ -840,20 +785,18 @@ void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &gam
     }
 }
 
-/*const int NCOMP = 12;
+/*const int NCOMP = 9;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
-    byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
+    byColorAndFromLargest, byColorAndFromTop
 };*/
-const int NCOMP_ = 25;
+const int NCOMP_ = 18;
 int (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
     /*fromSmallest, */fromLargest, /*fromBottom, */fromTop, /*fromBottom2, */fromTop2, /*fromBottom3, */fromTop3, /*fromLeft,*/
     fromSmallestWithoutOne<1>, fromSmallestWithoutOne<2>, fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
     fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
-    fromLargestWithoutMostPop,
-    fromSmallestWithoutMostPop, byColorAndFromSmallest,
-    byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3,
-    byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop, byColorNoAndFromTop2, byColorNoAndFromTop3
+    byColorAndFromSmallest,
+    byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3
 };
 const int NCOMP = 30;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
@@ -902,7 +845,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (colorHistogram[i % 20 + 1]) {
+        if (colorHistogram[i % 18 + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1214,12 +1157,16 @@ void handler(int sig) {
     exit(1);
 }
 
+
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
+
+//2199750 86.133  - 2865.06 2.89
+
