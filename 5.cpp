@@ -219,6 +219,28 @@ void freeMemory() {
     names.clear();
 }
 
+/*void createTestCase(int test) {
+    const int NCASES = 10;
+    int nodes[NCASES] = {100, 100, 100, 100, 100, 300, 300, 300, 300, 300};
+    int conn[NCASES] = {99, 101, 105, 114, 130, 299, 302, 311, 339, 404};
+    cout << nodes[test] << endl;
+    for (int i = 0; i < nodes[test]; i++) {
+        cout << i << " " << (rand() % 249 + 1) << endl;
+    }
+    cout << conn[test] << endl;
+    for (int i = 0; i < conn[test]; i++) {
+        int a = rand() % nodes[test], b;
+        do {
+            b = rand() % nodes[test];
+        } while(a == b);
+        cout << a << " " << b << endl;
+    }
+}
+
+int main(int argc, char **argv) {
+    createTestCase(atoi(argv[1]));
+}*/
+
 int main() {
     loadData();
     if (nodes.size() <= 20) {
@@ -230,3 +252,15 @@ int main() {
     freeMemory();
     return 0;
 }
+
+//0 4855
+//1 4757
+//2 4605
+//3 4186
+//4 4540
+//5 17327
+//6 16982
+//7 16953
+//8 15811
+//9 14118
+
