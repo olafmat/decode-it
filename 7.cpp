@@ -39,11 +39,11 @@ struct Shape {
     char rand;
     #endif
 
-    int score() {
+    int score() const {
         return size * (size - 1);
     }
 
-    void print() {
+    void print() const {
         cout << "minX=" << (int)minX << " maxX=" << (int)maxX << " minY=" << (int)minY << " maxY=" << (int)maxY <<
             " y=" << (int)y << " size=" << (int)size << " c=" << char('A' + c) << " score=" << score() << endl;
     }
@@ -104,7 +104,7 @@ struct Board {
         return board;
     }
 
-    void print() {
+    void print() const {
         for (int y = h; y > 0; y--) {
             for (int x = 1; x <= w; x++) {
                 cout << (board[x][y] ? char('A' + board[x][y]) : '-');
@@ -113,11 +113,11 @@ struct Board {
         }
     }
 
-    void addSegment(int x, int minY, int maxY1, bool left, bool right, char c, Segment*& segments) {
-        char *col = board[x];
+    void addSegment(int x, int minY, int maxY1, bool left, bool right, char c, Segment*& segments) const {
+        const char *col = board[x];
         int nminY = minY;
         if (col[nminY] == c) {
-            char* col1 = col - 1;
+            const char* col1 = col - 1;
             while (col1[nminY] == c) {
                 nminY--;
             }
@@ -193,7 +193,7 @@ struct Board {
         return a->maxY1 - b->maxY1;
     }
 
-    void remove(Shape& shape) {
+    void remove(const Shape& shape) {
         memset(used + shape.minX, 0, sizeof(uint64_t) * (shape.maxX - shape.minX + 1));
         Segment segments[MAX_WIDTH * MAX_HEIGHT];
         Segment *segm = segments;
@@ -360,7 +360,7 @@ struct Board {
         return size * (size - 1);
     }*/
 
-    int remove2(Move move) {
+    int remove2(const Move move) {
         memset(used, 0, sizeof(uint64_t) * (w + 2));
         Segment segments[MAX_WIDTH * MAX_HEIGHT];
         Segment *segm = segments;
@@ -436,12 +436,12 @@ struct ShapeList {
         memcpy(shapes, src.shapes, size * sizeof(Shape));
     }
 
-    int addSegment(Board* board, int x, int minY, int maxY1, bool left, bool right, Shape* dest) {
+    int addSegment(const Board* board, int x, int minY, int maxY1, bool left, bool right, Shape* dest) const {
         char c = dest->c;
-        char *col = board->board[x];
+        const char *col = board->board[x];
         int nminY = minY;
         if (col[nminY] == c) {
-            char* col1 = col - 1;
+            const char* col1 = col - 1;
             while (col1[nminY] == c) {
                 nminY--;
             }
@@ -536,7 +536,7 @@ struct ShapeList {
         return 0;
     }*/
 
-    void addShape(Board* board, int x, int y, Shape* dest) {
+    void addShape(const Board* board, int x, int y, Shape* dest) const {
         dest->minX = board->w + 1;
         dest->maxX = -1;
         dest->minY = board->h + 1;
@@ -558,7 +558,7 @@ struct ShapeList {
         #endif
     }
 
-    void update(Board *board, int minX = 0, int maxX = MAX_WIDTH, int minY = 0) {
+    void update(const Board *board, int minX = 0, int maxX = MAX_WIDTH, int minY = 0) {
         if (minX < 0) {
             minX = 0;
         }
@@ -596,9 +596,9 @@ struct ShapeList {
         uint64_t* usedCol = used + minX;
 
         for (int x = minX; x <= maxX; x++) {
-            char* pcol = &board->board[x - 1][0/*minY*/];
-            char* col = &board->board[x][1/*minY*/];
-            char* ncol = &board->board[x + 1][0/*minY*/];
+            const char* pcol = &board->board[x - 1][0/*minY*/];
+            const char* col = &board->board[x][1/*minY*/];
+            const char* ncol = &board->board[x + 1][0/*minY*/];
             for (int y = 1/*minY*/; y <= h; y++) {
                 char c = *col;
                 if (!c) {
@@ -617,7 +617,7 @@ struct ShapeList {
         size = dest - shapes;
     }
 
-    long score() {
+    long score() const {
         long total = 0;
         for (int i = 0; i < size; i++) {
             total += shapes[i].score();
@@ -625,8 +625,8 @@ struct ShapeList {
         return total;
     }
 
-    Shape& findBest(int (*comparator)(const Shape*, const Shape*)) {
-        Shape* best = &shapes[0];
+    const Shape& findBest(int (*comparator)(const Shape*, const Shape*)) const {
+        const Shape* best = &shapes[0];
         for (int i = 1; i < size; i++) {
             if (comparator(&shapes[i], best) < 0) {
                 best = &shapes[i];
@@ -639,7 +639,7 @@ struct ShapeList {
         qsort(shapes, size, sizeof(shapes[0]), comparator);
     }*/
 
-    void print() {
+    void print() const {
         for (int i = 0; i < size; i++) {
             shapes[i].print();
         }
@@ -663,7 +663,7 @@ struct Game {
         memcpy(moves, src.moves, nmoves * sizeof(Move));
     }
 
-    void move(Shape &shape) {
+    void move(const Shape &shape) {
         total += shape.score();
         #ifdef VALIDATION
         if (total > 6250000) {
@@ -683,7 +683,7 @@ struct Game {
         nmoves++;
     }
 
-    void send(int height) {
+    void send(int height) const {
         cout << "Y" << endl;
         for (int i = 0; i < nmoves; i++) {
             cout << (height - moves[i].y) << " " << (moves[i].x - 1) << endl;
@@ -902,7 +902,7 @@ int randomStrategy(const Shape *a, const Shape *b) {
 #endif
 
 #ifdef VALIDATION
-bool validate(Board *board, ShapeList& list) {
+bool validate(const Board *board, const ShapeList& list) const {
     int total = 0;
     bool ok = true;
     for (int i = 0; i < list.size; i++) {
@@ -968,14 +968,14 @@ bool validate(Board *board, ShapeList& list) {
 }
 #endif
 
-void calcHistogram(Board *board) {
+void calcHistogram(const Board *board) {
     memset(colorHistogram, 0, sizeof(colorHistogram));
 
     const int w = board->w;
     const int h = board->h;
 
     for (int x = 1; x <= w; x++) {
-        char* col = board->board[x] + 1;
+        const char* col = board->board[x] + 1;
         for (int y = 1; y <= h; y++) {
             colorHistogram[*col]++;
             col++;
@@ -1001,7 +1001,7 @@ void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &gam
 
     game.reset();
     while(list.size) {
-        Shape& move = list.findBest(comparator);
+        const Shape& move = list.findBest(comparator);
         game.move(move);
         board->remove(move);
         list.update(board, move.minX - 1, move.maxX + 1, move.minY - 1);
@@ -1094,7 +1094,7 @@ Game* test2(Board *board) {
     return games2 + bestGame;
 }
 
-int findBestGame(Game* games, ShapeList* lists, int cnt) {
+int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
     long bestScore = -1;
     for (int i = 0; i < cnt; i++) {
@@ -1156,7 +1156,7 @@ Game* test3(Board *board, int electionPeriod) {
 #endif
 
 #ifdef USE_RAND
-Move pickRandomMove(Board *board) {
+Move pickRandomMove(const Board *board) {
     Move move;
     for (int i = 0; i < board->w * board->h; i++) {
         int x = 1 + (random() % board->w);
@@ -1183,7 +1183,7 @@ Move pickRandomMove(Board *board) {
     return move;
 }
 
-Move pickFirstMove(Board *board) {
+Move pickFirstMove(const Board *board) {
     Move move;
     for (int x = 1; x <= board->w; x++) {
         int h = board->size[x];
