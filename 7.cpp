@@ -387,8 +387,8 @@ struct ShapeList {
         size = dest - shapes;
     }
 
-    int score() {
-        int total = 0;
+    long score() {
+        long total = 0;
         for (int i = 0; i < size; i++) {
             total += shapes[i].score();
         }
@@ -435,6 +435,12 @@ struct Game {
 
     void move(Shape &shape) {
         total += shape.score();
+        #ifdef VALIDATION
+        if (total > 6250000) {
+            cout << "TOTAL " << total << endl;
+            shape.print();
+        }
+        #endif
         moves[nmoves].x = shape.minX;
         moves[nmoves].y = shape.y;
         nmoves++;
@@ -495,16 +501,28 @@ int fromLeft(const Shape *a, const Shape *b) {
     return a->minX - b->minX;
 }
 
-int fromSmallestWithoutOne(const Shape *a, const Shape *b) {
+template<int chosenOne> int fromSmallestWithoutOne(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
     }
-    int ca = a->c == 1;
-    int cb = b->c == 1;
+    int ca = a->c == chosenOne;
+    int cb = b->c == chosenOne;
     if (ca != cb) {
         return ca - cb;
     }
     return a->size - b->size;
+}
+
+template<int chosenOne> int fromTopWithoutOne(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs - b->vs;
+    }
+    int ca = a->c == chosenOne;
+    int cb = b->c == chosenOne;
+    if (ca != cb) {
+        return ca - cb;
+    }
+    return b->y - a->y;
 }
 
 int colorHistogram[MAX_COLOR + 1];
@@ -758,6 +776,9 @@ void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &gam
         board->remove(move);
         list.update(board, move.minX - 1, move.maxX + 1, move.minY - 1);
         #ifdef VALIDATION
+        if (move.score() > 6250000) {
+            move.print();
+        }
         validate(board, list);
         #endif
     }
@@ -768,18 +789,33 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 };*/
-const int NCOMP = 18;
-int (*comparators[NCOMP])(const Shape*, const Shape*) = {
+const int NCOMP_ = 25;
+int (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
     /*fromSmallest, */fromLargest, /*fromBottom, */fromTop, /*fromBottom2, */fromTop2, /*fromBottom3, */fromTop3, /*fromLeft,*/
-    fromSmallestWithoutOne, fromLargestWithoutMostPop,
+    fromSmallestWithoutOne<1>, fromSmallestWithoutOne<2>, fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
+    fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
+    fromLargestWithoutMostPop,
     fromSmallestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3,
     byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop, byColorNoAndFromTop2, byColorNoAndFromTop3
 };
+const int NCOMP = 32;
+int (*comparators[NCOMP])(const Shape*, const Shape*) = {
+    fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
+    fromTopWithoutOne<5>, fromTopWithoutOne<6>, fromTopWithoutOne<7>, fromTopWithoutOne<8>,
+    fromTopWithoutOne<9>, fromTopWithoutOne<10>, fromTopWithoutOne<11>, fromTopWithoutOne<12>,
+    fromTopWithoutOne<13>, fromTopWithoutOne<14>, fromTopWithoutOne<15>, fromTopWithoutOne<16>,
+    fromTopWithoutOne<17>, fromTopWithoutOne<18>, fromTopWithoutOne<19>, fromTopWithoutOne<20>,
+    fromSmallestWithoutOne<1>, fromSmallestWithoutOne<2>, fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
+    fromSmallestWithoutOne<5>, fromSmallestWithoutOne<6>, fromSmallestWithoutOne<7>, fromSmallestWithoutOne<8>,
+    fromSmallestWithoutOne<9>, fromSmallestWithoutOne<10>, fromSmallestWithoutOne<11>, fromSmallestWithoutOne<12>,
+    //fromSmallestWithoutOne<13>, fromSmallestWithoutOne<14>, fromSmallestWithoutOne<15>, fromSmallestWithoutOne<16>,
+    //fromSmallestWithoutOne<17>, fromSmallestWithoutOne<18>, fromSmallestWithoutOne<19>, fromSmallestWithoutOne<20>
+};
 /*const int NCOMP = 23;
 int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromBottom2, fromTop2, fromBottom3, fromTop3, fromLeft,
-    fromSmallestWithoutOne, fromLargestWithoutMostPop,
+    fromSmallestWithoutOne<1>, fromLargestWithoutMostPop,
     fromSmallestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3,
     byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop, byColorNoAndFromTop2, byColorNoAndFromTop3
@@ -807,16 +843,23 @@ Game games2[NCOMP];
 int hist[NCOMP] = {0};
 Game* test2(Board *board) {
     calcHistogram(board);
-    int bestGame;
+    int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        Board board2 = *board;
-        test(&board2, comparators[i], games2[i]);
-        if (games2[i].total > bestScore) {
-            bestGame = i;
-            bestScore = games2[i].total;
+        if (colorHistogram[i % 20 + 1]) {
+            Board board2 = *board;
+            test(&board2, comparators[i], games2[i]);
+            if (games2[i].total > bestScore) {
+                bestGame = i;
+                bestScore = games2[i].total;
+            }
         }
     }
+    #ifdef VALIDATION
+    if (bestGame < 0 || bestGame >= NCOMP) {
+        cout << "wrong game " << bestGame << endl;
+    }
+    #endif
     hist[bestGame]++;
     return games2 + bestGame;
 }
@@ -1020,6 +1063,9 @@ void stats() {
             Board board2 = *board;
             Game *game = test2(&board2);
             total[NCOMP] += game->total;
+            if (total[NCOMP] > 6250000000L) {
+                cout << "too big " << i << " " << total[NCOMP] << " " << game->total << " " << (game - games2) << endl;
+            }
             total2 += game->total * ncols * ncols / width / height;
 
             #ifdef USE_RAND
@@ -1115,9 +1161,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
