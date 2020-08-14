@@ -186,8 +186,8 @@ void findDominatingSet() {
         ndom = nndom;
     }
 
-    unordered_set<Node*> ndom = dom;
-    for (unordered_set<Node*>::iterator it = ndom.begin(); it != ndom.end(); it++) {
+    unordered_set<Node*> dom2 = dom;
+    for (unordered_set<Node*>::iterator it = dom2.begin(); it != dom2.end(); it++) {
         Node *node = *it;
         if (score(node) == 0) {
             dom.erase(node);

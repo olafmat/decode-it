@@ -13,6 +13,7 @@
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
 //#define USE_RAND
+//#define USE_RAND_STRATEGY
 //#define USE_ELECTIONS
 //#define VALIDATION
 
@@ -58,7 +59,7 @@ struct Board {
     char board[MAX_WIDTH][MAX_HEIGHT2];
 
     #ifdef USE_RAND
-    int size[MAX_WIDTH];
+    mutable int size[MAX_WIDTH];
     #endif
 
     void operator= (const Board& src) {
@@ -361,14 +362,14 @@ struct ShapeList {
         dest->vs = (dest->maxX == dest->minX && !board->board[dest->minX][dest->maxY + 1])/* ||
             !(dest->maxX == dest->minX &&
                 board->board[dest->minX][dest->minY - 1] == board->board[dest->minX][dest->maxY + 1])*/;
-        #ifdef USE_RAND
+        #ifdef USE_RAND_STRATEGY
         dest->rand = random();
         #endif
     }
 
-    void update(const Board *board, int minX = 0, int maxX = MAX_WIDTH, int minY = 0) {
-        if (minX < 0) {
-            minX = 0;
+    void update(const Board *board, int minX = 1, int maxX = MAX_WIDTH, int minY = 1) {
+        if (minX < 1) {
+            minX = 1;
         }
         const int w = board->w;
         const int h = board->h;
@@ -700,7 +701,7 @@ int byColorNoAndFromTop3(const Shape *a, const Shape *b) {
     return b->maxY - a->maxY;
 }
 
-#ifdef USE_RAND
+#ifdef USE_RAND_STRATEGY
 int randomStrategy(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs - b->vs;
@@ -710,7 +711,7 @@ int randomStrategy(const Shape *a, const Shape *b) {
 #endif
 
 #ifdef VALIDATION
-bool validate(const Board *board, const ShapeList& list) const {
+bool validate(const Board *board, const ShapeList& list) {
     int total = 0;
     bool ok = true;
     for (int i = 0; i < list.size; i++) {
@@ -937,7 +938,7 @@ Game* test3(Board *board, int electionPeriod) {
         change = false;
         for (int i = 0; i < NCOMP2; i++) {
             if (lists[i].size) {
-                Shape& move = lists[i].findBest(comparators2[i]);
+                const Shape& move = lists[i].findBest(comparators2[i]);
                 games[i].move(move);
                 boards[i].remove(move);
                 lists[i].update(boards + i, move.minX - 1, move.maxX + 1, move.minY - 1);
@@ -1038,7 +1039,7 @@ void randomPlayer(Board *board, Game &game) {
     }
 }
 
-const int NRAND = 100;
+const int NRAND = 1009;
 static Game randomGames[NRAND];
 Game* randomPlayer2(Board *board) {
     int bestGame;
@@ -1114,7 +1115,7 @@ void stats() {
             #endif
 
             #ifdef USE_ELECTIONS
-            game = test3(board, 1);
+            game = test3(board, 5);
             total[NCOMP + 2] += game->total;
             total4 += game->total * ncols * ncols / width / height;
             #endif
