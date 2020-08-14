@@ -16,6 +16,8 @@
 //#define USE_ELECTIONS
 //#define VALIDATION
 
+#pragma pack(1)
+
 using namespace std;
 
 struct Shape;
@@ -24,7 +26,7 @@ struct ShapeList;
 uint64_t used[MAX_WIDTH];
 
 struct Move {
-    int x, y;
+    int8_t x, y;
 };
 
 struct Shape {
@@ -107,7 +109,63 @@ struct Board {
         }
     }
 
-    void addPoint(int x, int y, char c) {
+    void addSegment(int x, int minY, int maxY1, bool left, bool right, char c) {
+        char *col = board[x];
+        int nminY = minY;
+        if (col[nminY] == c) {
+            char* col1 = col - 1;
+            while (col1[nminY] == c) {
+                nminY--;
+            }
+        } else {
+            do {
+                nminY++;
+                if (nminY >= maxY1) {
+                    return;
+                }
+            } while(col[nminY] != c);
+        }
+
+        int nmaxY1 = nminY;
+        do {
+            nmaxY1++;
+        } while(col[nmaxY1] == c);
+
+        if (maxY1 - nmaxY1 >= 2) {
+            addSegment(x, nmaxY1 + 1, maxY1, left, right, c);
+        }
+
+        uint64_t mask = (uint64_t(1) << nmaxY1) - (uint64_t(1) << nminY);
+        if ((used[x] & mask) != uint64_t(0)) {
+            return;
+        }
+        used[x] |= mask;
+
+        if (x > 1 && left) {
+            addSegment(x - 1, nminY, nmaxY1, true, false, c);
+        }
+        if (x < w && right) {
+            addSegment(x + 1, nminY, nmaxY1, false, true, c);
+        }
+        if (nmaxY1 - maxY1 >= 2) {
+            if (x > 1 && !left) {
+                addSegment(x - 1, maxY1 + 1, nmaxY1, true, false, c);
+            }
+            if (x < w && !right) {
+                addSegment(x + 1, maxY1 + 1, nmaxY1, false, true, c);
+            }
+        }
+        if (minY - nminY >= 2) {
+            if (x > 1 && !left) {
+                addSegment(x - 1, nminY, minY - 1, true, false, c);
+            }
+            if (x < w && !right) {
+                addSegment(x + 1, nminY, minY - 1, false, true, c);
+            }
+        }
+    }
+
+    /*void addPoint(int x, int y, char c) {
         const uint64_t mask = uint64_t(1) << y;
         if ((used[x] & mask) == uint64_t(0) && board[x][y] == c) {
             used[x] |= mask;
@@ -116,11 +174,12 @@ struct Board {
             addPoint(x, y - 1, c);
             addPoint(x, y + 1, c);
         }
-    }
+    }*/
 
     void remove(Shape& shape) {
         memset(used + shape.minX, 0, sizeof(uint64_t) * (shape.maxX - shape.minX + 1));
-        addPoint(shape.minX, shape.y, shape.c);
+        addSegment2(shape.minX, shape.y, shape.y + 1, true, true, shape.c);
+        //addPoint(shape.minX, shape.y, shape.c);
         for (int x = shape.minX; x <= shape.maxX; x++) {
             uint64_t mask = used[x] >> shape.minY;
             char* src = board[x] + shape.minY;
@@ -145,7 +204,66 @@ struct Board {
         }
     }
 
-    int addPoint2(int x, int y, char c) {
+    int addSegment2(int x, int minY, int maxY1, bool left, bool right, char c) {
+        char *col = board[x];
+        int nminY = minY;
+        if (col[nminY] == c) {
+            char* col1 = col - 1;
+            while (col1[nminY] == c) {
+                nminY--;
+            }
+        } else {
+            do {
+                nminY++;
+                if (nminY >= maxY1) {
+                    return 0;
+                }
+            } while(col[nminY] != c);
+        }
+
+        int nmaxY1 = nminY;
+        do {
+            nmaxY1++;
+        } while(col[nmaxY1] == c);
+
+        int total = 0;
+        if (maxY1 - nmaxY1 >= 2) {
+            total += addSegment2(x, nmaxY1 + 1, maxY1, left, right, c);
+        }
+
+        uint64_t mask = (uint64_t(1) << nmaxY1) - (uint64_t(1) << nminY);
+        if ((used[x] & mask) != uint64_t(0)) {
+            return total;
+        }
+        used[x] |= mask;
+
+        total += nmaxY1 - nminY;
+        if (x > 1 && left) {
+            total += addSegment2(x - 1, nminY, nmaxY1, true, false, c);
+        }
+        if (x < w && right) {
+            total += addSegment2(x + 1, nminY, nmaxY1, false, true, c);
+        }
+        if (nmaxY1 - maxY1 >= 2) {
+            if (x > 1 && !left) {
+                total += addSegment2(x - 1, maxY1 + 1, nmaxY1, true, false, c);
+            }
+            if (x < w && !right) {
+                total += addSegment2(x + 1, maxY1 + 1, nmaxY1, false, true, c);
+            }
+        }
+        if (minY - nminY >= 2) {
+            if (x > 1 && !left) {
+                total += addSegment2(x - 1, nminY, minY - 1, true, false, c);
+            }
+            if (x < w && !right) {
+                total += addSegment2(x + 1, nminY, minY - 1, false, true, c);
+            }
+        }
+        return total;
+    }
+
+    /*int addPoint2(int x, int y, char c) {
         const uint64_t mask = uint64_t(1) << y;
         int total = 0;
         if ((used[x] & mask) == uint64_t(0) && board[x][y] == c) {
@@ -157,11 +275,11 @@ struct Board {
             total += addPoint2(x, y + 1, c);
         }
         return total;
-    }
+    }*/
 
     int remove2(Move move) {
         memset(used, 0, sizeof(uint64_t) * (w + 2));
-        int size = addPoint2(move.x, move.y, board[move.x][move.y]);
+        int size = addSegment2(move.x, move.y, move.y + 1, true, true, board[move.x][move.y]); //addPoint2(move.x, move.y, board[move.x][move.y]);
         if (!size) {
             return 0;
         }
@@ -280,7 +398,7 @@ struct ShapeList {
         return total;
     }
 
-    int addPoint(Board* board, int x, int y, Shape* dest) {
+    /*int addPoint(Board* board, int x, int y, Shape* dest) {
         const uint64_t mask = uint64_t(1) << y;
         if ((used[x] & mask) == uint64_t(0) && board->board[x][y] == dest->c) {
             used[x] |= mask;
@@ -304,7 +422,7 @@ struct ShapeList {
                 + addPoint(board, x, y + 1, dest);
         }
         return 0;
-    }
+    }*/
 
     void addShape(Board* board, int x, int y, Shape* dest) {
         dest->minX = board->w + 1;
@@ -1161,9 +1279,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
