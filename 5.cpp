@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <unordered_set>
 #include <unordered_map>
+#include <stdlib.h>
 using namespace std;
 
 struct Node {
@@ -12,6 +13,7 @@ struct Node {
     int freq;
 };
 
+clock_t cutoff;
 unordered_set<Node*> all;
 unordered_set<Node*> nodes;
 unordered_map<string, Node*> names;
@@ -61,6 +63,7 @@ double score(Node *node) {
 void loadData() {
 	int t;
 	cin >> t;
+    cutoff = clock() + CLOCKS_PER_SEC * (t > 100 ? 5 : 3) - CLOCKS_PER_SEC / 20;
 
     for (int i = 0; i < t; i++) {
         Node * node = new Node();
@@ -185,13 +188,48 @@ void findDominatingSet() {
         }
         ndom = nndom;
     }
+}
 
+int totalWeight(unordered_set<Node*>& dom) {
+    int total = 0;
+    for (unordered_set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
+        total += it->weight;
+    }
+    return total;
+}
+
+void optimize() {
     unordered_set<Node*> dom2 = dom;
-    for (unordered_set<Node*>::iterator it = dom2.begin(); it != dom2.end(); it++) {
-        Node *node = *it;
-        if (score(node) == 0) {
-            dom.erase(node);
+    int nonImpr = 0;
+    int totalW = totalWeight(dom);
+    int totalW2 = totalW;
+    while (clock() < cutoff) {
+        unordered_set<Node*> dom3 = dom;
+        double maxScore = -1e30;
+        Node* maxScoreNode = NULL;
+        for (unordered_set<Node*>::iterator it = dom3.begin(); it != dom3.end(); it++) {
+            Node *node = *it;
+            double sc = score(node);
+            if (sc == 0) {
+                dom.erase(node);
+                totalW -= node->weight;
+            }
+            else if (sc > maxScore) {
+                maxScore = sc;
+                maxScoreNode = node;
+            }
         }
+
+        if (totalW < totalW2) {
+            dom2 = dom;
+            nonImpr = 0;
+        }
+
+        dom.erase(maxScoreNode);
+        totalW -= maxScoreNode->weight;
+
+        for (unordered_set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
+
     }
 }
 
