@@ -607,6 +607,21 @@ bool byColorDescAndFromLargest(const Shape *a, const Shape *b) {
     return b->size < a->size;
 }
 
+bool byColorAndFromWidest(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs < b->vs;
+    }
+    if (a->c != b->c) {
+        return b->c < a->c;
+    }
+    int width1 = a->maxX - a->minX;
+    int width2 = b->maxX - b->minX;
+    if (width1 != width2) {
+        return width2 < width1;
+    }
+    return b->y < a->y;
+}
+
 bool byColorAndFromTop(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs < b->vs;
@@ -793,20 +808,20 @@ bool (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
     byColorAndFromSmallest,
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3
 };
-const int NCOMP = 23;
+const int NCOMP = 21;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, fromWidestWithoutOne<4>,
     fromWidestWithoutOne<5>, fromWidestWithoutOne<6>, fromWidestWithoutOne<7>, fromWidestWithoutOne<8>,
     fromWidestWithoutOne<9>, fromWidestWithoutOne<10>, fromWidestWithoutOne<11>, fromWidestWithoutOne<12>,
     //fromWidestWithoutOne<13>, fromWidestWithoutOne<14>, fromWidestWithoutOne<15>, fromWidestWithoutOne<16>,
     //fromWidestWithoutOne<17>, fromWidestWithoutOne<18>, fromWidestWithoutOne<19>, fromWidestWithoutOne<20>,
-    fromSmallestWithoutOne<1>, fromSmallestWithoutOne<2>, fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
+    fromSmallestWithoutOne<1>, fromSmallestWithoutOne<2>, //fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
     fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
     fromTopWithoutOne<5>, fromTopWithoutOne<6>, //fromTopWithoutOne<7>, fromTopWithoutOne<8>,
     //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
     //fromTopWithoutOne<13>, fromTopWithoutOne<14>, //fromTopWithoutOne<15>, fromTopWithoutOne<16>,
     //fromTopWithoutOne<17>, fromTopWithoutOne<18>, fromTopWithoutOne<19>, fromTopWithoutOne<20>
-    byColorAndFromLargest
+    byColorAndFromWidest
 };
 /*const int NCOMP = 23;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
@@ -842,7 +857,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (i == NCOMP - 1 || colorHistogram[(i < 12 ? i : i < 16 ? i - 12 : i - 16) + 1].count) {
+        if (i == NCOMP - 1 || colorHistogram[(i < 12 ? i : i < 14 ? i - 12 : i - 14) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1174,3 +1189,5 @@ int main() {
 
 //1520976 77.6333 - 2871.72 2.8
 //1522322 83.3632 - 2874.6  2.99
+//1523701 80.6933 -         3.01
+//1522668 73.6397 - 2876.13 2.76
