@@ -434,19 +434,15 @@ struct ShapeList {
         return total;
     }
 
-    const Shape& findBest(int (*comparator)(const Shape*, const Shape*)) const {
+    const Shape& findBest(bool (*comparator)(const Shape*, const Shape*)) const {
         const Shape* best = &shapes[0];
         for (int i = 1; i < size; i++) {
-            if (comparator(&shapes[i], best) < 0) {
+            if (comparator(&shapes[i], best)) {
                 best = &shapes[i];
             }
         }
         return *best;
     }
-
-    /*void sort(int (*comparator)(const void*, const void*)) {
-        qsort(shapes, size, sizeof(shapes[0]), comparator);
-    }*/
 
     void print() const {
         for (int i = 0; i < size; i++) {
@@ -501,159 +497,152 @@ struct Game {
     }
 };
 
-int fromSmallest(const Shape *a, const Shape *b) {
-    return a->size - b->size;
+bool fromSmallest(const Shape *a, const Shape *b) {
+    return a->size < b->size;
 }
 
-int fromLargest(const Shape *a, const Shape *b) {
-    return b->size - a->size;
+bool fromLargest(const Shape *a, const Shape *b) {
+    return a->size > b->size;
 }
 
-int fromTop(const Shape *a, const Shape *b) {
-    return b->y - a->y;
+bool fromTop(const Shape *a, const Shape *b) {
+    return a->y > b->y;
 }
 
-int fromBottom(const Shape *a, const Shape *b) {
-    return a->y - b->y;
+bool fromBottom(const Shape *a, const Shape *b) {
+    return a->y < b->y;
 }
 
-int fromTop2(const Shape *a, const Shape *b) {
-    return b->minY - a->minY;
+bool fromTop2(const Shape *a, const Shape *b) {
+    return a->minY > b->minY;
 }
 
-int fromBottom2(const Shape *a, const Shape *b) {
-    return a->minY - b->minY;
+bool fromBottom2(const Shape *a, const Shape *b) {
+    return a->minY < b->minY;
 }
 
-int fromTop3(const Shape *a, const Shape *b) {
-    return b->maxY - a->maxY;
+bool fromTop3(const Shape *a, const Shape *b) {
+    return a->maxY > b->maxY;
 }
 
-int fromBottom3(const Shape *a, const Shape *b) {
-    return a->maxY - b->maxY;
+bool fromBottom3(const Shape *a, const Shape *b) {
+    return a->maxY < b->maxY;
 }
 
-int fromLeft(const Shape *a, const Shape *b) {
+bool fromLeft(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
-    return a->minX - b->minX;
+    return a->minX < b->minX;
 }
 
-template<int chosenOne> int fromSmallestWithoutOne(const Shape *a, const Shape *b) {
+template<int chosenOne> bool fromSmallestWithoutOne(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
     int ca = a->c == chosenOne;
     int cb = b->c == chosenOne;
     if (ca != cb) {
-        return ca - cb;
+        return ca < cb;
     }
-    return a->size - b->size;
+    return a->size < b->size;
 }
 
-template<int chosenOne> int fromTopWithoutOne(const Shape *a, const Shape *b) {
+template<int chosenOne> bool fromTopWithoutOne(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
     int ca = a->c == chosenOne;
     int cb = b->c == chosenOne;
     if (ca != cb) {
-        return ca - cb;
+        return ca < cb;
     }
-    return b->y - a->y;
+    return b->y < a->y;
 }
 
-template<int chosenOne> int fromWidestWithoutOne(const Shape *a, const Shape *b) {
+template<int chosenOne> bool fromWidestWithoutOne(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
     int ca = a->c == chosenOne;
     int cb = b->c == chosenOne;
     if (ca != cb) {
-        return ca - cb;
+        return ca < cb;
     }
     int width1 = a->maxX - a->minX;
     int width2 = b->maxX - b->minX;
     if (width1 != width2) {
-        return width2 - width1;
+        return width2 < width1;
     }
-    return b->y - a->y;
+    return b->y < a->y;
 }
 
-struct Color {
-    char c;
-    int count;
-};
-
-Color colorHistogram[MAX_COLOR + 1];
-
-int byColorAndFromSmallest(const Shape *a, const Shape *b) {
+bool byColorAndFromSmallest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
     if (a->c != b->c) {
-        return b->c - a->c;
+        return b->c < a->c;
     }
-    return a->size - b->size;
+    return a->size < b->size;
 }
 
-int byColorAndFromLargest(const Shape *a, const Shape *b) {
+bool byColorAndFromLargest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
     if (a->c != b->c) {
-        return b->c - a->c;
+        return b->c < a->c;
     }
-    return b->size - a->size;
+    return b->size < a->size;
 }
 
-int byColorDescAndFromLargest(const Shape *a, const Shape *b) {
+bool byColorDescAndFromLargest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
     if (a->c != b->c) {
-        return a->c - b->c;
+        return a->c < b->c;
     }
-    return b->size - a->size;
+    return b->size < a->size;
 }
 
-int byColorAndFromTop(const Shape *a, const Shape *b) {
+bool byColorAndFromTop(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
     if (a->c != b->c) {
-        return b->c - a->c;
+        return b->c < a->c;
     }
-    return b->y - a->y;
+    return b->y < a->y;
 }
 
-int byColorAndFromTop2(const Shape *a, const Shape *b) {
+bool byColorAndFromTop2(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
     if (a->c != b->c) {
-        return b->c - a->c;
+        return b->c < a->c;
     }
-    return b->minY - a->minY;
+    return b->minY < a->minY;
 }
 
-int byColorAndFromTop3(const Shape *a, const Shape *b) {
+bool byColorAndFromTop3(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
     if (a->c != b->c) {
-        return b->c - a->c;
+        return b->c < a->c;
     }
-    return b->maxY - a->maxY;
+    return b->maxY < a->maxY;
 }
 
 #ifdef USE_RAND_STRATEGY
-int randomStrategy(const Shape *a, const Shape *b) {
+bool randomStrategy(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
-        return a->vs - b->vs;
+        return a->vs < b->vs;
     }
-    return a->rand - b->rand;
+    return a->rand < b->rand;
 }
 #endif
 
@@ -724,10 +713,16 @@ bool validate(const Board *board, const ShapeList& list) {
 }
 #endif
 
+struct Color {
+    char c;
+    int count;
+};
+
 int colorComparator(const void* va, const void* vb) {
     return ((const Color*) vb)->count - ((const Color*) va)->count;
 }
 
+Color colorHistogram[MAX_COLOR + 1];
 void calcHistogram(Board *board) {
     memset(colorHistogram, 0, sizeof(colorHistogram));
 
@@ -763,7 +758,7 @@ void calcHistogram(Board *board) {
 }
 
 
-void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &game) {
+void test(Board *board, bool (*comparator)(const Shape*, const Shape*), Game &game) {
     ShapeList list;
     list.update(board);
     #ifdef VALIDATION
@@ -786,33 +781,34 @@ void test(Board *board, int (*comparator)(const Shape*, const Shape*), Game &gam
 }
 
 /*const int NCOMP = 9;
-int (*comparators[NCOMP])(const Shape*, const Shape*) = {
+bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromLeft, fromSmallestWithoutOne, byColorAndFromSmallest,
     byColorAndFromLargest, byColorAndFromTop
 };*/
 const int NCOMP_ = 18;
-int (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
+bool (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
     /*fromSmallest, */fromLargest, /*fromBottom, */fromTop, /*fromBottom2, */fromTop2, /*fromBottom3, */fromTop3, /*fromLeft,*/
     fromSmallestWithoutOne<1>, fromSmallestWithoutOne<2>, fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
     fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
     byColorAndFromSmallest,
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3
 };
-const int NCOMP = 30;
-int (*comparators[NCOMP])(const Shape*, const Shape*) = {
+const int NCOMP = 22;
+bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, fromWidestWithoutOne<4>,
     fromWidestWithoutOne<5>, fromWidestWithoutOne<6>, fromWidestWithoutOne<7>, fromWidestWithoutOne<8>,
     fromWidestWithoutOne<9>, fromWidestWithoutOne<10>, fromWidestWithoutOne<11>, fromWidestWithoutOne<12>,
-    fromWidestWithoutOne<13>, fromWidestWithoutOne<14>, fromWidestWithoutOne<15>, fromWidestWithoutOne<16>,
-    fromWidestWithoutOne<17>, fromWidestWithoutOne<18>, fromWidestWithoutOne<19>, fromWidestWithoutOne<20>,
+    //fromWidestWithoutOne<13>, fromWidestWithoutOne<14>, fromWidestWithoutOne<15>, fromWidestWithoutOne<16>,
+    //fromWidestWithoutOne<17>, fromWidestWithoutOne<18>, fromWidestWithoutOne<19>, fromWidestWithoutOne<20>,
+    fromSmallestWithoutOne<1>, fromSmallestWithoutOne<2>, fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
     fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
-    fromTopWithoutOne<5>, fromTopWithoutOne<6>, fromTopWithoutOne<7>, fromTopWithoutOne<8>,
-    fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
-    //fromTopWithoutOne<13>, fromTopWithoutOne<14>, fromTopWithoutOne<15>, fromTopWithoutOne<16>,
+    fromTopWithoutOne<5>, fromTopWithoutOne<6>, //fromTopWithoutOne<7>, fromTopWithoutOne<8>,
+    //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
+    //fromTopWithoutOne<13>, fromTopWithoutOne<14>, //fromTopWithoutOne<15>, fromTopWithoutOne<16>,
     //fromTopWithoutOne<17>, fromTopWithoutOne<18>, fromTopWithoutOne<19>, fromTopWithoutOne<20>
 };
 /*const int NCOMP = 23;
-int (*comparators[NCOMP])(const Shape*, const Shape*) = {
+bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromSmallest, fromLargest, fromBottom, fromTop, fromBottom2, fromTop2, fromBottom3, fromTop3, fromLeft,
     fromSmallestWithoutOne<1>, fromLargestWithoutMostPop,
     fromSmallestWithoutMostPop, byColorAndFromSmallest,
@@ -820,18 +816,18 @@ int (*comparators[NCOMP])(const Shape*, const Shape*) = {
     byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop, byColorNoAndFromTop2, byColorNoAndFromTop3
 };*/
 /*const int NCOMP = 3;
-int (*comparators[NCOMP])(const Shape*, const Shape*) = {
+bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromTop, byColorAndFromLargest, byColorAndFromTop
 };*/
 //const int NCOMP2 = 10;
-//int (*comparators2[NCOMP2])(const Shape*, const Shape*) = {
+//bool (*comparators2[NCOMP2])(const Shape*, const Shape*) = {
 //    fromLargest, fromTop, /*fromSmallestWithoutOne, */fromLargestWithoutMostPop, fromSmallestWithoutMostPop, byColorAndFromSmallest,
 //    byColorAndFromLargest, byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromLargest, byColorNoAndFromTop
 //};
 const int NCOMP2 = NCOMP;
-int (**comparators2)(const Shape*, const Shape*) = comparators;
+bool (**comparators2)(const Shape*, const Shape*) = comparators;
 /*const int NCOMP2 = 6;
-int (*comparators2[NCOMP2])(const Shape*, const Shape*) = {
+bool (*comparators2[NCOMP2])(const Shape*, const Shape*) = {
     fromTop, fromSmallestWithoutMostPop, byColorAndFromSmallest,
     byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromTop
 };*/
@@ -845,7 +841,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (colorHistogram[i % 18 + 1].count) {
+        if (colorHistogram[(i < 12 ? i : i < 14 ? i - 10 : i - 14) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1169,4 +1165,8 @@ int main() {
 }
 
 //2199750 86.133  - 2865.06 2.89
-
+//2208077 83.5947 - 2871.72 2.8
+//2210546 81.4817 - 2870    2.71
+//2211887 87.5575 - 2870.91 2.98
+//2211126 83.0568 - 2870.73 2.81
+//2208699 84.8509 - 2870.37 2.86
