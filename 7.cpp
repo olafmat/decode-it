@@ -793,7 +793,7 @@ bool (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
     byColorAndFromSmallest,
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3
 };
-const int NCOMP = 22;
+const int NCOMP = 23;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, fromWidestWithoutOne<4>,
     fromWidestWithoutOne<5>, fromWidestWithoutOne<6>, fromWidestWithoutOne<7>, fromWidestWithoutOne<8>,
@@ -806,6 +806,7 @@ bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
     //fromTopWithoutOne<13>, fromTopWithoutOne<14>, //fromTopWithoutOne<15>, fromTopWithoutOne<16>,
     //fromTopWithoutOne<17>, fromTopWithoutOne<18>, fromTopWithoutOne<19>, fromTopWithoutOne<20>
+    byColorAndFromLargest
 };
 /*const int NCOMP = 23;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
@@ -841,7 +842,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (colorHistogram[(i < 12 ? i : i < 14 ? i - 10 : i - 14) + 1].count) {
+        if (i == NCOMP - 1 || colorHistogram[(i < 12 ? i : i < 16 ? i - 12 : i - 16) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1043,7 +1044,7 @@ void stats() {
     //int width = 20;
     //int height = 50;
     long total2 = 0, total3 = 0, total4 = 0;
-    for (int ncols = 4; ncols <= 20; ncols += 2) {
+    for (int ncols = 6; ncols <= 20; ncols += 2) {
         long total[NCOMP + 3] = {0};
         for (int i = 0; i < 1000; i++) {
             int width = (rand() % 47) + 4;
@@ -1157,9 +1158,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
@@ -1170,3 +1171,6 @@ int main() {
 //2211887 87.5575 - 2870.91 2.98
 //2211126 83.0568 - 2870.73 2.81
 //2208699 84.8509 - 2870.37 2.86
+
+//1520976 77.6333 - 2871.72 2.8
+//1522322 83.3632 - 2874.6  2.99
