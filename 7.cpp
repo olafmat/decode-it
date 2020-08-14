@@ -577,6 +577,20 @@ template<int chosenOne> bool fromWidestWithoutOne(const Shape *a, const Shape *b
     return b->y < a->y;
 }
 
+template<int chosenOne> bool byAreaWithoutOne(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs < b->vs;
+    }
+    int ca = a->c == chosenOne;
+    int cb = b->c == chosenOne;
+    if (ca != cb) {
+        return ca < cb;
+    }
+    int area1 = (a->maxX - a->minX) * a->y;
+    int area2 = (b->maxX - b->minX) * b->y;
+    return area2 < area1;
+}
+
 bool byColorAndFromSmallest(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs < b->vs;
@@ -810,11 +824,11 @@ bool (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
 };
 const int NCOMP = 21;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
-    fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, fromWidestWithoutOne<4>,
-    fromWidestWithoutOne<5>, fromWidestWithoutOne<6>, fromWidestWithoutOne<7>, fromWidestWithoutOne<8>,
-    fromWidestWithoutOne<9>, fromWidestWithoutOne<10>, fromWidestWithoutOne<11>, fromWidestWithoutOne<12>,
-    //fromWidestWithoutOne<13>, fromWidestWithoutOne<14>, fromWidestWithoutOne<15>, fromWidestWithoutOne<16>,
-    //fromWidestWithoutOne<17>, fromWidestWithoutOne<18>, fromWidestWithoutOne<19>, fromWidestWithoutOne<20>,
+    byAreaWithoutOne<1>, byAreaWithoutOne<2>, byAreaWithoutOne<3>, byAreaWithoutOne<4>,
+    byAreaWithoutOne<5>, byAreaWithoutOne<6>, byAreaWithoutOne<7>, byAreaWithoutOne<8>,
+    byAreaWithoutOne<9>, byAreaWithoutOne<10>, byAreaWithoutOne<11>, byAreaWithoutOne<12>,
+    //byAreaWithoutOne<13>, byAreaWithoutOne<14>, byAreaWithoutOne<15>, byAreaWithoutOne<16>,
+    //byAreaWithoutOne<17>, byAreaWithoutOne<18>, byAreaWithoutOne<19>, byAreaWithoutOne<20>,
     fromSmallestWithoutOne<1>, fromSmallestWithoutOne<2>, //fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
     fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
     fromTopWithoutOne<5>, fromTopWithoutOne<6>, //fromTopWithoutOne<7>, fromTopWithoutOne<8>,
@@ -1191,3 +1205,5 @@ int main() {
 //1522322 83.3632 - 2874.6  2.99
 //1523701 80.6933 -         3.01
 //1522668 73.6397 - 2876.13 2.76
+//1543860 73.5066 - 2943.45 2.81
+
