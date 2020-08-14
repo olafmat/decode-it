@@ -173,17 +173,6 @@ struct Board {
         }
     }
 
-    /*void addPoint(int x, int y, char c) {
-        const uint64_t mask = uint64_t(1) << y;
-        if ((used[x] & mask) == uint64_t(0) && board[x][y] == c) {
-            used[x] |= mask;
-            addPoint(x - 1, y, c);
-            addPoint(x + 1, y, c);
-            addPoint(x, y - 1, c);
-            addPoint(x, y + 1, c);
-        }
-    }*/
-
     static int segmentComparator(const void *va, const void *vb) {
         const Segment* a = (const Segment*) va;
         const Segment* b = (const Segment*) vb;
@@ -227,138 +216,7 @@ struct Board {
             }
             s++;
         }
-
-        //addPoint(shape.minX, shape.y, shape.c);
-        /*for (int x = shape.minX; x <= shape.maxX; x++) {
-            uint64_t mask = used[x] >> shape.minY;
-            char* src = board[x] + shape.minY;
-            char* dest = src;
-            for (int y = shape.minY; y <= h; y++) {
-                if ((mask & 1) == uint64_t(0)) {
-                    if (src != dest) {
-                        if (!*dest) {
-                            break;
-                        }
-                        *dest = *src;
-                    }
-                    dest++;
-                }
-                src++;
-                mask >>= 1;
-            }
-            while(dest != src) {
-                *dest = 0;
-                dest++;
-            }
-        }*/
     }
-
-    /*int addSegment2(int x, int minY, int maxY1, bool left, bool right, char c) {
-        char *col = board[x];
-        int nminY = minY;
-        if (col[nminY] == c) {
-            char* col1 = col - 1;
-            while (col1[nminY] == c) {
-                nminY--;
-            }
-        } else {
-            do {
-                nminY++;
-                if (nminY >= maxY1) {
-                    return 0;
-                }
-            } while(col[nminY] != c);
-        }
-
-        int nmaxY1 = nminY;
-        do {
-            nmaxY1++;
-        } while(col[nmaxY1] == c);
-
-        int total = 0;
-        if (maxY1 - nmaxY1 >= 2) {
-            total += addSegment2(x, nmaxY1 + 1, maxY1, left, right, c);
-        }
-
-        uint64_t mask = (uint64_t(1) << nmaxY1) - (uint64_t(1) << nminY);
-        if ((used[x] & mask) != uint64_t(0)) {
-            return total;
-        }
-        used[x] |= mask;
-
-        total += nmaxY1 - nminY;
-        if (x > 1 && left) {
-            total += addSegment2(x - 1, nminY, nmaxY1, true, false, c);
-        }
-        if (x < w && right) {
-            total += addSegment2(x + 1, nminY, nmaxY1, false, true, c);
-        }
-        if (nmaxY1 - maxY1 >= 2) {
-            if (x > 1 && !left) {
-                total += addSegment2(x - 1, maxY1 + 1, nmaxY1, true, false, c);
-            }
-            if (x < w && !right) {
-                total += addSegment2(x + 1, maxY1 + 1, nmaxY1, false, true, c);
-            }
-        }
-        if (minY - nminY >= 2) {
-            if (x > 1 && !left) {
-                total += addSegment2(x - 1, nminY, minY - 1, true, false, c);
-            }
-            if (x < w && !right) {
-                total += addSegment2(x + 1, nminY, minY - 1, false, true, c);
-            }
-        }
-        return total;
-    }
-
-    int addPoint2(int x, int y, char c) {
-        const uint64_t mask = uint64_t(1) << y;
-        int total = 0;
-        if ((used[x] & mask) == uint64_t(0) && board[x][y] == c) {
-            used[x] |= mask;
-            total++;
-            total += addPoint2(x - 1, y, c);
-            total += addPoint2(x + 1, y, c);
-            total += addPoint2(x, y - 1, c);
-            total += addPoint2(x, y + 1, c);
-        }
-        return total;
-    }
-
-    int remove2(Move move) {
-        memset(used, 0, sizeof(uint64_t) * (w + 2));
-        int size = addSegment2(move.x, move.y, move.y + 1, true, true, board[move.x][move.y]); //addPoint2(move.x, move.y, board[move.x][move.y]);
-        if (!size) {
-            return 0;
-        }
-        int x = 1;
-        while(used[x] == uint64_t(0)) {
-            x++;
-        }
-        for (; x <= w; x++) {
-            uint64_t mask = used[x];
-            if (mask == uint64_t(0)) {
-                break;
-            }
-            char* src = board[x] + 1;
-            char* dest = src;
-            for (int y = 1; y <= h; y++) {
-                if ((mask & 2) == uint64_t(0)) {
-                    if (src != dest)
-                        *dest = *src;
-                    dest++;
-                }
-                src++;
-                mask >>= 1;
-            }
-            while(dest != src) {
-                *dest = 0;
-                dest++;
-            }
-        }
-        return size * (size - 1);
-    }*/
 
     int remove2(const Move move) {
         memset(used, 0, sizeof(uint64_t) * (w + 2));
@@ -397,30 +255,6 @@ struct Board {
             s++;
         }
         return size * (size - 1);
-
-        //addPoint(shape.minX, shape.y, shape.c);
-        /*for (int x = shape.minX; x <= shape.maxX; x++) {
-            uint64_t mask = used[x] >> shape.minY;
-            char* src = board[x] + shape.minY;
-            char* dest = src;
-            for (int y = shape.minY; y <= h; y++) {
-                if ((mask & 1) == uint64_t(0)) {
-                    if (src != dest) {
-                        if (!*dest) {
-                            break;
-                        }
-                        *dest = *src;
-                    }
-                    dest++;
-                }
-                src++;
-                mask >>= 1;
-            }
-            while(dest != src) {
-                *dest = 0;
-                dest++;
-            }
-        }*/
     }
 };
 
@@ -509,32 +343,6 @@ struct ShapeList {
         }
         return total;
     }
-
-    /*int addPoint(Board* board, int x, int y, Shape* dest) {
-        const uint64_t mask = uint64_t(1) << y;
-        if ((used[x] & mask) == uint64_t(0) && board->board[x][y] == dest->c) {
-            used[x] |= mask;
-            if (x < dest->minX) {
-                dest->minX = x;
-                dest->y = y;
-            }
-            if (x > dest->maxX) {
-                dest->maxX = x;
-            }
-            if (y < dest->minY) {
-                dest->minY = y;
-            }
-            if (y > dest->maxY) {
-                dest->maxY = y;
-            }
-            return 1
-                + addPoint(board, x - 1, y, dest)
-                + addPoint(board, x + 1, y, dest)
-                + addPoint(board, x, y - 1, dest)
-                + addPoint(board, x, y + 1, dest);
-        }
-        return 0;
-    }*/
 
     void addShape(const Board* board, int x, int y, Shape* dest) const {
         dest->minX = board->w + 1;
@@ -1397,25 +1205,3 @@ int main() {
     //randomPlay();
     return 0;
 }
-//1904074   71  2261.7  2.35
-//1906054 fromLeft
-//1904217 fromSmallest
-//1904166 fromBottom
-//1904217 fromSmallestWithoutMostPop
-
-//1919433
-
-//1915248
-//1912668
-
-//50 1943072 1162410
-//100 1943072 1704132
-
-//top 1952129 105.261
-//top2 1946700 89
-//top3 1947936 67.5345
-//top2 top3 1966047 82.56
-//top top2 top3 1972862 97.1351
-
-//1965105 73.1096
-//1970635 71.05
