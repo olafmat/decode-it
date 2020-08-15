@@ -831,7 +831,7 @@ bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     byAreaWithoutOne<9>, byAreaWithoutOne<10>, byAreaWithoutOne<11>, byAreaWithoutOne<12>,
     //byAreaWithoutOne<13>, byAreaWithoutOne<14>, byAreaWithoutOne<15>, byAreaWithoutOne<16>,
     //byAreaWithoutOne<17>, byAreaWithoutOne<18>, byAreaWithoutOne<19>, byAreaWithoutOne<20>,
-    fromSmallestWithoutOne<1>, fromSmallestWithoutOne<2>, //fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
+    fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, //fromSmallestWithoutOne<3>, fromSmallestWithoutOne<4>,
     fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
     fromTopWithoutOne<5>, fromTopWithoutOne<6>, //fromTopWithoutOne<7>, fromTopWithoutOne<8>,
     //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
@@ -1210,3 +1210,4 @@ int main() {
 //1543860 73.5066 - 2943.45 2.81
 //1555233 76.4118 - 2941.29 2.93
 //1547191 73.6971 - 2946.15 2.81
+//1563270 74.7462 - 2973.42 2.84
