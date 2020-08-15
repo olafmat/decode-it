@@ -636,6 +636,16 @@ bool byColorAndFromWidest(const Shape *a, const Shape *b) {
     return b->y < a->y;
 }
 
+bool byColorAndArea(const Shape *a, const Shape *b) {
+    if (a->vs != b->vs) {
+        return a->vs < b->vs;
+    }
+    if (a->c != b->c) {
+        return b->c < a->c;
+    }
+    return b->area < a->area;
+}
+
 bool byColorAndFromTop(const Shape *a, const Shape *b) {
     if (a->vs != b->vs) {
         return a->vs < b->vs;
@@ -822,7 +832,7 @@ bool (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
     byColorAndFromSmallest,
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3
 };
-const int NCOMP = 21;
+const int NCOMP = 22;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     byAreaWithoutOne<1>, byAreaWithoutOne<2>, byAreaWithoutOne<3>, byAreaWithoutOne<4>,
     byAreaWithoutOne<5>, byAreaWithoutOne<6>, byAreaWithoutOne<7>, byAreaWithoutOne<8>,
@@ -835,7 +845,7 @@ bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
     //fromTopWithoutOne<13>, fromTopWithoutOne<14>, //fromTopWithoutOne<15>, fromTopWithoutOne<16>,
     //fromTopWithoutOne<17>, fromTopWithoutOne<18>, fromTopWithoutOne<19>, fromTopWithoutOne<20>
-    byColorAndFromWidest
+    byColorAndFromWidest, byColorAndArea
 };
 /*const int NCOMP = 23;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
@@ -871,7 +881,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (i == NCOMP - 1 || colorHistogram[(i < 12 ? i : i < 16 ? i - 12 : i - 16) + 1].count) {
+        if (i == NCOMP - 2 || colorHistogram[(i < 12 ? i : i < 16 ? i - 12 : i - 16) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1187,9 +1197,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
@@ -1212,3 +1222,4 @@ int main() {
 //1566196 75.3075 - 2973.87 2.82    12A 4W 4T BCW
 //1545330 74.1933 - 2942.37 2.89    same but area calculated strictly
 //1566196 72.5724 area buffering
+//1567595 75.5067 - 2974.05 2.85    12A 4W 4T BCW BCA
