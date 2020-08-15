@@ -841,12 +841,12 @@ bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     byAreaWithoutOne<17>, byAreaWithoutOne<18>, byAreaWithoutOne<19>, byAreaWithoutOne<20>,
     fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
     fromTopWithoutOne<5>, //fromTopWithoutOne<6>,
-    fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, //fromWidestWithoutOne<3>, //fromWidestWithoutOne<4>,
+    fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, //fromWidestWithoutOne<4>,
     //fromWidestWithoutOne<5>, //fromWidestWithoutOne<6>, fromTopWithoutOne<7>, fromTopWithoutOne<8>,
     //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
     //fromTopWithoutOne<13>, fromTopWithoutOne<14>, //fromTopWithoutOne<15>, fromTopWithoutOne<16>,
     //fromTopWithoutOne<17>, fromTopWithoutOne<18>, fromTopWithoutOne<19>, fromTopWithoutOne<20>
-    /*byColorAndFromWidest,*/ byColorAndArea
+    //byColorAndFromWidest, //byColorAndArea
 };
 /*const int NCOMP = 23;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
@@ -882,7 +882,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (i == NCOMP - 1 || colorHistogram[(i < 20 ? i : i < 25 ? i - 20 : i - 25) + 1].count) {
+        if (/*i == NCOMP - 1 || */colorHistogram[(i < 20 ? i : i < 25 ? i - 20 : i - 25) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1198,9 +1198,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
@@ -1234,3 +1234,4 @@ int main() {
 //1565995 72.6904 - 2978.1  2.8     16A 4T 3W BCA
 //1566722 74.6411 - 2979    2.9     20A 4T 3W BCA
 //1564835 74.4453 - 2977.02 2.86    20A 5T 2W BCA
+//1566720 75.2931 - 2972.97 2.9     20A 5T 3W
