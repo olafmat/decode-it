@@ -586,8 +586,10 @@ template<int chosenOne> bool byAreaWithoutOne(const Shape *a, const Shape *b) {
     if (ca != cb) {
         return ca < cb;
     }
-    int area1 = (a->maxX - a->minX) * a->y;
-    int area2 = (b->maxX - b->minX) * b->y;
+    int width1 = a->maxX - a->minX;
+    int width2 = b->maxX - b->minX;
+    int area1 = width1 * a->minY;
+    int area2 = width2 * b->minY;
     return area2 < area1;
 }
 
@@ -1206,4 +1208,5 @@ int main() {
 //1523701 80.6933 -         3.01
 //1522668 73.6397 - 2876.13 2.76
 //1543860 73.5066 - 2943.45 2.81
-
+//1555233 76.4118 - 2941.29 2.93
+//1547191 73.6971 - 2946.15 2.81
