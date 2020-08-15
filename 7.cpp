@@ -437,13 +437,31 @@ struct ShapeList {
     }
 
     const Shape& findBest(bool (*comparator)(const Shape*, const Shape*)) const {
-        const Shape* best = &shapes[0];
-        for (int i = 1; i < size; i++) {
-            if (comparator(&shapes[i], best)) {
-                best = &shapes[i];
-            }
+        const Shape* shape = shapes;
+        const Shape* end = shapes+size;
+        while(shape != end && shape->vs) {
+            shape++;
         }
-        return *best;
+        if (shape != end) {
+            const Shape* best = shape++;
+            while(shape != end) {
+                if (comparator(shape, best) && !shape->vs) {
+                    best = shape;
+                }
+                shape++;
+            }
+            return *best;
+        } else {
+            const Shape* best = shapes;
+            shape = shapes + 1;
+            while(shape != end) {
+                if (comparator(shape, best)) {
+                    best = shape;
+                }
+                shape++;
+            }
+            return *best;
+        }
     }
 
     void print() const {
@@ -532,16 +550,10 @@ bool fromBottom3(const Shape *a, const Shape *b) {
 }
 
 bool fromLeft(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     return a->minX < b->minX;
 }
 
 template<int chosenOne> bool fromSmallestWithoutOne(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     int ca = a->c == chosenOne;
     int cb = b->c == chosenOne;
     if (ca != cb) {
@@ -551,9 +563,6 @@ template<int chosenOne> bool fromSmallestWithoutOne(const Shape *a, const Shape 
 }
 
 template<int chosenOne> bool fromTopWithoutOne(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     int ca = a->c == chosenOne;
     int cb = b->c == chosenOne;
     if (ca != cb) {
@@ -563,9 +572,6 @@ template<int chosenOne> bool fromTopWithoutOne(const Shape *a, const Shape *b) {
 }
 
 template<int chosenOne> bool fromWidestWithoutOne(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     int ca = a->c == chosenOne;
     int cb = b->c == chosenOne;
     if (ca != cb) {
@@ -580,9 +586,6 @@ template<int chosenOne> bool fromWidestWithoutOne(const Shape *a, const Shape *b
 }
 
 template<int chosenOne> bool byAreaWithoutOne(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     int ca = a->c == chosenOne;
     int cb = b->c == chosenOne;
     if (ca != cb) {
@@ -592,9 +595,6 @@ template<int chosenOne> bool byAreaWithoutOne(const Shape *a, const Shape *b) {
 }
 
 bool byColorAndFromSmallest(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     if (a->c != b->c) {
         return b->c < a->c;
     }
@@ -602,9 +602,6 @@ bool byColorAndFromSmallest(const Shape *a, const Shape *b) {
 }
 
 bool byColorAndFromLargest(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     if (a->c != b->c) {
         return b->c < a->c;
     }
@@ -612,9 +609,6 @@ bool byColorAndFromLargest(const Shape *a, const Shape *b) {
 }
 
 bool byColorDescAndFromLargest(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     if (a->c != b->c) {
         return a->c < b->c;
     }
@@ -622,9 +616,6 @@ bool byColorDescAndFromLargest(const Shape *a, const Shape *b) {
 }
 
 bool byColorAndFromWidest(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     if (a->c != b->c) {
         return b->c < a->c;
     }
@@ -637,9 +628,6 @@ bool byColorAndFromWidest(const Shape *a, const Shape *b) {
 }
 
 bool byColorAndArea(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     if (a->c != b->c) {
         return b->c < a->c;
     }
@@ -647,9 +635,6 @@ bool byColorAndArea(const Shape *a, const Shape *b) {
 }
 
 bool byColorAndFromTop(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     if (a->c != b->c) {
         return b->c < a->c;
     }
@@ -657,9 +642,6 @@ bool byColorAndFromTop(const Shape *a, const Shape *b) {
 }
 
 bool byColorAndFromTop2(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     if (a->c != b->c) {
         return b->c < a->c;
     }
@@ -667,9 +649,6 @@ bool byColorAndFromTop2(const Shape *a, const Shape *b) {
 }
 
 bool byColorAndFromTop3(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     if (a->c != b->c) {
         return b->c < a->c;
     }
@@ -678,9 +657,6 @@ bool byColorAndFromTop3(const Shape *a, const Shape *b) {
 
 #ifdef USE_RAND_STRATEGY
 bool randomStrategy(const Shape *a, const Shape *b) {
-    if (a->vs != b->vs) {
-        return a->vs < b->vs;
-    }
     return a->rand < b->rand;
 }
 #endif
@@ -839,10 +815,10 @@ bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     byAreaWithoutOne<9>, byAreaWithoutOne<10>, byAreaWithoutOne<11>, byAreaWithoutOne<12>,
     byAreaWithoutOne<13>, byAreaWithoutOne<14>, byAreaWithoutOne<15>, byAreaWithoutOne<16>,
     byAreaWithoutOne<17>, byAreaWithoutOne<18>, byAreaWithoutOne<19>, byAreaWithoutOne<20>,
-    fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>,
+    fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
     //fromTopWithoutOne<5>, //fromTopWithoutOne<6>,
     fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, fromWidestWithoutOne<4>,
-    fromWidestWithoutOne<5>, //fromWidestWithoutOne<6>, fromTopWithoutOne<7>, fromTopWithoutOne<8>,
+    //fromWidestWithoutOne<5>, //fromWidestWithoutOne<6>, fromTopWithoutOne<7>, fromTopWithoutOne<8>,
     //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
     //fromTopWithoutOne<13>, fromTopWithoutOne<14>, //fromTopWithoutOne<15>, fromTopWithoutOne<16>,
     //fromTopWithoutOne<17>, fromTopWithoutOne<18>, fromTopWithoutOne<19>, fromTopWithoutOne<20>
@@ -882,7 +858,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (i >= NCOMP - 1 || colorHistogram[(i < 20 ? i : i < 23 ? i - 20 : i - 23) + 1].count) {
+        if (i >= NCOMP - 1 || colorHistogram[(i < 20 ? i : i < 24 ? i - 20 : i - 24) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1198,9 +1174,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
@@ -1245,3 +1221,4 @@ int main() {
 //1565517 74.5539 - 2970.63 2.8     20A 3T 4W BCA
 //1569330 78.3764 - 2979.27 2.95    20A 4T 4W BCA
 //1568522 79.2541 - 2971.8  2.95    20A 3T 5W BCA
+//1569330 74.7328 optimized findBest 20A 4T 4W BCA
