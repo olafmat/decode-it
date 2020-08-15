@@ -882,7 +882,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (i == NCOMP - 1 || colorHistogram[(i < 20 ? i : i < 25 ? i - 20 : i - 21) + 1].count) {
+        if (i == NCOMP - 1 || colorHistogram[(i < 20 ? i : i < 25 ? i - 20 : i - 25) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1236,5 +1236,6 @@ int main() {
 //1564835 74.4453 - 2977.02 2.86    20A 5T 2W BCA
 //1566720 75.2931 - 2972.97 2.9     20A 5T 3W
 //1557370 73.3348 - 2963.88 2.84    20A 1T 1T BCW BCA
-//1567057 77.0105 - 2974.5  2.94    20A 5T 3W BCA
+//1567057 77.0105 - 2974.5  2.94    20A 5T 3W BCA  - broken
+//1569641 78.1771           3.01    20A 5T 3W BCA
 
