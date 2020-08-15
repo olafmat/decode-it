@@ -832,12 +832,12 @@ bool (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
     byColorAndFromSmallest,
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3
 };
-const int NCOMP = 22;
+const int NCOMP = 23;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     byAreaWithoutOne<1>, byAreaWithoutOne<2>, byAreaWithoutOne<3>, byAreaWithoutOne<4>,
     byAreaWithoutOne<5>, byAreaWithoutOne<6>, byAreaWithoutOne<7>, byAreaWithoutOne<8>,
     byAreaWithoutOne<9>, byAreaWithoutOne<10>, byAreaWithoutOne<11>, byAreaWithoutOne<12>,
-    //byAreaWithoutOne<13>, byAreaWithoutOne<14>, byAreaWithoutOne<15>, byAreaWithoutOne<16>,
+    byAreaWithoutOne<13>, //byAreaWithoutOne<14>, //byAreaWithoutOne<15>, byAreaWithoutOne<16>,
     //byAreaWithoutOne<17>, byAreaWithoutOne<18>, byAreaWithoutOne<19>, byAreaWithoutOne<20>,
     fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
     fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, fromWidestWithoutOne<4>,
@@ -881,7 +881,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (i == NCOMP - 2 || colorHistogram[(i < 12 ? i : i < 16 ? i - 12 : i - 16) + 1].count) {
+        if (i == NCOMP - 2 || colorHistogram[(i < 13 ? i : i < 17 ? i - 13 : i - 17) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1197,9 +1197,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
@@ -1223,3 +1223,7 @@ int main() {
 //1545330 74.1933 - 2942.37 2.89    same but area calculated strictly
 //1566196 72.5724 area buffering
 //1567595 75.5067 - 2974.05 2.85    12A 4W 4T BCW BCA
+//1568364 76.0423 - 2973.87 2.87    12A 4W 4T BCW BCS
+//1568681 78.4889 -         3.01    14A 4W 4T BCW BCA
+//1568200 76.902  - 2974.95 2.89    13A 4W 4T BCW BCA
+
