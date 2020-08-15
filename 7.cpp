@@ -841,11 +841,11 @@ bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     //byAreaWithoutOne<17>, byAreaWithoutOne<18>, byAreaWithoutOne<19>, byAreaWithoutOne<20>,
     fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
     fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, fromWidestWithoutOne<4>,
-    //fromWidestWithoutOne<5>, fromWidestWithoutOne<6>, //fromTopWithoutOne<7>, fromTopWithoutOne<8>,
+    fromWidestWithoutOne<5>, //fromWidestWithoutOne<6>, //fromTopWithoutOne<7>, fromTopWithoutOne<8>,
     //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
     //fromTopWithoutOne<13>, fromTopWithoutOne<14>, //fromTopWithoutOne<15>, fromTopWithoutOne<16>,
     //fromTopWithoutOne<17>, fromTopWithoutOne<18>, fromTopWithoutOne<19>, fromTopWithoutOne<20>
-    byColorAndFromWidest, byColorAndArea
+    /*byColorAndFromWidest,*/ byColorAndArea
 };
 /*const int NCOMP = 23;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
@@ -881,7 +881,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (i == NCOMP - 2 || colorHistogram[(i < 13 ? i : i < 17 ? i - 13 : i - 17) + 1].count) {
+        if (i == NCOMP - 1 || colorHistogram[(i < 13 ? i : i < 17 ? i - 13 : i - 17) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1226,4 +1226,4 @@ int main() {
 //1568364 76.0423 - 2973.87 2.87    12A 4W 4T BCW BCS
 //1568681 78.4889 -         3.01    14A 4W 4T BCW BCA
 //1568200 76.902  - 2974.95 2.89    13A 4W 4T BCW BCA
-
+//1570113 77.8084 - 2978.19 2.92    13A 4W 5T BCA
