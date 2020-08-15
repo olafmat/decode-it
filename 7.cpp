@@ -33,6 +33,7 @@ struct Move {
 struct Shape {
     int8_t minX, maxX, minY, maxY;
     int16_t size;
+    int16_t area;
     char c;
     int8_t y;
     char vs;
@@ -359,6 +360,7 @@ struct ShapeList {
             board->print();
         }
         #endif
+        dest->area = int16_t(dest->maxX - dest->minX) * dest->minY;
         dest->vs = (dest->maxX == dest->minX && !board->board[dest->minX][dest->maxY + 1])/* ||
             !(dest->maxX == dest->minX &&
                 board->board[dest->minX][dest->minY - 1] == board->board[dest->minX][dest->maxY + 1])*/;
@@ -586,11 +588,7 @@ template<int chosenOne> bool byAreaWithoutOne(const Shape *a, const Shape *b) {
     if (ca != cb) {
         return ca < cb;
     }
-    int width1 = a->maxX - a->minX;
-    int width2 = b->maxX - b->minX;
-    int area1 = width1 * a->minY;
-    int area2 = width2 * b->minY;
-    return area2 < area1;
+    return b->area < a->area;
 }
 
 bool byColorAndFromSmallest(const Shape *a, const Shape *b) {
@@ -1189,9 +1187,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
@@ -1212,3 +1210,5 @@ int main() {
 //1547191 73.6971 - 2946.15 2.81
 //1563270 74.7462 - 2973.42 2.84    12A 2W 6T BCW
 //1566196 75.3075 - 2973.87 2.82    12A 4W 4T BCW
+//1545330 74.1933 - 2942.37 2.89    same but area calculated strictly
+//1566196 72.5724 area buffering
