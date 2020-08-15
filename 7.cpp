@@ -832,16 +832,16 @@ bool (*comparators_[NCOMP_])(const Shape*, const Shape*) = {
     byColorAndFromSmallest,
     byColorAndFromLargest, byColorDescAndFromLargest, byColorAndFromTop, byColorAndFromTop2, byColorAndFromTop3
 };
-const int NCOMP = 29;
+const int NCOMP = 28;
 bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     byAreaWithoutOne<1>, byAreaWithoutOne<2>, byAreaWithoutOne<3>, byAreaWithoutOne<4>,
     byAreaWithoutOne<5>, byAreaWithoutOne<6>, byAreaWithoutOne<7>, byAreaWithoutOne<8>,
     byAreaWithoutOne<9>, byAreaWithoutOne<10>, byAreaWithoutOne<11>, byAreaWithoutOne<12>,
     byAreaWithoutOne<13>, byAreaWithoutOne<14>, byAreaWithoutOne<15>, byAreaWithoutOne<16>,
     byAreaWithoutOne<17>, byAreaWithoutOne<18>, byAreaWithoutOne<19>, byAreaWithoutOne<20>,
-    fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
-    fromTopWithoutOne<5>, //fromTopWithoutOne<6>,
-    fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, //fromWidestWithoutOne<4>,
+    fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, //fromTopWithoutOne<4>,
+    //fromTopWithoutOne<5>, //fromTopWithoutOne<6>,
+    fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, fromWidestWithoutOne<4>,
     //fromWidestWithoutOne<5>, //fromWidestWithoutOne<6>, fromTopWithoutOne<7>, fromTopWithoutOne<8>,
     //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
     //fromTopWithoutOne<13>, fromTopWithoutOne<14>, //fromTopWithoutOne<15>, fromTopWithoutOne<16>,
@@ -882,7 +882,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (i == NCOMP - 1 || colorHistogram[(i < 20 ? i : i < 25 ? i - 20 : i - 25) + 1].count) {
+        if (i == NCOMP - 1 || colorHistogram[(i < 20 ? i : i < 23 ? i - 20 : i - 23) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1238,4 +1238,8 @@ int main() {
 //1557370 73.3348 - 2963.88 2.84    20A 1T 1T BCW BCA
 //1567057 77.0105 - 2974.5  2.94    20A 5T 3W BCA  - broken
 //1569641 78.1771           3.01    20A 5T 3W BCA
-
+//1569330 79.3966                   20A 4T 4W BCA
+//1564835 74.5966 - 2977.02 2.84    20A 5T 2W BCA
+//1569324 80.27                     20A 5T 4W
+//1566421 75.0102           3.01    20A 4T 4W
+//1565517 74.5539 - 2970.63 2.8     20A 3T 4W BCA
