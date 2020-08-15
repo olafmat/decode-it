@@ -37,7 +37,7 @@ struct Shape {
     char c;
     int8_t y;
     char vs;
-    #ifdef USE_RAND
+    #ifdef USE_RAND_STRATEGY
     char rand;
     #endif
 
@@ -839,10 +839,10 @@ bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
     byAreaWithoutOne<9>, byAreaWithoutOne<10>, byAreaWithoutOne<11>, byAreaWithoutOne<12>,
     byAreaWithoutOne<13>, byAreaWithoutOne<14>, byAreaWithoutOne<15>, byAreaWithoutOne<16>,
     byAreaWithoutOne<17>, byAreaWithoutOne<18>, byAreaWithoutOne<19>, byAreaWithoutOne<20>,
-    fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>, fromTopWithoutOne<4>,
+    fromTopWithoutOne<1>, fromTopWithoutOne<2>, fromTopWithoutOne<3>,
     //fromTopWithoutOne<5>, //fromTopWithoutOne<6>,
     fromWidestWithoutOne<1>, fromWidestWithoutOne<2>, fromWidestWithoutOne<3>, fromWidestWithoutOne<4>,
-    //fromWidestWithoutOne<5>, //fromWidestWithoutOne<6>, fromTopWithoutOne<7>, fromTopWithoutOne<8>,
+    fromWidestWithoutOne<5>, //fromWidestWithoutOne<6>, fromTopWithoutOne<7>, fromTopWithoutOne<8>,
     //fromTopWithoutOne<9>, fromTopWithoutOne<10>, //fromTopWithoutOne<11>, fromTopWithoutOne<12>,
     //fromTopWithoutOne<13>, fromTopWithoutOne<14>, //fromTopWithoutOne<15>, fromTopWithoutOne<16>,
     //fromTopWithoutOne<17>, fromTopWithoutOne<18>, fromTopWithoutOne<19>, fromTopWithoutOne<20>
@@ -882,7 +882,7 @@ Game* test2(Board *board) {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < NCOMP; i++) {
-        if (i == NCOMP - 1 || colorHistogram[(i < 20 ? i : i < 24 ? i - 20 : i - 24) + 1].count) {
+        if (i >= NCOMP - 1 || colorHistogram[(i < 20 ? i : i < 23 ? i - 20 : i - 23) + 1].count) {
             Board board2 = *board;
             test(&board2, comparators[i], games2[i]);
             if (games2[i].total > bestScore) {
@@ -1036,7 +1036,7 @@ void randomPlayer(Board *board, Game &game) {
     }
 }
 
-const int NRAND = 1009;
+const int NRAND = 1000;
 static Game randomGames[NRAND];
 Game* randomPlayer2(Board *board) {
     int bestGame;
@@ -1244,3 +1244,4 @@ int main() {
 //1566421 75.0102           3.01    20A 4T 4W
 //1565517 74.5539 - 2970.63 2.8     20A 3T 4W BCA
 //1569330 78.3764 - 2979.27 2.95    20A 4T 4W BCA
+//1568522 79.2541 - 2971.8  2.95    20A 3T 5W BCA
