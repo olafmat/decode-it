@@ -15,13 +15,18 @@
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
 //#define USE_RAND
-#define USE_RAND_STRATEGY
 //#define USE_ELECTIONS
 //#define VALIDATION
 
 #pragma pack(1)
 
 using namespace std;
+
+int g_seed = 5325353;
+inline int fastRand() {
+  g_seed = (214013 * g_seed + 2531011);
+  return (g_seed >> 16) & 0x7FFF;
+}
 
 struct Shape;
 struct ShapeList;
@@ -39,9 +44,7 @@ struct Shape {
     char c;
     int8_t y;
     char vs;
-    #ifdef USE_RAND_STRATEGY
-    char rand;
-    #endif
+    int8_t rand;
 
     int score() const {
         return size * (size - 1);
@@ -379,9 +382,7 @@ struct ShapeList {
         dest->vs = (dest->maxX == dest->minX && !board->board[dest->minX][dest->maxY + 1])/* ||
             !(dest->maxX == dest->minX &&
                 board->board[dest->minX][dest->minY - 1] == board->board[dest->minX][dest->maxY + 1])*/;
-        #ifdef USE_RAND_STRATEGY
-        dest->rand = random();
-        #endif
+        dest->rand = fastRand();
     }
 
     void update(const Board *board, int minX = 1, int maxX = MAX_WIDTH, int minY = 1) {
@@ -1070,16 +1071,17 @@ Game* test2(Board *board, int* hist) {
     for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
         strategies.push_back(new ByWidthWithTabu(c));
     }
-    //strategies.push_back(new ByAreaWithTabu(1));
+    strategies.push_back(new ByAreaWithTabu(1));
     for (int c = 1; colorHistogram[c].count && c <= 2; c++) {
         strategies.push_back(new ByAreaWithTabu(c));
     }
-    //strategies.push_back(new ByColorAndArea());
+    strategies.push_back(new ByColorAndArea());
 
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < strategies.size(); i++) {
         Board board2 = *board;
+        g_seed = 1000 + i;
         test(&board2, *strategies[i], games[i]);
         if (games[i].total > bestScore) {
             bestGame = i;
@@ -1402,9 +1404,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
@@ -1468,3 +1470,8 @@ int main() {
 //1591242 68.6877 - 3019.5  2.7     20A 4T 4W 1A
 //1598565 76.2021 -         3.01    20A 4T 4W 3A
 //1593290 73.1806 - 3044.25 2.76    20A 4T 4W 2A
+//1588646 75.1089 - 3021.21 2.92    20A 4T 4W 2A BCA !!
+//fastrand:
+//1591778 71.1974 - 3030.21 2.64    20A 4T 4W 2A
+//1594689 74.5441 - 3032.1  2.77    20A 4T 4W 2A BCA
+//1603685 78.3453 - 3048.39 2.86    20A 4T 4W 1A 2A BCA
