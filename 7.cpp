@@ -1070,7 +1070,10 @@ Game* test2(Board *board, int* hist) {
     for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
         strategies.push_back(new ByWidthWithTabu(c));
     }
-    strategies.push_back(new ByAreaWithTabu(1));
+    //strategies.push_back(new ByAreaWithTabu(1));
+    for (int c = 1; colorHistogram[c].count && c <= 2; c++) {
+        strategies.push_back(new ByAreaWithTabu(c));
+    }
     //strategies.push_back(new ByColorAndArea());
 
     int bestGame = 0;
@@ -1462,4 +1465,6 @@ int main() {
 //randomized enabled:
 //1565342 67.542
 //1581735 68.7001 - 3005.28 2.65    20A 4T 4W BCA
-//1591242 68.6877 - 3019.5  2.7     20A 4T 4W BCA 1A
+//1591242 68.6877 - 3019.5  2.7     20A 4T 4W 1A
+//1598565 76.2021 -         3.01    20A 4T 4W 3A
+//1593290 73.1806 - 3044.25 2.76    20A 4T 4W 2A
