@@ -1072,7 +1072,7 @@ Game* test2(Board *board, int* hist) {
         strategies.push_back(new ByWidthWithTabu(c));
     }
     strategies.push_back(new ByAreaWithTabu(1));
-    for (int c = 1; colorHistogram[c].count && c <= 3; c++) {
+    for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
         strategies.push_back(new ByAreaWithTabu(c));
     }
     //strategies.push_back(new ByColorAndArea());
@@ -1404,9 +1404,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
@@ -1476,3 +1476,4 @@ int main() {
 //1594689 74.5441 - 3032.1  2.77    20A 4T 4W 2A BCA
 //1603685 78.3453 - 3048.39 2.86    20A 4T 4W 1A 2A BCA
 //1604956 78.88   - 3067.29 2.83    20A 4T 4W 1A 3A
+//1607247 81.8219 - 3068.82 2.98    20A 4T 4W 1A 4A
