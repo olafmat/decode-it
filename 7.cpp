@@ -1065,7 +1065,7 @@ Game* test2(Board *board, int* hist) {
     for (int c = 1; colorHistogram[c].count && c <= MAX_COLOR; c++) {
         strategies.push_back(new ByAreaWithTabu(c));
     }
-    for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
+    for (int c = 1; colorHistogram[c].count && c <= 5; c++) {
         strategies.push_back(new FromTopWithTabu(c));
     }
     for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
@@ -1075,7 +1075,7 @@ Game* test2(Board *board, int* hist) {
     for (int c = 1; colorHistogram[c].count && c <= 3; c++) {
         strategies.push_back(new ByAreaWithTabu(c));
     }
-    strategies.push_back(new ByColorAndArea());
+    //strategies.push_back(new ByColorAndArea());
 
     int bestGame = 0;
     long bestScore = -1;
@@ -1478,3 +1478,4 @@ int main() {
 //1604956 78.88   - 3067.29 2.83    20A 4T 4W 1A 3A
 //1607247 81.8219 - 3068.82 2.98    20A 4T 4W 1A 4A
 //1607927 81.6804 - 3067.92 2.9     20A 4T 4W 1A 3A BCA
+//1606786 80.7545 - 3074.76 2.99    20A 5T 4W 1A 3A
