@@ -1070,7 +1070,8 @@ Game* test2(Board *board, int* hist) {
     for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
         strategies.push_back(new ByWidthWithTabu(c));
     }
-    strategies.push_back(new ByColorAndArea());
+    strategies.push_back(new ByAreaWithTabu(1));
+    //strategies.push_back(new ByColorAndArea());
 
     int bestGame = 0;
     long bestScore = -1;
@@ -1461,4 +1462,4 @@ int main() {
 //randomized enabled:
 //1565342 67.542
 //1581735 68.7001 - 3005.28 2.65    20A 4T 4W BCA
-
+//1591242 68.6877 - 3019.5  2.7     20A 4T 4W BCA 1A
