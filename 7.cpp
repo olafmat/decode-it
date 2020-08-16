@@ -15,7 +15,7 @@
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
 //#define USE_RAND
-//#define USE_RAND_STRATEGY
+#define USE_RAND_STRATEGY
 //#define USE_ELECTIONS
 //#define VALIDATION
 
@@ -707,7 +707,7 @@ public:
                     const Shape* shape = list.shapes[a][b];
                     const Shape* end = shape + size;
                     while(shape != end) {
-                        if (shape->y > y) {
+                        if (shape->y > y || (shape->y == y && shape->rand > best->rand)) {
                             best = shape;
                             y = shape->y;
                         }
@@ -740,7 +740,7 @@ public:
                     const Shape* best = shape++;
                     int8_t y = best->y;
                     while(shape != end) {
-                        if (shape->y > y) {
+                        if (shape->y > y || (shape->y == y && shape->rand > best->rand)) {
                             best = shape;
                             y = shape->y;
                         }
@@ -770,7 +770,7 @@ public:
                     int8_t w = -1;
                     while(shape != end) {
                         int8_t width = shape->maxX - shape->minX;
-                        if (width > w || (width == w && shape->y > best->y)) {
+                        if (width > w || (width == w && (shape->y > best->y || (shape->y == best->y && shape->rand > best->rand)))) {
                             best = shape;
                             w = width;
                         }
@@ -799,7 +799,7 @@ public:
                     const Shape* best = shape++;
                     int16_t area= best->area;
                     while(shape != end) {
-                        if (shape->area > area) {
+                        if (shape->area > area || (shape->area == area && shape->rand > best->rand)) {
                             best = shape;
                             area = shape->area;
                         }
@@ -830,7 +830,7 @@ public:
                     const Shape* end = shape + size;
                     while(shape != end) {
                         char col = shape->c;
-                        if (col > bestCol || (col == bestCol && shape->area > bestArea)) {
+                        if (col > bestCol || (col == bestCol && (shape->area > bestArea || (shape->area == bestArea && shape->rand > best->rand)))) {
                             best = shape;
                             bestCol = col;
                             bestArea = shape->area;
@@ -1398,9 +1398,9 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
@@ -1457,3 +1457,8 @@ int main() {
 //after fix:
 //1572524 66.3385 - 2964.87 2.47    20A 4T 4W BCA nminY
 //1572768 66.0556 - 2956.59 2.37    20A 4T 4W BCA nmaxY-1
+
+//randomized enabled:
+//1565342 67.542
+//1581735 68.7001 - 3005.28 2.65    20A 4T 4W BCA
+
