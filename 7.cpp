@@ -1105,6 +1105,9 @@ Game* compare(Board *board, vector<Strategy*>& strategies) {
 
 Game* compare(Board *board) {
     calcHistogram(board);
+    if (colorHistogram[6].count) {
+        return NULL;
+    }
 
     vector<Strategy*> strategies;
     /*for (int k = 0; k < 10; k++) {
@@ -1120,7 +1123,7 @@ Game* compare(Board *board) {
     for (int c = 1; colorHistogram[c].count && c <= MAX_COLOR; c++) {
         strategies.push_back(new ByAreaWithTabu(c));
     }
-    for (int c = 1; colorHistogram[c].count && c <= 5; c++) {
+    for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
         strategies.push_back(new FromTopWithTabu(c));
     }
     for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
@@ -1130,7 +1133,7 @@ Game* compare(Board *board) {
     for (int c = 1; colorHistogram[c].count && c <= 3; c++) {
         strategies.push_back(new ByAreaWithTabu(c));
     }
-    //strategies.push_back(new ByColorAndArea());
+    strategies.push_back(new ByColorAndArea());
 
     Game* best = compare(board, strategies);
 
@@ -1298,7 +1301,11 @@ void play() {
         Board board;
         board.loadFromCin();
         Game* game = compare(&board);
-        game->send(board.h);
+        if (game) {
+            game->send(board.h);
+        } else {
+            cout << "N" << endl;
+        }
         //cout << game->total << endl;
     }
 }
@@ -1575,10 +1582,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(20);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
@@ -1655,7 +1662,6 @@ int main() {
 //1556701 72.3112 - 3014.91 2.73    cutoff <14
 //                          3.01    cutoff <15
 //                          3.01    cutoff <16
-
 
 /*high limit:
 6 14874892
