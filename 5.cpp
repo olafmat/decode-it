@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <set>
 #include <unordered_set>
 #include <unordered_map>
 #include <stdlib.h>
@@ -11,13 +12,14 @@ struct Node {
     int weight;
     unordered_set<Node*> edges;
     int freq;
+    int conf;
 };
 
 clock_t cutoff;
 unordered_set<Node*> all;
 unordered_set<Node*> nodes;
 unordered_map<string, Node*> names;
-unordered_set<Node*> dom;
+set<Node*> dom;
 unordered_set<Node*> ndom;
 
 void removeNode(Node* node) {
@@ -31,7 +33,7 @@ void removeNode(Node* node) {
     node->edges.clear();
 }
 
-bool isDominated(Node *node, Node* excl) {
+bool isDominated(Node *node, Node* excl = NULL) {
     if (node != excl && dom.count(node)) {
         return true;
     }
@@ -44,11 +46,36 @@ bool isDominated(Node *node, Node* excl) {
     return false;
 }
 
+void getN2(Node* node, unordered_set<Node*>& n2) {
+    for (unordered_set<Node*>::iterator it1 = node->edges.begin(); it1 != node->edges.end(); it1++) {
+        Node* node1 = *it1;
+        for (unordered_set<Node*>::iterator it2 = node1->edges.begin(); it2 != node->edges.end(); it2++) {
+            Node* node2 = *it2;
+            if (!n2.count(node2)) {
+                n2.insert(node2);
+            }
+        }
+    }
+}
+
+void updateConf(Node *node, int n0, int n1, int n2) {
+    for (unordered_set<Node*>::iterator it1 = node->edges.begin(); it1 != node->edges.end(); it1++) {
+        Node* node1 = *it1;
+        node1->conf = n1;
+        for (unordered_set<Node*>::iterator it2 = node1->edges.begin(); it2 != node->edges.end(); it2++) {
+            Node *node2 = *it2;
+            node2->conf = n2;
+        }
+    }
+    for (unordered_set<Node*>::iterator it1 = node->edges.begin(); it1 != node->edges.end(); it1++) {
+        Node* node1 = *it1;
+        node1->conf = n1;
+    }
+    node->conf = n0;
+}
+
 double score(Node *node) {
     int sum = 0;
-    if (!isDominated(node, node)) {
-        sum += node->freq;
-    }
     unordered_set<Node*>::iterator it;
     for (it = node->edges.begin(); it != node->edges.end(); it++) {
         Node* node2 = *it;
@@ -56,7 +83,7 @@ double score(Node *node) {
             sum += node2->freq;
         }
     }
-    return double(sum) / node->weight;
+    return isDominated(node, node) ? -double(sum) / node->weight : node->freq + double(sum) / node->weight;
 }
 
 
@@ -68,7 +95,7 @@ void loadData() {
     for (int i = 0; i < t; i++) {
         Node * node = new Node();
         cin >> node -> name >> node -> weight;
-        node->freq = 1;
+        node->freq = node->conf = 1;
         all.insert(node);
         nodes.insert(node);
         ndom.insert(node);
@@ -89,7 +116,7 @@ void loadData() {
 
 void bruteForce() {
     uint32_t max = uint32_t(1) << ndom.size();
-    unordered_set<Node*> bestDom;
+    set<Node*> bestDom;
     int32_t bestCost = 0x7FFFFFFF;
     for (uint32_t iter = 1; iter < max; iter++) {
         int cost = 0;
@@ -161,7 +188,7 @@ void findDominatingSet() {
 
     bool repeat = !ndom.empty();
     while(repeat) {
-        double bestScore = 0;
+        double bestScore = -1e30;
         Node *best;
         for (unordered_set<Node*>::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
@@ -190,53 +217,156 @@ void findDominatingSet() {
     }
 }
 
-int totalWeight(unordered_set<Node*>& dom) {
+int totalWeight(set<Node*>& dom) {
     int total = 0;
-    for (unordered_set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
-        total += it->weight;
+    for (set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
+        total += (*it)->weight;
     }
     return total;
 }
 
+Node* pickRandom(set<Node*>& s) {
+    int i = random() % s.size();
+    set<Node*>::iterator it = begin(s);
+    if (i) {
+        advance(it, i);
+    }
+    return *it;
+}
+
+Node* bms(int step) {
+    int k = double(random() / RAND_MAX < exp(-step)) ? 1024 : 50 + (random() % 10);
+    Node* u2 = pickRandom(dom);
+    double score1 = score(u2);
+    Node* u = u2;
+    for (int i = 0; i < k; i++) {
+        u2 = pickRandom(dom);
+        double score2 = score(u2);
+        if (score2 > score1) {
+            score1 = score2;
+            u = u2;
+        }
+    }
+    return u;
+}
+
+void removeFromDom(Node* node) {
+    dom.erase(node);
+    if (!isDominated(node, node)) {
+        ndom.insert(node);
+    }
+    updateConf(node, 0, 2, 2);
+    for (unordered_set<Node*>::iterator it = node->edges.begin(); it != node->edges.end(); it++) {
+        Node *node2 = *it;
+        if (!isDominated(node2, node)) {
+            ndom.insert(node);
+        }
+    }
+}
+
+void print() {
+    for (set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
+        Node* node = *it;
+        cout << node->name << " " << node->conf << " " << score(node) << endl;
+    }
+}
+
 void optimize() {
-    unordered_set<Node*> dom2 = dom;
+    set<Node*> dom2 = dom;
     int nonImpr = 0;
     int totalW = totalWeight(dom);
     int totalW2 = totalW;
     while (clock() < cutoff) {
-        unordered_set<Node*> dom3 = dom;
+    cout << "a " << ndom.size() << endl;
+        set<Node*> dom3 = dom;
         double maxScore = -1e30;
         Node* maxScoreNode = NULL;
-        for (unordered_set<Node*>::iterator it = dom3.begin(); it != dom3.end(); it++) {
+        for (set<Node*>::iterator it = dom3.begin(); it != dom3.end(); it++) {
             Node *node = *it;
             double sc = score(node);
             if (sc == 0) {
                 dom.erase(node);
+                if (!isDominated(node))
+                    ndom.insert(node);
                 totalW -= node->weight;
+                break;
             }
-            else if (sc > maxScore) {
-                maxScore = sc;
-                maxScoreNode = node;
+            else {
+                node->conf = 0;
+                if (sc > maxScore) {
+                    maxScore = sc;
+                    maxScoreNode = node;
+                }
             }
         }
 
         if (totalW < totalW2) {
+   cout << "T " <<totalW << " " <<totalW2 << endl;
             dom2 = dom;
+            totalW2 = totalW;
             nonImpr = 0;
         }
 
-        dom.erase(maxScoreNode);
+    print();
+    cout << "b1 " << ndom.size() << endl;
+        removeFromDom(maxScoreNode);
         totalW -= maxScoreNode->weight;
+    cout << "b2 " << ndom.size() << endl;
 
-        for (unordered_set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
+        Node* bmsNode = bms(nonImpr);
+    cout << "b3 " << ndom.size() << endl;
+    cout << "f " << maxScoreNode->name << " "  << bmsNode->name << " " << nonImpr << endl;
+        removeFromDom(bmsNode);
+        totalW -= bmsNode->weight;
 
+        do {
+    cout << "b " << ndom.size() << endl;
+            //print();
+            unordered_set<Node*> n2;
+            getN2(maxScoreNode, n2);
+            getN2(bmsNode, n2);
+    //cout << "c " << endl;
+            double score1 = 0;
+            Node* best = NULL;
+            for (unordered_set<Node*>::iterator it = n2.begin(); it != n2.end(); it++) {
+                Node* node = *it;
+                if (!node->conf) {
+                    continue;
+                }
+                double score2 = score(node);
+                if (score2 > score1 || (score2 == score1 && node->conf > best->conf)) {
+                    score1 = score2;
+                    best = node;
+                }
+            }
+            if (!best)
+                break;
+            cout << best <<  " " << ndom.size() << endl;
+    cout << "d " << best->name << " " << best->conf << endl;
+
+            dom.insert(best);
+    //cout << __LINE__ <<endl;
+            ndom.erase(best);
+            totalW += best->weight;
+    //cout << __LINE__ <<endl;
+            for (unordered_set<Node*>::iterator it2 = best->edges.begin(); it2 != best->edges.end(); it2++) {
+    //cout << __LINE__ <<endl;
+                ndom.erase(*it2);
+    //cout << __LINE__ <<endl;
+            };
+    //cout << "e " << ndom.size() << endl;
+
+            updateConf(best, 0, 1, 2);
+        } while(ndom.size() > 0);
+    cout << "b4 " << ndom.size() << endl;
+        nonImpr++;
     }
 }
 
 void printResults() {
     cout << dom.size() << endl;
     int total = 0;
-    for (unordered_set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
+    for (set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
         Node *node = *it;
         cout << node->name << endl;
         total += node->weight;
@@ -281,11 +411,12 @@ int main(int argc, char **argv) {
 
 int main() {
     loadData();
-    if (nodes.size() <= 20) {
+    /*if (nodes.size() <= 20) {
         bruteForce();
-    } else {
+    } else {*/
         findDominatingSet();
-    }
+        optimize();
+    //}
     printResults();
     freeMemory();
     return 0;

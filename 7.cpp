@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <memory.h>
 
+#include <algorithm>
 #include <vector>
 #include <iostream>
+#include <cstring>
 
 #include <execinfo.h>
 #include <signal.h>
@@ -677,6 +679,7 @@ bool randomStrategy(const Shape *a, const Shape *b) {
 */
 
 class Strategy {
+protected:
     char tabuColor;
 
 public:
@@ -688,6 +691,8 @@ public:
     }
 
     virtual const Shape* findBest(ShapeList& list) = 0;
+
+    virtual void print() const = 0;
 
     virtual ~Strategy() {
     }
@@ -722,6 +727,10 @@ public:
         }
         return NULL;
     }
+
+    virtual void print() const {
+        cout << "FromTop()" << endl;
+    }
 };
 
 
@@ -753,6 +762,10 @@ public:
         }
         return NULL;
     }
+
+    virtual void print() const {
+        cout << "FromTopWithTabu(" << int(tabuColor) << ")" << endl;
+    }
 };
 
 class ByWidthWithTabu: public Strategy {
@@ -783,6 +796,10 @@ public:
         }
         return NULL;
     }
+
+    virtual void print() const {
+        cout << "ByWidthWithTabu(" << int(tabuColor) << ")" << endl;
+    }
 };
 
 class ByAreaWithTabu: public Strategy {
@@ -811,6 +828,10 @@ public:
             }
         }
         return NULL;
+    }
+
+    virtual void print() const {
+        cout << "ByAreaWithTabu(" << int(tabuColor) << ")" << endl;
     }
 };
 
@@ -845,6 +866,10 @@ public:
             }
         }
         return NULL;
+    }
+
+    virtual void print() const {
+        cout << "ByColorAndArea()" << endl;
     }
 };
 
@@ -977,7 +1002,7 @@ void calcHistogram(Board *board) {
 }
 
 
-void test(Board *board, Strategy& strategy, Game &game) {
+void playStrategy(Board *board, Strategy& strategy, Game &game) {
     ShapeList list(strategy.getTabu());
     list.update(board);
     #ifdef VALIDATION
@@ -1055,13 +1080,43 @@ void test(Board *board, Strategy& strategy, Game &game) {
 //    byColorAndFromTop, byColorNoAndFromSmallest, byColorNoAndFromTop
 //};*/
 
-const int NCOMP = 100;
+const int NCOMP = 1000;
 
-Game* test2(Board *board, int* hist) {
+Game* compare(Board *board, vector<Strategy*>& strategies) {
     static Game games[NCOMP];
+    int bestGame = 0;
+    long bestScore = -1;
+    for (int i = 0; i < strategies.size(); i++) {
+        Board board2 = *board;
+        g_seed = 1000 + i;
+        playStrategy(&board2, *strategies[i], games[i]);
+        if (games[i].total > bestScore) {
+            bestGame = i;
+            bestScore = games[i].total;
+        }
+    }
+    #ifdef VALIDATION
+    if (bestGame < 0 || bestGame >= strategies.size()) {
+        cout << "wrong game " << bestGame << endl;
+    }
+    #endif
+    return games + bestGame;
+}
+
+Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
+    /*for (int k = 0; k < 10; k++) {
+        for (int c = 0; !c || (colorHistogram[c].count && c <= MAX_COLOR); c++) {
+            strategies.push_back(new FromTopWithTabu(c));
+            strategies.push_back(new ByWidthWithTabu(c));
+            strategies.push_back(new ByAreaWithTabu(c));
+        }
+        strategies.push_back(new ByColorAndArea());
+        strategies.push_back(new FromTop());
+    }*/
+
     for (int c = 1; colorHistogram[c].count && c <= MAX_COLOR; c++) {
         strategies.push_back(new ByAreaWithTabu(c));
     }
@@ -1077,28 +1132,12 @@ Game* test2(Board *board, int* hist) {
     }
     //strategies.push_back(new ByColorAndArea());
 
-    int bestGame = 0;
-    long bestScore = -1;
-    for (int i = 0; i < strategies.size(); i++) {
-        Board board2 = *board;
-        g_seed = 1000 + i;
-        test(&board2, *strategies[i], games[i]);
-        if (games[i].total > bestScore) {
-            bestGame = i;
-            bestScore = games[i].total;
-        }
-    }
-    #ifdef VALIDATION
-    if (bestGame < 0 || bestGame >= strategies.size()) {
-        cout << "wrong game " << bestGame << endl;
-    }
-    #endif
-    hist[bestGame]++;
+    Game* best = compare(board, strategies);
 
     for (int i = 0; i < strategies.size(); i++) {
         delete strategies[i];
     }
-    return games + bestGame;
+    return best;
 }
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
@@ -1118,7 +1157,6 @@ int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
 Game games[NCOMP2];
 Board boards[NCOMP2];
 ShapeList lists[NCOMP2];
-int hist2[NCOMP2] = {0};
 Game* test3(Board *board, int electionPeriod) {
     calcHistogram(board);
     for (int i = 0; i < NCOMP2; i++) {
@@ -1154,7 +1192,6 @@ Game* test3(Board *board, int electionPeriod) {
                 }
             }
             calcHistogram(&boards[0]);
-            hist2[bestGame]++;
         }
     }
 
@@ -1258,10 +1295,9 @@ void play() {
     int t;
     cin >> t;
     for (int i = 0; i < t; i++) {
-        int hist[NCOMP] = {0};
         Board board;
         board.loadFromCin();
-        Game* game = test2(&board, hist);
+        Game* game = compare(&board);
         game->send(board.h);
         //cout << game->total << endl;
     }
@@ -1285,7 +1321,6 @@ void stats() {
     int64_t begin = clock();
     //int width = 20;
     //int height = 50;
-    int hist[NCOMP] = {0};
     long total2 = 0, total3 = 0, total4 = 0;
     for (int ncols = 6; ncols <= 20; ncols += 2) {
         long total[NCOMP + 3] = {0};
@@ -1296,16 +1331,17 @@ void stats() {
             /*for (int c = 0; c < NCOMP; c++) {
                 Board board2 = *board;
                 Game game;
-                test(&board2, comparators[c], game);
+                playStrategy(&board2, comparators[c], game);
                 total[c] += game.total;
             }*/
             Board board2 = *board;
-            Game *game = test2(&board2, hist);
-            total[NCOMP] += game->total;
+            Game *game = compare(&board2);
+            long score = game->total * ncols * ncols / width / height;
+            total[NCOMP] += score;
             if (total[NCOMP] > 6250000000L) {
                 cout << "too big " << i << " " << total[NCOMP] << " " << game->total << endl;
             }
-            total2 += game->total * ncols * ncols / width / height;
+            total2 += score;
 
             #ifdef USE_RAND
             board2 = *board;
@@ -1340,18 +1376,6 @@ void stats() {
         cout << " " << total[NCOMP + 2];
         #endif
         cout << /*" " << total[NCOMP] * ncols * ncols / width / height <<*/ endl;
-        for (int i = 0; i < NCOMP; i++) {
-            if (hist[i]) {
-                cout << ncols << " " << i << " " << hist[i];
-                cout << endl;
-            }
-        }
-        #ifdef USE_ELECTIONS
-        for (int i = 0; i < NCOMP2; i++) {
-            cout << ncols << " N" << i << " " << hist2[i];
-            cout << endl;
-        }
-        #endif
     }
     cout << total2;
     #ifdef USE_RAND
@@ -1387,12 +1411,159 @@ void testFill() {
     }
 }
 
+struct Combo {
+    string strategy;
+    int64_t time;
+    long result;
+};
+
+bool comboComparator(const Combo& a, const Combo& b) {
+    int64_t diff = a.time - b.time;
+    if (diff < 0) {
+        return true;
+    }
+    if (diff > 0) {
+        return false;
+    }
+    return a.result > b.result;
+}
+
+void optimalSet(int ncols) {
+    static vector<Combo> results;
+
+    for (int a0 = 0; a0 <= 20 && a0 <= ncols; a0++) {
+    for (int t0 = 0; t0 <= 10 && t0 <= ncols; t0++) {
+    for (int w0 = 0; w0 <= 10 && w0 <= ncols; w0++) {
+    for (int a1 = 0; a1 <= 10 && a1 <= a0; a1++) {
+    for (int t1 = 0; t1 <= 10 && t1 <= t0; t1++) {
+    for (int bca = 0; bca <= 1; bca++) {
+        vector<Strategy*> strategies;
+        for (int c = 1; c <= a0; c++) {
+            strategies.push_back(new ByAreaWithTabu(c));
+        }
+        for (int c = 1; c <= t0; c++) {
+            strategies.push_back(new FromTopWithTabu(c));
+        }
+        for (int c = 1; c <= w0; c++) {
+            strategies.push_back(new ByWidthWithTabu(c));
+        }
+        for (int c = 1; c <= a1; c++) {
+            strategies.push_back(new ByAreaWithTabu(c));
+        }
+        for (int c = 1; c <= t1; c++) {
+            strategies.push_back(new FromTopWithTabu(c));
+        }
+        /*for (int c = 1; c <= w1; c++) {
+            strategies.push_back(new ByWidthWithTabu(c));
+        }*/
+        if (bca) {
+            strategies.push_back(new ByColorAndArea());
+        }
+
+        long total = 0;
+        srand(1);
+        int64_t begin = clock();
+        for (int i = 0; i < 10000; i++) {
+            int width = 5;//(rand() % 47) + 4;
+            int height = 5;//(rand() % 47) + 4;
+            Board* board = Board::randomBoard(width, height, ncols);
+            calcHistogram(board);
+            Game *game = compare(board, strategies);
+            total += game->total * ncols * ncols / width / height;
+            delete board;
+        }
+        int64_t end = clock();
+        int64_t time = end - begin;
+
+        Combo combo;
+        char name[200];
+        sprintf(name, "A%d T%d W%d A%d T%d BCA%d", a0, t0, w0, a1, t1, bca);
+        combo.strategy = name;
+        combo.time = time;
+        combo.result = total;
+        results.push_back(combo);
+    }}}}
+    cout << a0 << ' ' <<t0 << endl;
+    }}
+
+    sort(results.begin(), results.end(), comboComparator);
+
+    long best = 0;
+    for (int i = 0; i < results.size(); i++) {
+        Combo &combo = results[i];
+        if (combo.result > best) {
+            best = combo.result;
+            cout << combo.strategy << '\t' << double(combo.time) / CLOCKS_PER_SEC << '\t' << combo.result << endl;
+        }
+    }
+}
+
+void optimalSet2(int ncols) {
+    vector<Strategy*> strategies;
+    for (int n = 0; n < 60; n++) {
+        Strategy *best = NULL;
+        double bestScore = 0;
+        long bestTotal = 0;
+        uint64_t bestTime = 0;
+        for (int k = 0; k < 3 * ncols + 2; k++) {
+            Strategy * strategy;
+            if (k < ncols) {
+                strategy = new ByAreaWithTabu(k + 1);
+            } else if (k < ncols + ncols) {
+                strategy = new FromTopWithTabu(k - ncols + 1);
+            } else if (k < ncols * 3) {
+                strategy = new ByWidthWithTabu(k - ncols * 2 + 1);
+            } else if (k == ncols * 3) {
+                strategy = new ByColorAndArea();
+            } else {
+                strategy = new FromTop();
+            }
+
+            if (k == 0) {
+                strategies.push_back(strategy);
+            } else {
+                strategies[n] = strategy;
+            }
+
+            long total = 0;
+            //srand(2);
+            int64_t begin = clock();
+            for (int i = 0; i < 100000; i++) {
+                int width = 20;//(random() % 47) + 4;
+                int height = 5;//(random() % 47) + 4;
+                Board* board = Board::randomBoard(width, height, ncols);
+                calcHistogram(board);
+                Game *game = compare(board, strategies);
+                total += game->total * ncols * ncols / width / height;
+                delete board;
+            }
+            int64_t end = clock();
+            int64_t time = end - begin;
+
+            double score = total; //double(total) / time;
+            if (score > bestScore) {
+                if (best)
+                    delete best;
+                best = strategy;
+                bestScore = score;
+                bestTotal = total;
+                bestTime = time;
+            } else {
+                delete strategy;
+            }
+        }
+        strategies[n] = best;
+        cout << bestScore << "\t" << bestTotal << "\t" << double(bestTime) / CLOCKS_PER_SEC << "\t";
+        best->print();
+    }
+}
+
 void handler(int sig) {
     void *array[10];
     size_t size;
 
     // get void*'s for all entries on the stack
-    size = backtrace(array, 10);
+    size = backtrace(array, 3);
 
     // print out all the frames to stderr
     fprintf(stderr, "Error: signal %d:\n", sig);
@@ -1404,9 +1575,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
-    play();
+    //optimalSet2(20);
+    //play();
     //randomPlay();
     return 0;
 }
@@ -1479,3 +1651,21 @@ int main() {
 //1607247 81.8219 - 3068.82 2.98    20A 4T 4W 1A 4A
 //1607927 81.6804 - 3067.92 2.9     20A 4T 4W 1A 3A BCA
 //1606786 80.7545 - 3074.76 2.99    20A 5T 4W 1A 3A
+
+//1556701 72.3112 - 3014.91 2.73    cutoff <14
+//                          3.01    cutoff <15
+//                          3.01    cutoff <16
+
+
+/*high limit:
+6 14874892
+8 3398896
+10 1347278
+12 907050
+14 720722
+16 558472
+18 478410
+20 407034
+1728293
+1513.77
+*/
