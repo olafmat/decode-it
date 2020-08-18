@@ -1105,9 +1105,6 @@ Game* compare(Board *board, vector<Strategy*>& strategies) {
 
 Game* compare(Board *board) {
     calcHistogram(board);
-    if (colorHistogram[6].count) {
-        return NULL;
-    }
 
     vector<Strategy*> strategies;
     /*for (int k = 0; k < 10; k++) {
@@ -1120,20 +1117,110 @@ Game* compare(Board *board) {
         strategies.push_back(new FromTop());
     }*/
 
-    for (int c = 1; colorHistogram[c].count && c <= MAX_COLOR; c++) {
-        strategies.push_back(new ByAreaWithTabu(c));
+    if (!colorHistogram[11].count) {
+        if (board->w < 25 /*|| !colorHistogram[9].count*/) {
+            strategies.push_back(new ByAreaWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(2));
+            strategies.push_back(new ByWidthWithTabu(1));
+            strategies.push_back(new FromTopWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(3));
+            strategies.push_back(new ByColorAndArea());
+            strategies.push_back(new ByWidthWithTabu(2));
+            strategies.push_back(new FromTopWithTabu(2));
+            strategies.push_back(new ByAreaWithTabu(1));
+            strategies.push_back(new FromTopWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(4));
+            strategies.push_back(new FromTopWithTabu(3));
+            strategies.push_back(new ByAreaWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(2));
+            strategies.push_back(new ByWidthWithTabu(3));
+            strategies.push_back(new ByWidthWithTabu(4));
+            strategies.push_back(new FromTopWithTabu(2));
+            strategies.push_back(new FromTopWithTabu(4));
+            /*strategies.push_back(new FromTopWithTabu(5));
+
+            strategies.push_back(new ByAreaWithTabu(3));
+            strategies.push_back(new FromTopWithTabu(1));
+            strategies.push_back(new ByWidthWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(1));
+            strategies.push_back(new ByWidthWithTabu(3));
+            strategies.push_back(new ByAreaWithTabu(5));
+            strategies.push_back(new ByAreaWithTabu(2));
+            strategies.push_back(new ByWidthWithTabu(3));*/
+        } else {
+            strategies.push_back(new ByAreaWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(2));
+            strategies.push_back(new FromTopWithTabu(1));
+            strategies.push_back(new ByWidthWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(3));
+            strategies.push_back(new FromTopWithTabu(2));
+            strategies.push_back(new ByWidthWithTabu(2));
+            strategies.push_back(new ByAreaWithTabu(1));
+            strategies.push_back(new FromTopWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(1));
+            strategies.push_back(new ByColorAndArea());
+            strategies.push_back(new ByWidthWithTabu(3));
+            strategies.push_back(new ByAreaWithTabu(3));
+            strategies.push_back(new ByAreaWithTabu(2));
+            strategies.push_back(new FromTopWithTabu(1));
+            strategies.push_back(new ByWidthWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(4));
+            strategies.push_back(new ByAreaWithTabu(1));
+            /*strategies.push_back(new ByWidthWithTabu(3));
+            strategies.push_back(new ByAreaWithTabu(5));
+            strategies.push_back(new ByAreaWithTabu(2));
+            strategies.push_back(new FromTopWithTabu(3));
+            strategies.push_back(new ByWidthWithTabu(3));*/
+        }
+        //strategies.push_back(new ByAreaWithTabu(1));
+        for (int c = 5; colorHistogram[c].count && c <= 6; c++) {
+            strategies.push_back(new ByAreaWithTabu(c));
+            strategies.push_back(new FromTopWithTabu(c));
+        }
+        if (!colorHistogram[7].count) {
+            strategies.push_back(new ByAreaWithTabu(1));
+        }
+    } else {
+        /*strategies.push_back(new ByAreaWithTabu(1));
+        strategies.push_back(new ByAreaWithTabu(2));
+        strategies.push_back(new ByWidthWithTabu(1));
+        strategies.push_back(new FromTopWithTabu(1));
+        strategies.push_back(new ByAreaWithTabu(3));
+        strategies.push_back(new ByColorAndArea());
+        strategies.push_back(new ByWidthWithTabu(2));
+        for (int c = 1; colorHistogram[c].count && c <= 12; c++) {
+            strategies.push_back(new ByAreaWithTabu(c));
+        }*/
+
+        /*for (int c = 1; colorHistogram[c].count && c <= 12; c++) {
+            strategies.push_back(new ByAreaWithTabu(c));
+        }
+        for (int c = 1; colorHistogram[c].count && c <= 2; c++) {
+            strategies.push_back(new FromTopWithTabu(c));
+        }
+        for (int c = 1; colorHistogram[c].count && c <= 2; c++) {
+            strategies.push_back(new ByWidthWithTabu(c));
+        }
+        strategies.push_back(new ByAreaWithTabu(1));
+        for (int c = 1; colorHistogram[c].count && c <= 2; c++) {
+            strategies.push_back(new ByAreaWithTabu(c));
+        }*/
+
+        for (int c = 1; colorHistogram[c].count && c <= MAX_COLOR; c++) {
+            strategies.push_back(new ByAreaWithTabu(c));
+        }
+        for (int c = 1; colorHistogram[c].count && c <= 3; c++) {
+            strategies.push_back(new FromTopWithTabu(c));
+        }
+        for (int c = 1; colorHistogram[c].count && c <= 3; c++) {
+            strategies.push_back(new ByWidthWithTabu(c));
+        }
+        strategies.push_back(new ByAreaWithTabu(1));
+        for (int c = 1; colorHistogram[c].count && c <= 3; c++) {
+            strategies.push_back(new ByAreaWithTabu(c));
+        }
+        strategies.push_back(new ByColorAndArea());
     }
-    for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
-        strategies.push_back(new FromTopWithTabu(c));
-    }
-    for (int c = 1; colorHistogram[c].count && c <= 4; c++) {
-        strategies.push_back(new ByWidthWithTabu(c));
-    }
-    strategies.push_back(new ByAreaWithTabu(1));
-    for (int c = 1; colorHistogram[c].count && c <= 3; c++) {
-        strategies.push_back(new ByAreaWithTabu(c));
-    }
-    strategies.push_back(new ByColorAndArea());
 
     Game* best = compare(board, strategies);
 
@@ -1329,11 +1416,11 @@ void stats() {
     //int width = 20;
     //int height = 50;
     long total2 = 0, total3 = 0, total4 = 0;
-    for (int ncols = 6; ncols <= 20; ncols += 2) {
+    for (int ncols = 5; ncols <= 19; ncols ++) {
         long total[NCOMP + 3] = {0};
         for (int i = 0; i < 1000; i++) {
-            int width = (rand() % 47) + 4;
-            int height = (rand() % 47) + 4;
+            int width = (rand() % 4) * 10 + 20;//(rand() % 47) + 4;
+            int height = width; //(rand() % 47) + 4;
             Board* board = Board::randomBoard(width, height, ncols);
             /*for (int c = 0; c < NCOMP; c++) {
                 Board board2 = *board;
@@ -1505,7 +1592,7 @@ void optimalSet(int ncols) {
     }
 }
 
-void optimalSet2(int ncols) {
+void optimalSet2(int ncols, int width) {
     vector<Strategy*> strategies;
     for (int n = 0; n < 60; n++) {
         Strategy *best = NULL;
@@ -1535,9 +1622,9 @@ void optimalSet2(int ncols) {
             long total = 0;
             //srand(2);
             int64_t begin = clock();
-            for (int i = 0; i < 100000; i++) {
-                int width = 20;//(random() % 47) + 4;
-                int height = 5;//(random() % 47) + 4;
+            for (int i = 0; i < 10000; i++) {
+                //int width = 20;//(random() % 47) + 4;
+                int height = width;//(random() % 47) + 4;
                 Board* board = Board::randomBoard(width, height, ncols);
                 calcHistogram(board);
                 Game *game = compare(board, strategies);
@@ -1582,10 +1669,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
-    //optimalSet2(20);
-    play();
+    //optimalSet2(5, 30);
+    //play();
     //randomPlay();
     return 0;
 }
@@ -1663,6 +1750,8 @@ int main() {
 //                          3.01    cutoff <15
 //                          3.01    cutoff <16
 
+//4952792 207.036 - 3077.46 2.95
+
 /*high limit:
 6 14874892
 8 3398896
@@ -1675,3 +1764,74 @@ int main() {
 1728293
 1513.77
 */
+
+/* 5 col 20x20
+2.11558e+06	2115583	2.18792	ByAreaWithTabu(1)
+2.37815e+06	2378149	4.31053	ByAreaWithTabu(2)
+2.53524e+06	2535244	6.50174	ByWidthWithTabu(1)
+2.66798e+06	2667979	10.3199	FromTopWithTabu(1)
+2.72765e+06	2727651	10.7975	ByAreaWithTabu(3)
+2.80499e+06	2804991	15.1934	ByColorAndArea()
+2.85714e+06	2857135	17.7728	ByWidthWithTabu(2)
+2.90252e+06	2902524	17.0623	FromTopWithTabu(2)
+2.92925e+06	2929247	20.3663	ByAreaWithTabu(1)
+2.9609e+06	2960899	21.9759	FromTopWithTabu(1)
+2.97331e+06	2973309	24.6953	ByAreaWithTabu(4)
+3.00003e+06	3000027	29.1186	FromTopWithTabu(3)
+3.01558e+06	3015577	30.1681	ByAreaWithTabu(1)
+3.03876e+06	3038755	40.9162	ByAreaWithTabu(2)
+3.05226e+06	3052264	32.5322	ByWidthWithTabu(3)
+3.06975e+06	3069752	42.2282	ByWidthWithTabu(4)
+3.07211e+06	3072109	82.1907	FromTopWithTabu(2)
+3.08254e+06	3082542	71.184	FromTopWithTabu(4)
+3.08165e+06	3081650	53.6251	FromTopWithTabu(5)
+*/
+
+/* 5 col 30x30
+5.33194e+06	5331936	4.32674	ByAreaWithTabu(1)
+6.03129e+06	6031292	8.39085	ByAreaWithTabu(2)
+6.48229e+06	6482293	13.0752	FromTopWithTabu(1)
+6.77502e+06	6775024	18.9705	ByWidthWithTabu(1)
+6.94526e+06	6945258	67.0854	ByAreaWithTabu(3)
+7.0962e+06	7096202	28.3387	FromTopWithTabu(2)
+7.18872e+06	7188716	39.3622	ByWidthWithTabu(2)
+7.28362e+06	7283619	41.172	ByAreaWithTabu(1)
+7.38027e+06	7380272	51.8362	FromTopWithTabu(1)
+7.45005e+06	7450050	51.2256	ByAreaWithTabu(1)
+7.50410e+06	7504105	57.0314	ByColorAndArea()
+7.56256e+06	7562560	144.215	ByWidthWithTabu(3)
+7.59942e+06	7599418	131.902	ByAreaWithTabu(3)
+7.63949e+06	7639493	118	ByAreaWithTabu(2)
+7.6798e+06	7679804	106.063	FromTopWithTabu(1)
+7.6949e+06	7694898	76.5953	ByWidthWithTabu(1)
+7.75562e+06	7755618	121.042	ByAreaWithTabu(4)
+7.75879e+06	7758790	195.825	ByAreaWithTabu(1)
+7.79343e+06	7793426	193.337	ByWidthWithTabu(3)
+7.81e+06	7809997	465.105	ByAreaWithTabu(5)
+7.81668e+06	7816675	174.106	ByAreaWithTabu(2)
+7.84148e+06	7841477	175.715	FromTopWithTabu(3)
+7.84931e+06	7849310	168.851	ByWidthWithTabu(3)
+*/
+
+/*20 col 20z20
+1.62313e+06	1623134	1.81777	ByAreaWithTabu(20)
+1.65585e+06	1655848	3.54717	ByAreaWithTabu(1)
+1.67812e+06	1678120	6.90632	ByAreaWithTabu(14)
+1.69366e+06	1693662	1.61633	FromTopWithTabu(17)
+1.70141e+06	1701412	1.63509	ByAreaWithTabu(13)
+1.70857e+06	1708570	1.91516	ByAreaWithTabu(3)
+1.71846e+06	1718456	2.81886	ByAreaWithTabu(2)
+1.72697e+06	1726974	2.9965	ByWidthWithTabu(1)
+1.72348e+06	1723476	2.93528	ByAreaWithTabu(6)
+1.72949e+06	1729494	3.16286	ByAreaWithTabu(8)
+1.73435e+06	1734352	3.83998	FromTopWithTabu(16)
+1.73726e+06	1737256	3.84276	ByAreaWithTabu(10)
+1.74162e+06	1741620	4.57392	ByAreaWithTabu(5)
+1.74507e+06	1745066	4.45521	ByAreaWithTabu(10)
+1.7468e+06	1746802	4.81682	ByAreaWithTabu(1)
+1.74883e+06	1748834	5.4011	ByAreaWithTabu(17)
+*/
+//3054.96 2.96 - bez podziały potem <= 11
+//3052.17 2.91 - podział z || potem <= 11
+//3052.98 2.93 - <= 12
+
