@@ -82,7 +82,7 @@ struct Board {
         for (int x = 0; x <= w + 1; x++) {
             memcpy(board[x], src.board[x], h + 2);
         }
-        memcpy(colorHistogram, src.colorHistogram, sizeof(colorHistogram));
+        //memcpy(colorHistogram, src.colorHistogram, sizeof(colorHistogram));
     }
 
     void addFrame() {
@@ -476,6 +476,85 @@ struct ShapeList {
         size[1][1] = dest[1][1] - shapes[1][1];
     }
 
+    int update2(const Board *board, int minX = 1, int maxX = MAX_WIDTH, int minY = 1) {
+        int profit = 0;
+        if (minX < 1) {
+            minX = 1;
+        }
+        const int w = board->w;
+        const int h = board->h;
+        if (maxX > w) {
+            maxX = w;
+        }
+        if (minY < 1) {
+            minY = 1;
+        }
+
+        for (int a = 0; a < 2; a++) {
+            for (int b = 0; b < 2; b++) {
+                Shape* shapes2 = shapes[a][b];
+                Shape* src = shapes2;
+                int size2 = size[a][b];
+                for (int i = 0; i < size2; i++) {
+                    if (src->maxX >= minX && src->minX <= maxX /*&& src->maxY >= minY*/) {
+                        profit -= src->score();
+                        size2--;
+                        *src = shapes2[size2];
+                        i--;
+                        continue;
+                    }
+                    src++;
+                }
+                size[a][b] = size2;
+            }
+        }
+
+        Shape* dest[2][2] = {
+            {
+                shapes[0][0] + size[0][0],
+                shapes[0][1] + size[0][1]
+            },
+            {
+                shapes[1][0] + size[1][0],
+                shapes[1][1] + size[1][1]
+            }
+        };
+        memset(used, 0, sizeof(uint64_t) * (w + 2));
+        uint64_t* usedCol = used + minX;
+
+        for (int x = minX; x <= maxX; x++) {
+            const char* pcol = &board->board[x - 1][0/*minY*/];
+            const char* col = &board->board[x][1/*minY*/];
+            const char* ncol = &board->board[x + 1][0/*minY*/];
+            for (int y = 1/*minY*/; y <= h; y++) {
+                char c = *col;
+                if (!c) {
+                    break;
+                }
+                if (!((*usedCol >> y) & 1) &&
+                (pcol[y] == c || ncol[y] == c ||
+                 col[-1] == c || col[1] == c))  {
+                    bool isTabu = c == tabuColor;
+                    Shape* dest2 = dest[0][isTabu];
+                    addShape(board, x, y, dest2);
+                    profit += dest2->score();
+                    if (dest2->vs) {
+                        *(dest[1][isTabu]++) = *dest2;
+                    } else {
+                        dest[0][isTabu]++;
+                    }
+                }
+                col++;
+            }
+            usedCol++;
+        }
+        size[0][0] = dest[0][0] - shapes[0][0];
+        size[0][1] = dest[0][1] - shapes[0][1];
+        size[1][0] = dest[1][0] - shapes[1][0];
+        size[1][1] = dest[1][1] - shapes[1][1];
+        return profit;
+    }
+
     long score() const {
         long total = 0;
         for (int a = 0; a < 2; a++) {
@@ -525,6 +604,13 @@ struct Game {
             cout << "TOTAL " << total << endl;
             shape.print();
         }
+        if (nmoves > MAX_WIDTH * MAX_HEIGHT) {
+            cout << "MAX " << nmoves << endl;
+        }
+        /*if (nmoves && moves[nmoves - 1].x == shape.minX && moves[nmoves - 1].y == shape.y) {
+            cout << "SAME " << endl;
+            shape.print();
+        }*/
         #endif
         moves[nmoves].x = shape.minX;
         moves[nmoves].y = shape.y;
@@ -694,6 +780,89 @@ bool randomStrategy(const Shape *a, const Shape *b) {
 #endif
 */
 
+#ifdef VALIDATION
+bool validate(const Board* board, const ShapeList& list) {
+    int total = 0;
+    bool ok = true;
+    for (int a = 0; a < 2; a++) {
+        for (int b = 0; b < 2; b++) {
+            const Shape* shapes = list.shapes[a][b];
+            for (int i = 0; i < list.size[a][b]; i++) {
+                const Shape& shape = shapes[i];
+                total += shape.size;
+                int x = shape.minX;
+                int y = shape.y;
+                if (board->board[x][y] != shape.c || !shape.c) {
+                    cout << "B " << char('A' + board->board[x][y]) << char('A' + shape.c) << endl;
+                    shape.print();
+                    ok = false;
+                }
+                if (a != shape.vs) {
+                    cout << "V " << a << endl;
+                    shape.print();
+                    ok = false;
+                }
+                if (b != (shape.c == list.tabuColor)) {
+                    cout << "T " << b << " " << char('A' + list.tabuColor) << endl;
+                    shape.print();
+                    ok = false;
+                }
+                if (shape.y < shape.minY || shape.y > shape.maxY) {
+                    cout << "D " << endl;
+                    shape.print();
+                    ok = false;
+                }
+                if (shape.size < 2) {
+                    cout << "S" << endl;
+                    ok = false;
+                }
+                if (shape.minX < 1 || shape.minX > shape.maxX ||
+                    shape.minY < 1 || shape.minY > shape.maxY ||
+                    shape.y < shape.minY || shape.y > shape.maxY ||
+                    shape.maxX > board->w || shape.maxY > board->h
+                ) {
+                    cout << "T" << endl;
+                    ok = false;
+                }
+                int sum =
+                    (board->board[x - 1][y] == shape.c) +
+                    (board->board[x + 1][y] == shape.c) +
+                    (board->board[x][y - 1] == shape.c) +
+                    (board->board[x][y + 1] == shape.c);
+                if (!sum) {
+                    cout << "C" << endl;
+                    shape.print();
+                    board->print();
+                    ok = false;
+                }
+            }
+        }
+    }
+    int total2 = 0;
+    for (int x = 1; x <= board->w; x++) {
+        for (int y = 1; y <= board->h; y++) {
+            int sum =
+                (board->board[x - 1][y] == board->board[x][y]) +
+                (board->board[x + 1][y] == board->board[x][y]) +
+                (board->board[x][y - 1] == board->board[x][y]) +
+                (board->board[x][y + 1] == board->board[x][y]);
+            if (!sum) {
+                total++;
+            }
+            if (board->board[x][y]) {
+                total2++;
+            }
+        }
+    }
+    if (total != total2) {
+        cout << "A " << total << " " << total2 << endl;
+        board->print();
+        ok = false;
+    }
+    return ok;
+}
+#endif
+
 class Strategy {
 protected:
     char tabuColor;
@@ -709,6 +878,35 @@ public:
     virtual const Shape* findBest(ShapeList& list) = 0;
 
     virtual void print() const = 0;
+
+    virtual void play(Board *board, Game &game, int seed = 0) {
+        ShapeList list(tabuColor);
+        if (seed) {
+            list.g_seed = seed;
+        }
+        list.update(board);
+        #ifdef VALIDATION
+        validate(board, list);
+        #endif
+        game.reset();
+        while(!list.isEmpty()) {
+            const Shape* move = findBest(list);
+            #ifdef VALIDATION
+            if (!move) {
+                list.print();
+            }
+            #endif
+            game.move(*move);
+            board->remove(*move);
+            list.update(board, move->minX - 1, move->maxX + 1, move->minY - 1);
+            #ifdef VALIDATION
+            if (move->score() > 6250000) {
+                move->print();
+            }
+            validate(board, list);
+            #endif
+        }
+    }
 
     virtual ~Strategy() {
     }
@@ -889,89 +1087,165 @@ public:
     }
 };
 
+class DualByAreaWithTabu: public Strategy {
+public:
+    DualByAreaWithTabu(char tabuColor): Strategy(tabuColor) {
+    }
 
-#ifdef VALIDATION
-bool validate(const Board* board, const ShapeList& list) {
-    int total = 0;
-    bool ok = true;
-    for (int a = 0; a < 2; a++) {
-        for (int b = 0; b < 2; b++) {
-            const Shape* shapes = list.shapes[a][b];
-            for (int i = 0; i < list.size[a][b]; i++) {
-                const Shape& shape = shapes[i];
-                total += shape.size;
-                int x = shape.minX;
-                int y = shape.y;
-                if (board->board[x][y] != shape.c || !shape.c) {
-                    cout << "B " << char('A' + board->board[x][y]) << char('A' + shape.c) << endl;
-                    shape.print();
-                    ok = false;
-                }
-                if (a != shape.vs) {
-                    cout << "V " << a << endl;
-                    shape.print();
-                    ok = false;
-                }
-                if (b != (shape.c == list.tabuColor)) {
-                    cout << "T " << b << " " << char('A' + list.tabuColor) << endl;
-                    shape.print();
-                    ok = false;
-                }
-                if (shape.y < shape.minY || shape.y > shape.maxY) {
-                    cout << "D " << endl;
-                    shape.print();
-                    ok = false;
-                }
-                if (shape.size < 2) {
-                    cout << "S" << endl;
-                    ok = false;
-                }
-                if (shape.minX < 1 || shape.minX > shape.maxX ||
-                    shape.minY < 1 || shape.minY > shape.maxY ||
-                    shape.y < shape.minY || shape.y > shape.maxY ||
-                    shape.maxX > board->w || shape.maxY > board->h
-                ) {
-                    cout << "T" << endl;
-                    ok = false;
-                }
-                int sum =
-                    (board->board[x - 1][y] == shape.c) +
-                    (board->board[x + 1][y] == shape.c) +
-                    (board->board[x][y - 1] == shape.c) +
-                    (board->board[x][y + 1] == shape.c);
-                if (!sum) {
-                    cout << "C" << endl;
-                    shape.print();
-                    board->print();
-                    ok = false;
+    virtual const Shape* findBest(ShapeList& list) {
+        return NULL;
+    }
+
+    void findBest2(ShapeList& list, Shape* results) {
+        const Shape* best1 = NULL;
+        const Shape* best2 = NULL;
+        int16_t area1 = -1;
+        int16_t area2 = -1;
+        for (int a = 0; a < 2; a++) {
+            for (int b = 0; b < 2; b++) {
+    //cout << __LINE__ << endl;
+                int size = list.size[a][b];
+                if (size) {
+    //cout << __LINE__ << endl;
+                    const Shape* shape = list.shapes[a][b];
+    //cout << __LINE__ << endl;
+                    const Shape* end = shape + size;
+    //cout << __LINE__ << endl;
+                    while(shape != end) {
+    //cout << __LINE__ << endl;
+                        if (shape->area > area2 || (shape->area == area2 && shape->rand > best2->rand)) {
+    //cout << __LINE__ << endl;
+                            if (shape->area > area1 || (shape->area == area1 && shape->rand > best1->rand)) {
+    //cout << __LINE__ << endl;
+                                best2 = best1;
+                                area2 = area1;
+                                best1 = shape;
+                                area1 = shape->area;
+                            } else {
+    //cout << __LINE__ << endl;
+                                best2 = shape;
+                                area2 = shape->area;
+                            }
+    //cout << __LINE__ << endl;
+                        }
+                        shape++;
+                    }
+    //cout << __LINE__ << endl;
+                    if (best2) {
+    //cout << __LINE__ << endl;
+                        results[0] = *best1;
+                        results[1] = *best2;
+    //cout << __LINE__ << endl;
+                        return;
+                    }
                 }
             }
         }
+    //cout << __LINE__ << endl;
+        results[0] = *best1;
+        results[1] = best2 ? *best2 : *best1;
+    //cout << __LINE__ << endl;
     }
-    int total2 = 0;
-    for (int x = 1; x <= board->w; x++) {
-        for (int y = 1; y <= board->h; y++) {
-            int sum =
-                (board->board[x - 1][y] == board->board[x][y]) +
-                (board->board[x + 1][y] == board->board[x][y]) +
-                (board->board[x][y - 1] == board->board[x][y]) +
-                (board->board[x][y + 1] == board->board[x][y]);
-            if (!sum) {
-                total++;
+
+    virtual void play(Board *board1, Game &game, int seed = 0) {
+    //cout << __LINE__ << endl;
+        ShapeList list1(tabuColor);
+        ShapeList list2(tabuColor);
+        if (seed) {
+            list1.g_seed = seed;
+            list2.g_seed = seed + 2000;
+        }
+
+        Board board2 = *board1;
+        list1.update(board1);
+        list2.update(&board2);
+
+    //cout << __LINE__ << endl;
+        #ifdef VALIDATION
+        validate(board1, list1);
+        validate(&board2, list2);
+        #endif
+
+        game.reset();
+        while(!list1.isEmpty()) {
+    //cout << __LINE__ << endl;
+            Shape moves[2];
+            findBest2(list1, moves);
+    //cout << __LINE__ << endl;
+    //cout << "r0";
+    //moves[0]->print();
+            board1->remove(moves[0]);
+    //cout << "ra";
+    //moves[0]->print();
+            int profit1 = moves[0].score() + list1.update2(board1, moves[0].minX - 1, moves[0].maxX + 1, moves[0].minY - 1);
+    //cout << "rb";
+    //moves[0]->print();
+    //cout << "r1";
+    //moves[1]->print();
+            board2.remove(moves[1]);
+            int profit2 = moves[1].score() + list2.update2(&board2, moves[1].minX - 1, moves[1].maxX + 1, moves[1].minY - 1);
+    //cout << __LINE__ << endl;
+
+            #ifdef VALIDATION
+            if (moves[0].score() > 6250000) {
+                moves[0].print();
             }
-            if (board->board[x][y]) {
-                total2++;
+    //cout << "r2";
+    //moves[0]->print();
+            validate(board1, list1);
+            if (moves[1].score() > 6250000) {
+                moves[1].print();
             }
+            validate(&board2, list2);
+            #endif
+
+    //cout << "r3";
+    //moves[0]->print();
+    //moves[0]->print();
+    //if (moves[1])
+      //  moves[1]->print();
+    //cout << __LINE__ << " " << profit1 << " " << profit2 << " " << game.nmoves << endl;
+            if (profit1 >= profit2) {
+    //cout << __LINE__ << endl;
+    //cout << "0 ";
+    //moves[0].print();
+    //moves[1].print();
+                game.move(moves[0]);
+    //cout << __LINE__ << endl;
+                board2 = *board1;
+    //cout << __LINE__ << endl;
+                list2 = list1;
+            } else {
+    //cout << __LINE__ << endl;
+    //cout << "1 ";
+    //moves[1].print();
+    //moves[0].print();
+                /*#ifdef VALIDATION
+                if (game.nmoves && game.moves[game.nmoves - 1].x == moves[1].minX && game.moves[game.nmoves - 1].y == moves[1].y) {
+                    //board2.print();
+                    //moves[1]->print();
+                    exit(0);
+                }
+                #endif*/
+                game.move(moves[1]);
+    //cout << __LINE__ << endl;
+                *board1 = board2;
+    //cout << __LINE__ << endl;
+                list1 = list2;
+            }
+            #ifdef VALIDATION
+            validate(board1, list1);
+            validate(&board2, list2);
+            #endif
+    //cout << __LINE__ << endl;
+    //board1->print();
         }
     }
-    if (total != total2) {
-        cout << "A " << total << " " << total2 << endl;
-        board->print();
-        ok = false;
+
+    virtual void print() const {
+        cout << "DualByAreaWithTabu(" << int(tabuColor) << ")" << endl;
     }
-    return ok;
-}
-#endif
+};
 
 void calcHistogram(Board *board) {
     memset(board -> colorHistogram, 0, sizeof(board -> colorHistogram));
@@ -1007,33 +1281,6 @@ void calcHistogram(Board *board) {
     }
 }
 
-
-void playStrategy(Board *board, Strategy& strategy, Game &game, int seed = 0) {
-    ShapeList list(strategy.getTabu());
-    if (seed) {
-        list.g_seed = seed;
-    }
-    list.update(board);
-    #ifdef VALIDATION
-    validate(board, list);
-    #endif
-    game.reset();
-    while(!list.isEmpty()) {
-        const Shape* move = strategy.findBest(list);
-        if (!move) {
-            list.print();
-        }
-        game.move(*move);
-        board->remove(*move);
-        list.update(board, move->minX - 1, move->maxX + 1, move->minY - 1);
-        #ifdef VALIDATION
-        if (move->score() > 6250000) {
-            move->print();
-        }
-        validate(board, list);
-        #endif
-    }
-}
 
 ///*const int NCOMP = 9;
 //bool (*comparators[NCOMP])(const Shape*, const Shape*) = {
@@ -1096,7 +1343,7 @@ Game* compare(Board *board, vector<Strategy*>& strategies, Game* games) {
     long bestScore = -1;
     for (int i = 0; i < strategies.size(); i++) {
         Board board2 = *board;
-        playStrategy(&board2, *strategies[i], games[i], 1000 + i);
+        strategies[i]->play(&board2, games[i], 1000 + i);
         if (games[i].total > bestScore) {
             bestGame = i;
             bestScore = games[i].total;
@@ -1124,6 +1371,7 @@ Game* compare(Board *board) {
         strategies.push_back(new FromTop());
     }*/
 
+    strategies.push_back(new DualByAreaWithTabu(1));
     if (!board->colorHistogram[11].count) {
         if (board->w < 25 /*|| !board->colorHistogram[9].count*/) {
             strategies.push_back(new ByAreaWithTabu(1));
@@ -1141,9 +1389,9 @@ Game* compare(Board *board) {
             strategies.push_back(new ByAreaWithTabu(1));
             strategies.push_back(new ByAreaWithTabu(2));
             strategies.push_back(new ByWidthWithTabu(3));
-            strategies.push_back(new ByWidthWithTabu(4));
-            strategies.push_back(new FromTopWithTabu(2));
-            strategies.push_back(new FromTopWithTabu(4));
+            //strategies.push_back(new ByWidthWithTabu(4));
+            //strategies.push_back(new FromTopWithTabu(2));
+            //strategies.push_back(new FromTopWithTabu(4));
             /*strategies.push_back(new FromTopWithTabu(5));
 
             strategies.push_back(new ByAreaWithTabu(3));
@@ -1170,9 +1418,9 @@ Game* compare(Board *board) {
             strategies.push_back(new ByAreaWithTabu(3));
             strategies.push_back(new ByAreaWithTabu(2));
             strategies.push_back(new FromTopWithTabu(1));
-            strategies.push_back(new ByWidthWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(4));
-            strategies.push_back(new ByAreaWithTabu(1));
+            //strategies.push_back(new ByWidthWithTabu(1));
+            //strategies.push_back(new ByAreaWithTabu(4));
+            //strategies.push_back(new ByAreaWithTabu(1));
             /*strategies.push_back(new ByWidthWithTabu(3));
             strategies.push_back(new ByAreaWithTabu(5));
             strategies.push_back(new ByAreaWithTabu(2));
@@ -1224,10 +1472,10 @@ Game* compare(Board *board) {
             strategies.push_back(new ByWidthWithTabu(c));
         }
         strategies.push_back(new ByAreaWithTabu(1));
-        for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
+        /*for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
             strategies.push_back(new ByAreaWithTabu(c));
         }
-        strategies.push_back(new ByColorAndArea());
+        strategies.push_back(new ByColorAndArea());*/
     }
 
     Game games[strategies.size()];
@@ -1438,12 +1686,6 @@ void stats() {
             int width = (rand() % 4) * 10 + 20;//(rand() % 47) + 4;
             int height = width; //(rand() % 47) + 4;
             Board* board = Board::randomBoard(width, height, ncols);
-            /*for (int c = 0; c < NCOMP; c++) {
-                Board board2 = *board;
-                Game game;
-                playStrategy(&board2, comparators[c], game);
-                total[c] += game.total;
-            }*/
             Board board2 = *board;
             Game *game = compare(&board2);
             long score = game->total * ncols * ncols / width / height;
@@ -1775,17 +2017,46 @@ int main() {
 //                  3080.61 2.9
 
 /*high limit:
-6 14874892
-8 3398896
-10 1347278
-12 907050
-14 720722
-16 558472
-18 478410
-20 407034
-1728293
-1513.77
+5 1302321
+6 994560
+7 556912
+8 319571
+9 228015
+10 190504
+11 179677
+12 176846
+13 180302
+14 184765
+15 190376
+16 198312
+17 207421
+18 217457
+19 221386
+5348425
+3540.73
+
+reference:
+5 1271760
+6 896570
+7 463913
+8 272431
+9 205051
+10 175330
+11 170513
+12 169744
+13 174372
+14 179826
+15 185905
+16 193286
+17 202397
+18 211890
+19 215932
+4988920
+214.203
 */
+
+//4962332 216.918 3080.61 2.9
+//4988920 214.203 3110.49 2.82
 
 /* 5 col 20x20
 2.11558e+06	2115583	2.18792	ByAreaWithTabu(1)
