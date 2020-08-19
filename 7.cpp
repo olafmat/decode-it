@@ -1180,7 +1180,7 @@ Game* compare(Board *board) {
             strategies.push_back(new ByWidthWithTabu(3));*/
         }
         //strategies.push_back(new ByAreaWithTabu(1));
-        for (int c = 5; board->colorHistogram[c].count && c <= 6; c++) {
+        for (int c = 5; board->colorHistogram[c].count && c <= 7; c++) {
             strategies.push_back(new ByAreaWithTabu(c));
             strategies.push_back(new FromTopWithTabu(c));
         }
