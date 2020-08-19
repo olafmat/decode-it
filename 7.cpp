@@ -1373,8 +1373,8 @@ Game* compare(Board *board) {
 
     strategies.push_back(new DualByAreaWithTabu(1));
     strategies.push_back(new DualByAreaWithTabu(2));
+    strategies.push_back(new DualByAreaWithTabu(3));
     if (!board->colorHistogram[11].count) {
-        strategies.push_back(new DualByAreaWithTabu(3));
         strategies.push_back(new DualByAreaWithTabu(4));
         strategies.push_back(new DualByAreaWithTabu(5));
         if (board->w < 25 /*|| !board->colorHistogram[9].count*/) {
@@ -1438,7 +1438,7 @@ Game* compare(Board *board) {
         }*/
         if (!board->colorHistogram[7].count) {
             strategies.push_back(new ByAreaWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(2));
+            //strategies.push_back(new ByAreaWithTabu(2));
         }
     } else {
         /*strategies.push_back(new ByAreaWithTabu(1));
@@ -1472,10 +1472,10 @@ Game* compare(Board *board) {
         for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
             strategies.push_back(new FromTopWithTabu(c));
         }
-        for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
+        for (int c = 1; board->colorHistogram[c].count && c <= 1; c++) {
             strategies.push_back(new ByWidthWithTabu(c));
         }
-        strategies.push_back(new ByAreaWithTabu(1));
+        //strategies.push_back(new ByAreaWithTabu(1));
         /*for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
             strategies.push_back(new ByAreaWithTabu(c));
         }
@@ -2056,7 +2056,7 @@ reference:
 18 211890
 19 215932
 4988920
-214.203
+207.451
 */
 
 /*
@@ -2079,10 +2079,31 @@ reference:
 203.654
 */
 
+/*
+ 1274481
+6 921016
+7 475476
+8 277321
+9 207669
+10 179440
+11 171892
+12 171036
+13 175977
+14 180944
+15 187399
+16 194563
+17 203415
+18 213218
+19 217032
+5050879
+225.878
+*/
+
 //4962332 216.918 3080.61 2.9
 //4988920 214.203 3110.49 2.82
 //5011787 203.617 3096 ?
-//                3110.31 2.94
+//5052547 203.654 3110.31 2.94
+//5050879 225.878 3114    2.95
 
 /* 5 col 20x20
 2.11558e+06	2115583	2.18792	ByAreaWithTabu(1)
