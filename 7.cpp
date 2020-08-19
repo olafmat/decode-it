@@ -1144,9 +1144,9 @@ Game* compare(Board *board) {
             strategies.push_back(new ByWidthWithTabu(4));
             strategies.push_back(new FromTopWithTabu(2));
             strategies.push_back(new FromTopWithTabu(4));
-            /*strategies.push_back(new FromTopWithTabu(5));
+            strategies.push_back(new FromTopWithTabu(5));
 
-            strategies.push_back(new ByAreaWithTabu(3));
+            /*strategies.push_back(new ByAreaWithTabu(3));
             strategies.push_back(new FromTopWithTabu(1));
             strategies.push_back(new ByWidthWithTabu(1));
             strategies.push_back(new ByAreaWithTabu(1));
@@ -1769,6 +1769,7 @@ int main() {
 //                          3.01    cutoff <16
 
 //4952792 207.036 - 3077.46 2.95
+//                  3077.55 2.84
 
 /*high limit:
 6 14874892
