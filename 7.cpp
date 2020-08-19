@@ -1186,6 +1186,7 @@ Game* compare(Board *board) {
         }
         if (!board->colorHistogram[7].count) {
             strategies.push_back(new ByAreaWithTabu(1));
+            strategies.push_back(new ByAreaWithTabu(2));
         }
     } else {
         /*strategies.push_back(new ByAreaWithTabu(1));
@@ -1223,7 +1224,7 @@ Game* compare(Board *board) {
             strategies.push_back(new ByWidthWithTabu(c));
         }
         strategies.push_back(new ByAreaWithTabu(1));
-        for (int c = 1; board->colorHistogram[c].count && c <= 3; c++) {
+        for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
             strategies.push_back(new ByAreaWithTabu(c));
         }
         strategies.push_back(new ByColorAndArea());
@@ -1771,6 +1772,7 @@ int main() {
 //4952792 207.036 - 3077.46 2.95
 //                  3077.55 2.84
 //                  3078.45 2.86
+//                  3080.61 2.9
 
 /*high limit:
 6 14874892
