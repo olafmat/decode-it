@@ -1362,126 +1362,13 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    /*for (int k = 0; k < 10; k++) {
-        for (int c = 0; !c || (colorHistogram[c].count && c <= MAX_COLOR); c++) {
-            strategies.push_back(new FromTopWithTabu(c));
-            strategies.push_back(new ByWidthWithTabu(c));
-            strategies.push_back(new ByAreaWithTabu(c));
-        }
-        strategies.push_back(new ByColorAndArea());
-        strategies.push_back(new FromTop());
-    }*/
-
+    for (int c = 1; board->colorHistogram[c].count && c <= 9; c++) {
+        strategies.push_back(new DualByAreaWithTabu(c));
+    }
     strategies.push_back(new DualByAreaWithTabu(1));
     strategies.push_back(new DualByAreaWithTabu(2));
     strategies.push_back(new DualByAreaWithTabu(3));
-    if (!board->colorHistogram[11].count) {
-        strategies.push_back(new DualByAreaWithTabu(4));
-        strategies.push_back(new DualByAreaWithTabu(5));
-        if (board->w < 25 /*|| !board->colorHistogram[9].count*/) {
-            strategies.push_back(new ByAreaWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(2));
-            strategies.push_back(new ByWidthWithTabu(1));
-            strategies.push_back(new FromTopWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(3));
-            strategies.push_back(new ByColorAndArea());
-            strategies.push_back(new ByWidthWithTabu(2));
-            strategies.push_back(new FromTopWithTabu(2));
-            strategies.push_back(new ByAreaWithTabu(1));
-            strategies.push_back(new FromTopWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(4));
-            strategies.push_back(new FromTopWithTabu(3));
-            strategies.push_back(new ByAreaWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(2));
-            //strategies.push_back(new ByWidthWithTabu(3));
-            //strategies.push_back(new ByWidthWithTabu(4));
-            //strategies.push_back(new FromTopWithTabu(2));
-            //strategies.push_back(new FromTopWithTabu(4));
-            /*strategies.push_back(new FromTopWithTabu(5));
-
-            strategies.push_back(new ByAreaWithTabu(3));
-            strategies.push_back(new FromTopWithTabu(1));
-            strategies.push_back(new ByWidthWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(1));
-            strategies.push_back(new ByWidthWithTabu(3));
-            strategies.push_back(new ByAreaWithTabu(5));
-            strategies.push_back(new ByAreaWithTabu(2));
-            strategies.push_back(new ByWidthWithTabu(3));*/
-        } else {
-            strategies.push_back(new ByAreaWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(2));
-            strategies.push_back(new FromTopWithTabu(1));
-            strategies.push_back(new ByWidthWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(3));
-            strategies.push_back(new FromTopWithTabu(2));
-            strategies.push_back(new ByWidthWithTabu(2));
-            strategies.push_back(new ByAreaWithTabu(1));
-            strategies.push_back(new FromTopWithTabu(1));
-            strategies.push_back(new ByAreaWithTabu(1));
-            strategies.push_back(new ByColorAndArea());
-            strategies.push_back(new ByWidthWithTabu(3));
-            strategies.push_back(new ByAreaWithTabu(3));
-            strategies.push_back(new ByAreaWithTabu(2));
-            //strategies.push_back(new FromTopWithTabu(1));
-            //strategies.push_back(new ByWidthWithTabu(1));
-            //strategies.push_back(new ByAreaWithTabu(4));
-            //strategies.push_back(new ByAreaWithTabu(1));
-            /*strategies.push_back(new ByWidthWithTabu(3));
-            strategies.push_back(new ByAreaWithTabu(5));
-            strategies.push_back(new ByAreaWithTabu(2));
-            strategies.push_back(new FromTopWithTabu(3));
-            strategies.push_back(new ByWidthWithTabu(3));*/
-        }
-        //strategies.push_back(new ByAreaWithTabu(1));
-        /*for (int c = 5; board->colorHistogram[c].count && c <= 6; c++) {
-            strategies.push_back(new ByAreaWithTabu(c));
-            strategies.push_back(new FromTopWithTabu(c));
-        }*/
-        if (!board->colorHistogram[7].count) {
-            strategies.push_back(new ByAreaWithTabu(1));
-            //strategies.push_back(new ByAreaWithTabu(2));
-        }
-    } else {
-        /*strategies.push_back(new ByAreaWithTabu(1));
-        strategies.push_back(new ByAreaWithTabu(2));
-        strategies.push_back(new ByWidthWithTabu(1));
-        strategies.push_back(new FromTopWithTabu(1));
-        strategies.push_back(new ByAreaWithTabu(3));
-        strategies.push_back(new ByColorAndArea());
-        strategies.push_back(new ByWidthWithTabu(2));
-        for (int c = 1; board->colorHistogram[c].count && c <= 12; c++) {
-            strategies.push_back(new ByAreaWithTabu(c));
-        }*/
-
-        /*for (int c = 1; board->colorHistogram[c].count && c <= 12; c++) {
-            strategies.push_back(new ByAreaWithTabu(c));
-        }
-        for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
-            strategies.push_back(new FromTopWithTabu(c));
-        }
-        for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
-            strategies.push_back(new ByWidthWithTabu(c));
-        }
-        strategies.push_back(new ByAreaWithTabu(1));
-        for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
-            strategies.push_back(new ByAreaWithTabu(c));
-        }*/
-
-        for (int c = 1; board->colorHistogram[c].count && c <= MAX_COLOR; c++) {
-            strategies.push_back(new ByAreaWithTabu(c));
-        }
-        for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
-            strategies.push_back(new FromTopWithTabu(c));
-        }
-        for (int c = 1; board->colorHistogram[c].count && c <= 1; c++) {
-            strategies.push_back(new ByWidthWithTabu(c));
-        }
-        //strategies.push_back(new ByAreaWithTabu(1));
-        /*for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
-            strategies.push_back(new ByAreaWithTabu(c));
-        }
-        strategies.push_back(new ByColorAndArea());*/
-    }
+    strategies.push_back(new DualByAreaWithTabu(1));
 
     Game games[strategies.size()];
     Game* best = compare(board, strategies, games);
@@ -1491,6 +1378,12 @@ Game* compare(Board *board) {
     }
     return best;
 }
+//7 3 1 3104.91 2.56
+//8 4 1 timeout
+//8 3 1 3113.91 2.91
+//8 2 2 3098.88 2.8
+//9 2 1 3092.04 2.67
+//9 3 1 3121.92 2.92
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
@@ -2058,6 +1951,24 @@ reference:
 19 215932
 4988920
 207.451
+
+5 1260520
+6 893076
+7 472100
+8 278415
+9 208558
+10 180730
+11 175738
+12 174690
+13 179381
+14 184302
+15 190500
+16 197213
+17 206513
+18 215639
+19 219386
+5036761
+236.334
 */
 
 /*
