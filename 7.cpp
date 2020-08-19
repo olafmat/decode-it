@@ -1365,15 +1365,15 @@ Game* compare(Board *board) {
     strategies.push_back(new DualByAreaWithTabu(1));
     strategies.push_back(new DualByAreaWithTabu(2));
     strategies.push_back(new DualByAreaWithTabu(3));
-    strategies.push_back(new DualByAreaWithTabu(4));
     strategies.push_back(new DualByAreaWithTabu(1));
     strategies.push_back(new DualByAreaWithTabu(2));
     strategies.push_back(new DualByAreaWithTabu(3));
-    strategies.push_back(new DualByAreaWithTabu(4));
     strategies.push_back(new DualByAreaWithTabu(1));
     strategies.push_back(new DualByAreaWithTabu(2));
+    strategies.push_back(new DualByAreaWithTabu(3));
     strategies.push_back(new DualByAreaWithTabu(1));
     strategies.push_back(new DualByAreaWithTabu(2));
+    strategies.push_back(new DualByAreaWithTabu(3));
 
     Game games[strategies.size()];
     Game* best = compare(board, strategies, games);
@@ -1404,6 +1404,10 @@ Game* compare(Board *board) {
 //4 4 3 1 3143.52 2.91
 //5 4 2 1 S1 timeout
 //4 4 2 2 3160.71 2.95
+//4 3 3 2 3155.85 2.95
+//5 3 2 2 3143.43 2.94
+//4 4 2 1 1 3122.29 2.95
+//3 3 3 3 3203.73 2.95
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
@@ -2092,6 +2096,27 @@ reference:
 5110806
 214.393
 3160.71
+*/
+
+/*
+5 1276968
+6 915285
+7 488885
+8 284619
+9 212135
+10 181733
+11 175349
+12 174229
+13 178635
+14 183231
+15 189340
+16 196056
+17 204922
+18 214475
+19 217715
+5093577
+229.426
+3203.73
 */
 
 //4962332 216.918 3080.61 2.9
