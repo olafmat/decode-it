@@ -16,6 +16,7 @@
 #define MAX_HEIGHT 52
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
+#define MAX_GAMES 500
 //#define USE_RAND
 //#define USE_ELECTIONS
 //#define VALIDATION
@@ -524,12 +525,14 @@ struct Game {
         nmoves++;
     }
 
-    void send(int height) const {
-        cout << "Y" << endl;
+    string getOutput(int height) const {
+        string out;
+        out += "Y\n";
         for (int i = 0; i < nmoves; i++) {
-            cout << (height - moves[i].y) << " " << (moves[i].x - 1) << endl;
+            out += to_string(height - moves[i].y) + ' ' + to_string(moves[i].x - 1) + '\n';
         }
-        cout << "-1 -1" << endl;
+        out += "-1 -1\n";
+        return out;
     }
 };
 
@@ -1384,16 +1387,20 @@ Game* randomPlayer2(Board *board) {
 void play() {
     int t;
     cin >> t;
+
+    static Board boards[MAX_GAMES];
     for (int i = 0; i < t; i++) {
-        Board board;
-        board.loadFromCin();
-        Game* game = compare(&board);
-        if (game) {
-            game->send(board.h);
-        } else {
-            cout << "N" << endl;
-        }
-        //cout << game->total << endl;
+        boards[i].loadFromCin();
+    }
+
+    static string out[MAX_GAMES];
+    for (int i = 0; i < t; i++) {
+        Game* game = compare(&boards[i]);
+        out[i] = game ? game->getOutput(boards[i].h) : "N\n";
+    }
+
+    for (int i = 0; i < t; i++) {
+        cout << out[i];
     }
 }
 
@@ -1405,8 +1412,7 @@ void randomPlay() {
         Board board;
         board.loadFromCin();
         Game* game = randomPlayer2(&board);
-        game->send(board.h);
-        //cout << game->total << endl;
+        cout << game->getOutput(board.h);
     }
 }
 #endif
@@ -1669,10 +1675,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
