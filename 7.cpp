@@ -1144,9 +1144,9 @@ Game* compare(Board *board) {
             strategies.push_back(new ByWidthWithTabu(4));
             strategies.push_back(new FromTopWithTabu(2));
             strategies.push_back(new FromTopWithTabu(4));
-            strategies.push_back(new FromTopWithTabu(5));
+            /*strategies.push_back(new FromTopWithTabu(5));
 
-            /*strategies.push_back(new ByAreaWithTabu(3));
+            strategies.push_back(new ByAreaWithTabu(3));
             strategies.push_back(new FromTopWithTabu(1));
             strategies.push_back(new ByWidthWithTabu(1));
             strategies.push_back(new ByAreaWithTabu(1));
@@ -1216,7 +1216,7 @@ Game* compare(Board *board) {
         for (int c = 1; board->colorHistogram[c].count && c <= MAX_COLOR; c++) {
             strategies.push_back(new ByAreaWithTabu(c));
         }
-        for (int c = 1; board->colorHistogram[c].count && c <= 3; c++) {
+        for (int c = 1; board->colorHistogram[c].count && c <= 4; c++) {
             strategies.push_back(new FromTopWithTabu(c));
         }
         for (int c = 1; board->colorHistogram[c].count && c <= 3; c++) {
@@ -1770,6 +1770,7 @@ int main() {
 
 //4952792 207.036 - 3077.46 2.95
 //                  3077.55 2.84
+//                  3078.45 2.86
 
 /*high limit:
 6 14874892
