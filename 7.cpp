@@ -286,7 +286,7 @@ struct ShapeList {
       return (g_seed >> 16) & 0x7FFF;
     }
 
-    ShapeList(char tabuColor):
+    ShapeList(char tabuColor = 0):
         tabuColor(tabuColor),
         g_seed(5325353) {
         memset(size, 0, sizeof(size));
@@ -1248,6 +1248,136 @@ public:
     }
 };
 
+template<int versions> class MultiStrategy: public Strategy {
+public:
+    MultiStrategy(char tabuColor): Strategy(tabuColor) {
+    }
+
+    virtual const Shape* findBest(ShapeList& list) {
+        return NULL;
+    }
+
+    virtual void findBest2(ShapeList& list, Shape* results) = 0;
+
+    virtual void play(Board *board, Game &game, int seed = 0) {
+        ShapeList lists[versions];
+        for (int v = 0; v < versions; v++) {
+            lists[v].tabuColor = tabuColor;
+            if (seed) {
+                lists[v].g_seed = seed + v * 1000;
+            }
+        }
+
+        Board* boards[versions] = {board};
+        lists[0].update(board);
+        for (int v = 1; v < versions; v++) {
+            boards[v] = new Board();
+            *boards[v] = *board;
+            lists[v] = lists[0];
+        }
+
+        #ifdef VALIDATION
+        for (int v = 0; v < versions; v++) {
+            validate(boards[v], lists[v]);
+        }
+        #endif
+
+        game.reset();
+        while(!lists[0].isEmpty()) {
+            Shape moves[versions];
+            findBest2(lists[0], moves);
+
+            int bestProfit = -1;
+            int bestVer = 0;
+            for (int v = 0; v < versions; v++) {
+                boards[v]->remove(moves[v]);
+                int profit = moves[v].score() + lists[v].update2(boards[v], moves[v].minX - 1, moves[v].maxX + 1, moves[v].minY - 1);
+                if (profit > bestProfit) {
+                    bestProfit = profit;
+                    bestVer = v;
+                }
+            }
+
+            #ifdef VALIDATION
+            for (int v = 0; v < versions; v++) {
+                if (moves[v].score() > 6250000) {
+                    moves[v].print();
+                }
+                validate(boards[v], lists[v]);
+            }
+            #endif
+
+            game.move(moves[bestVer]);
+            for (int v = 0; v < versions; v++) {
+                if (v != bestVer) {
+                    *boards[v] = *boards[bestVer];
+                    lists[v] = lists[bestVer];
+                }
+            }
+            #ifdef VALIDATION
+            for (int v = 0; v < versions; v++) {
+                validate(boards[v], lists[v]);
+            }
+            #endif
+        }
+        
+        for (int v = 1; v < versions; v++) {
+            delete boards[v];
+        }
+    }
+};
+
+template<int versions> class MultiByAreaWithTabu: public MultiStrategy<versions> {
+public:
+    MultiByAreaWithTabu(char tabuColor): MultiStrategy<versions>(tabuColor) {
+    }
+
+    virtual void findBest2(ShapeList& list, Shape* best) {
+        memset(best, 0, sizeof(best[0]) * versions);
+        int16_t areas[versions];
+        for (int v = 0; v < versions; v++) {
+            areas[v] = -1;
+        }
+        for (int a = 0; a < 2; a++) {
+            for (int b = 0; b < 2; b++) {
+                int size = list.size[a][b];
+                if (size) {
+                    const Shape* shape = list.shapes[a][b];
+                    const Shape* end = shape + size;
+                    while(shape != end) {
+                        int v = versions - 1;
+                        while (v >= 0 && (shape->area > areas[v] ||
+                            (shape->area == areas[v] && shape->rand > best[v].rand))) {
+                            v--;
+                        }
+                        v++;
+                        if (v < versions) {
+                            memmove(best + v + 1, best + v, (versions - v - 1) * sizeof(best[0]));
+                            memmove(areas + v + 1, areas + v, (versions - v - 1) * sizeof(areas[0]));
+                            best[v] = *shape;
+                            areas[v] = shape->area;
+                        }
+                        shape++;
+                    }
+                    if (best[versions - 1].size) {
+                        return;
+                    }
+                }
+            }
+        }
+        for (int v = 1; v < versions; v++) {
+            if (!best[v].size) {
+                best[v] = best[0];
+            }
+        }
+    }
+
+    virtual void print() const {
+        cout << "MultiByAreaWithTabu<" << versions << ">(" << int(Strategy::tabuColor) << ")" << endl;
+    }
+};
+
+
 void calcHistogram(Board *board) {
     memset(board -> colorHistogram, 0, sizeof(board -> colorHistogram));
 
@@ -1362,18 +1492,11 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    strategies.push_back(new DualByAreaWithTabu(1));
-    strategies.push_back(new DualByAreaWithTabu(2));
-    strategies.push_back(new DualByAreaWithTabu(3));
-    strategies.push_back(new DualByAreaWithTabu(1));
-    strategies.push_back(new DualByAreaWithTabu(2));
-    strategies.push_back(new DualByAreaWithTabu(3));
-    strategies.push_back(new DualByAreaWithTabu(1));
-    strategies.push_back(new DualByAreaWithTabu(2));
-    strategies.push_back(new DualByAreaWithTabu(1));
-    strategies.push_back(new DualByAreaWithTabu(2));
-    strategies.push_back(new DualByAreaWithTabu(1));
-    strategies.push_back(new DualByAreaWithTabu(2));
+    strategies.push_back(new MultiByAreaWithTabu<4>(1));
+    strategies.push_back(new MultiByAreaWithTabu<4>(2));
+    strategies.push_back(new MultiByAreaWithTabu<4>(3));
+    strategies.push_back(new MultiByAreaWithTabu<4>(1));
+    strategies.push_back(new MultiByAreaWithTabu<4>(2));
 
     Game games[strategies.size()];
     Game* best = compare(board, strategies, games);
@@ -1406,9 +1529,15 @@ Game* compare(Board *board) {
 //4 4 2 2 3160.71 2.95
 //4 3 3 2 3155.85 2.95
 //5 3 2 2 3143.43 2.94
-//4 4 2 1 1 3122.29 2.95
-//3 3 3 3 3203.73 2.95
-//3 3 2 2 2 3218.85 2.94
+//4 4 2 1 1    3122.29 2.95
+//3 3 3 3      3203.73 2.95
+//3 3 2 2 2    3218.85 2.94
+//2 2 2 2 2 2  3185.64 2.96
+//3 3 3 2 1    3213.99 2.97
+//3 3 2 2 1 1  3208.05 2.94
+//3 2 2 2 2 1  timeout
+//3 3 2 2 2 S1 timeout
+//4 2 2 2 2    3174.21 2.96
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
@@ -1853,10 +1982,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
