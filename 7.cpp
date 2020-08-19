@@ -1362,12 +1362,13 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    for (int c = 1; board->colorHistogram[c].count && c <= 9; c++) {
+    for (int c = 1; board->colorHistogram[c].count && c <= 8; c++) {
         strategies.push_back(new DualByAreaWithTabu(c));
     }
     strategies.push_back(new DualByAreaWithTabu(1));
     strategies.push_back(new DualByAreaWithTabu(2));
-    strategies.push_back(new DualByAreaWithTabu(3));
+    strategies.push_back(new DualByAreaWithTabu(1));
+    strategies.push_back(new DualByAreaWithTabu(2));
     strategies.push_back(new DualByAreaWithTabu(1));
 
     Game games[strategies.size()];
@@ -1384,6 +1385,9 @@ Game* compare(Board *board) {
 //8 2 2 3098.88 2.8
 //9 2 1 3092.04 2.67
 //9 3 1 3121.92 2.92
+//8 3 2 timeout
+//9 2 2 3106.26 2.94
+//8 2 2 1 3147.93 2.99
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
@@ -2009,6 +2013,26 @@ reference:
 19 217032
 5050879
 225.878
+*/
+
+/*
+5 1271271
+6 917818
+7 485804
+8 282219
+9 211567
+10 181387
+11 176819
+12 174624
+13 179574
+14 184336
+15 190220
+16 197109
+17 206281
+18 215461
+19 219288
+5093778
+209.424
 */
 
 //4962332 216.918 3080.61 2.9
