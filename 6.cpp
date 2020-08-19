@@ -134,6 +134,14 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
     //230000 230000 891   5.97 2.79 8.28
     //210000 210000 888.3 5.72 2.65 8.1
     //225000 225000 895.5 5.84 2.74 8.64
+    //bez pcount2<4 895.5 5.92 2.79 8.64
+    //227000 227000 893.7 5.87 2.78 8.46
+    //222000 222000 893.7 5.89 2.78 8.55
+    //224000 224000 895.5 5.86 2.74 8.64
+    //226000 226000 895.5 5.89 2.78 8.64
+    //225000 227000 893.7 5.85 2.78 8.46
+    //225000 225000 895.5 5.9  2.77 8.64 5
+    //225000 225000 895.5 5.92 2.8  8.64 1
     real total = 0;
     for (vector<Circle*>::iterator i = circles.begin(); i != circles.end(); i++) {
         total += (*i)->r;
@@ -145,8 +153,8 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
         const real y1 = (*i)->y;
         const real r1 = (*i)->r;
         int pcount2 = min(pcount, int(r1 / step + 0.5));
-        if (pcount2 < 4) {
-            pcount2 = 4;
+        if (pcount2 < 1) {
+            pcount2 = 1;
         }
         for (int a = 0; a < pcount2; a++) {
             const real angle = (real) M_PI * a * 2 / pcount2;
