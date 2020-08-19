@@ -1372,7 +1372,11 @@ Game* compare(Board *board) {
     }*/
 
     strategies.push_back(new DualByAreaWithTabu(1));
+    strategies.push_back(new DualByAreaWithTabu(2));
     if (!board->colorHistogram[11].count) {
+        strategies.push_back(new DualByAreaWithTabu(3));
+        strategies.push_back(new DualByAreaWithTabu(4));
+        strategies.push_back(new DualByAreaWithTabu(5));
         if (board->w < 25 /*|| !board->colorHistogram[9].count*/) {
             strategies.push_back(new ByAreaWithTabu(1));
             strategies.push_back(new ByAreaWithTabu(2));
@@ -1388,7 +1392,7 @@ Game* compare(Board *board) {
             strategies.push_back(new FromTopWithTabu(3));
             strategies.push_back(new ByAreaWithTabu(1));
             strategies.push_back(new ByAreaWithTabu(2));
-            strategies.push_back(new ByWidthWithTabu(3));
+            //strategies.push_back(new ByWidthWithTabu(3));
             //strategies.push_back(new ByWidthWithTabu(4));
             //strategies.push_back(new FromTopWithTabu(2));
             //strategies.push_back(new FromTopWithTabu(4));
@@ -1417,7 +1421,7 @@ Game* compare(Board *board) {
             strategies.push_back(new ByWidthWithTabu(3));
             strategies.push_back(new ByAreaWithTabu(3));
             strategies.push_back(new ByAreaWithTabu(2));
-            strategies.push_back(new FromTopWithTabu(1));
+            //strategies.push_back(new FromTopWithTabu(1));
             //strategies.push_back(new ByWidthWithTabu(1));
             //strategies.push_back(new ByAreaWithTabu(4));
             //strategies.push_back(new ByAreaWithTabu(1));
@@ -1428,10 +1432,10 @@ Game* compare(Board *board) {
             strategies.push_back(new ByWidthWithTabu(3));*/
         }
         //strategies.push_back(new ByAreaWithTabu(1));
-        for (int c = 5; board->colorHistogram[c].count && c <= 7; c++) {
+        /*for (int c = 5; board->colorHistogram[c].count && c <= 6; c++) {
             strategies.push_back(new ByAreaWithTabu(c));
             strategies.push_back(new FromTopWithTabu(c));
-        }
+        }*/
         if (!board->colorHistogram[7].count) {
             strategies.push_back(new ByAreaWithTabu(1));
             strategies.push_back(new ByAreaWithTabu(2));
@@ -1465,10 +1469,10 @@ Game* compare(Board *board) {
         for (int c = 1; board->colorHistogram[c].count && c <= MAX_COLOR; c++) {
             strategies.push_back(new ByAreaWithTabu(c));
         }
-        for (int c = 1; board->colorHistogram[c].count && c <= 4; c++) {
+        for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
             strategies.push_back(new FromTopWithTabu(c));
         }
-        for (int c = 1; board->colorHistogram[c].count && c <= 3; c++) {
+        for (int c = 1; board->colorHistogram[c].count && c <= 2; c++) {
             strategies.push_back(new ByWidthWithTabu(c));
         }
         strategies.push_back(new ByAreaWithTabu(1));
@@ -1930,10 +1934,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
@@ -2055,8 +2059,30 @@ reference:
 214.203
 */
 
+/*
+5 1275987
+6 926045
+7 475476
+8 277321
+9 207669
+10 179440
+11 171847
+12 170376
+13 175398
+14 180448
+15 186543
+16 194025
+17 202833
+18 212518
+19 216621
+5052547
+203.654
+*/
+
 //4962332 216.918 3080.61 2.9
 //4988920 214.203 3110.49 2.82
+//5011787 203.617 3096 ?
+//                3110.31 2.94
 
 /* 5 col 20x20
 2.11558e+06	2115583	2.18792	ByAreaWithTabu(1)
