@@ -112,19 +112,44 @@ void removeInternal(vector<Circle*> &out, vector<Circle*> &in) {
 
 void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
     int size = circles.size();
-    int pcount = 160000 / size;
+    int pcount = 225000 / size;
     if (pcount < 16) {
         pcount = 16;
     }
-    if (pcount > 500) {
-        pcount = 500;
+    if (pcount > 400) {
+        pcount = 400;
     }
+    //160000 16 500 891.9 6.26 2.9  8.37
+    //160000 16 600 891.9 6.52
+    //170000 16 500 789.3      3.01 8.37
+    //160000 17 500 891.9 6.23 2.84 8.37
+    //160000 16 400 891.9 5.73 2.74 8.37
+    //long double too long
+    //float         687.6 4.91 2.39 7.83
+    //circ+tangents too long
+    //220000 16 400 892.8 5.75 2.69 8.46
+    //250000 16 400 891.9 6.05 2.91 8.28
+    //220000 250000 891   5.92 2.83 8.28
+    //250000 220000 891   6.42 2.79 8.28
+    //230000 230000 891   5.97 2.79 8.28
+    //210000 210000 888.3 5.72 2.65 8.1
+    //225000 225000 895.5 5.84 2.74 8.64
+    real total = 0;
+    for (vector<Circle*>::iterator i = circles.begin(); i != circles.end(); i++) {
+        total += (*i)->r;
+    }
+    real step = total / 225000;
+
     for (vector<Circle*>::iterator i = circles.begin(); i != circles.end(); i++) {
         const real x1 = (*i)->x;
         const real y1 = (*i)->y;
         const real r1 = (*i)->r;
-        for (int a = 0; a < pcount; a++) {
-            const real angle = (real) M_PI * a * 2 / pcount;
+        int pcount2 = min(pcount, int(r1 / step + 0.5));
+        if (pcount2 < 4) {
+            pcount2 = 4;
+        }
+        for (int a = 0; a < pcount2; a++) {
+            const real angle = (real) M_PI * a * 2 / pcount2;
             Point* p1 = new Point();
             p1 -> x = x1 + r1 * sin(angle);
             p1 -> y = y1 + r1 * cos(angle);
@@ -218,7 +243,7 @@ int main() {
         removeInternal(circles2, circles);
 
         if (circles2.size() == 1) {
-            cout << setprecision(10) << circles2[0]->r * M_PI * 2 << endl;
+            cout << fixed << setprecision(10) << circles2[0]->r * M_PI * 2 << endl;
             continue;
         }
 
@@ -227,7 +252,7 @@ int main() {
 
         vector<Point*> result = findConvexHull(points);
 
-        cout << setprecision(10) << beltLength(result) << endl;
+        cout << fixed << setprecision(10) << beltLength(result) << endl;
     }
 
     return 0;
