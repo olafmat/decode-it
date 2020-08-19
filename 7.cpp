@@ -1087,68 +1087,18 @@ public:
     }
 };
 
-class DualByAreaWithTabu: public Strategy {
+class DualStrategy: public Strategy {
 public:
-    DualByAreaWithTabu(char tabuColor): Strategy(tabuColor) {
+    DualStrategy(char tabuColor): Strategy(tabuColor) {
     }
 
     virtual const Shape* findBest(ShapeList& list) {
         return NULL;
     }
 
-    void findBest2(ShapeList& list, Shape* results) {
-        const Shape* best1 = NULL;
-        const Shape* best2 = NULL;
-        int16_t area1 = -1;
-        int16_t area2 = -1;
-        for (int a = 0; a < 2; a++) {
-            for (int b = 0; b < 2; b++) {
-    //cout << __LINE__ << endl;
-                int size = list.size[a][b];
-                if (size) {
-    //cout << __LINE__ << endl;
-                    const Shape* shape = list.shapes[a][b];
-    //cout << __LINE__ << endl;
-                    const Shape* end = shape + size;
-    //cout << __LINE__ << endl;
-                    while(shape != end) {
-    //cout << __LINE__ << endl;
-                        if (shape->area > area2 || (shape->area == area2 && shape->rand > best2->rand)) {
-    //cout << __LINE__ << endl;
-                            if (shape->area > area1 || (shape->area == area1 && shape->rand > best1->rand)) {
-    //cout << __LINE__ << endl;
-                                best2 = best1;
-                                area2 = area1;
-                                best1 = shape;
-                                area1 = shape->area;
-                            } else {
-    //cout << __LINE__ << endl;
-                                best2 = shape;
-                                area2 = shape->area;
-                            }
-    //cout << __LINE__ << endl;
-                        }
-                        shape++;
-                    }
-    //cout << __LINE__ << endl;
-                    if (best2) {
-    //cout << __LINE__ << endl;
-                        results[0] = *best1;
-                        results[1] = *best2;
-    //cout << __LINE__ << endl;
-                        return;
-                    }
-                }
-            }
-        }
-    //cout << __LINE__ << endl;
-        results[0] = *best1;
-        results[1] = best2 ? *best2 : *best1;
-    //cout << __LINE__ << endl;
-    }
+    virtual void findBest2(ShapeList& list, Shape* results) = 0;
 
     virtual void play(Board *board1, Game &game, int seed = 0) {
-    //cout << __LINE__ << endl;
         ShapeList list1(tabuColor);
         ShapeList list2(tabuColor);
         if (seed) {
@@ -1160,7 +1110,6 @@ public:
         list1.update(board1);
         list2.update(&board2);
 
-    //cout << __LINE__ << endl;
         #ifdef VALIDATION
         validate(board1, list1);
         validate(&board2, list2);
@@ -1168,30 +1117,18 @@ public:
 
         game.reset();
         while(!list1.isEmpty()) {
-    //cout << __LINE__ << endl;
             Shape moves[2];
             findBest2(list1, moves);
-    //cout << __LINE__ << endl;
-    //cout << "r0";
-    //moves[0]->print();
+
             board1->remove(moves[0]);
-    //cout << "ra";
-    //moves[0]->print();
             int profit1 = moves[0].score() + list1.update2(board1, moves[0].minX - 1, moves[0].maxX + 1, moves[0].minY - 1);
-    //cout << "rb";
-    //moves[0]->print();
-    //cout << "r1";
-    //moves[1]->print();
             board2.remove(moves[1]);
             int profit2 = moves[1].score() + list2.update2(&board2, moves[1].minX - 1, moves[1].maxX + 1, moves[1].minY - 1);
-    //cout << __LINE__ << endl;
 
             #ifdef VALIDATION
             if (moves[0].score() > 6250000) {
                 moves[0].print();
             }
-    //cout << "r2";
-    //moves[0]->print();
             validate(board1, list1);
             if (moves[1].score() > 6250000) {
                 moves[1].print();
@@ -1199,51 +1136,115 @@ public:
             validate(&board2, list2);
             #endif
 
-    //cout << "r3";
-    //moves[0]->print();
-    //moves[0]->print();
-    //if (moves[1])
-      //  moves[1]->print();
-    //cout << __LINE__ << " " << profit1 << " " << profit2 << " " << game.nmoves << endl;
             if (profit1 >= profit2) {
-    //cout << __LINE__ << endl;
-    //cout << "0 ";
-    //moves[0].print();
-    //moves[1].print();
                 game.move(moves[0]);
-    //cout << __LINE__ << endl;
                 board2 = *board1;
-    //cout << __LINE__ << endl;
                 list2 = list1;
             } else {
-    //cout << __LINE__ << endl;
-    //cout << "1 ";
-    //moves[1].print();
-    //moves[0].print();
-                /*#ifdef VALIDATION
-                if (game.nmoves && game.moves[game.nmoves - 1].x == moves[1].minX && game.moves[game.nmoves - 1].y == moves[1].y) {
-                    //board2.print();
-                    //moves[1]->print();
-                    exit(0);
-                }
-                #endif*/
                 game.move(moves[1]);
-    //cout << __LINE__ << endl;
                 *board1 = board2;
-    //cout << __LINE__ << endl;
                 list1 = list2;
             }
             #ifdef VALIDATION
             validate(board1, list1);
             validate(&board2, list2);
             #endif
-    //cout << __LINE__ << endl;
-    //board1->print();
         }
+    }
+};
+
+class DualByAreaWithTabu: public DualStrategy {
+public:
+    DualByAreaWithTabu(char tabuColor): DualStrategy(tabuColor) {
+    }
+
+    virtual void findBest2(ShapeList& list, Shape* results) {
+        const Shape* best1 = NULL;
+        const Shape* best2 = NULL;
+        int16_t area1 = -1;
+        int16_t area2 = -1;
+        for (int a = 0; a < 2; a++) {
+            for (int b = 0; b < 2; b++) {
+                int size = list.size[a][b];
+                if (size) {
+                    const Shape* shape = list.shapes[a][b];
+                    const Shape* end = shape + size;
+                    while(shape != end) {
+                        if (shape->area > area2 || (shape->area == area2 && shape->rand > best2->rand)) {
+                            if (shape->area > area1 || (shape->area == area1 && shape->rand > best1->rand)) {
+                                best2 = best1;
+                                area2 = area1;
+                                best1 = shape;
+                                area1 = shape->area;
+                            } else {
+                                best2 = shape;
+                                area2 = shape->area;
+                            }
+                        }
+                        shape++;
+                    }
+                    if (best2) {
+                        results[0] = *best1;
+                        results[1] = *best2;
+                        return;
+                    }
+                }
+            }
+        }
+        results[0] = *best1;
+        results[1] = best2 ? *best2 : *best1;
     }
 
     virtual void print() const {
         cout << "DualByAreaWithTabu(" << int(tabuColor) << ")" << endl;
+    }
+};
+
+class DualByWidthWithTabu: public DualStrategy {
+public:
+    DualByWidthWithTabu(char tabuColor): DualStrategy(tabuColor) {
+    }
+
+    virtual void findBest2(ShapeList& list, Shape* results) {
+        const Shape* best1 = NULL;
+        const Shape* best2 = NULL;
+        int8_t width1 = -1;
+        int8_t width2 = -1;
+        for (int a = 0; a < 2; a++) {
+            for (int b = 0; b < 2; b++) {
+                int size = list.size[a][b];
+                if (size) {
+                    const Shape* shape = list.shapes[a][b];
+                    const Shape* end = shape + size;
+                    while(shape != end) {
+                        const int8_t width = shape->maxX - shape->minX;
+                        if (width > width2 || (width == width2 && shape->rand > best2->rand)) {
+                            if (width > width1 || (width == width1 && shape->rand > best1->rand)) {
+                                best2 = best1;
+                                width2 = width1;
+                                best1 = shape;
+                                width1 = width;
+                            } else {
+                                best2 = shape;
+                                width2 = width;
+                            }
+                        }
+                        shape++;
+                    }
+                    if (best2) {
+                        results[0] = *best1;
+                        results[1] = *best2;
+                        return;
+                    }
+                }
+            }
+        }
+        results[0] = *best1;
+        results[1] = best2 ? *best2 : *best1;
+    }
+
+    virtual void print() const {
+        cout << "DualByWidthWithTabu(" << int(tabuColor) << ")" << endl;
     }
 };
 
@@ -2080,7 +2081,7 @@ reference:
 */
 
 /*
- 1274481
+5 1274481
 6 921016
 7 475476
 8 277321
@@ -2104,6 +2105,7 @@ reference:
 //5011787 203.617 3096 ?
 //5052547 203.654 3110.31 2.94
 //5050879 225.878 3114    2.95
+//4911764 223.085               DualByWidth instead of area
 
 /* 5 col 20x20
 2.11558e+06	2115583	2.18792	ByAreaWithTabu(1)
