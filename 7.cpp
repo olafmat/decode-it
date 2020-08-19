@@ -1370,10 +1370,10 @@ Game* compare(Board *board) {
     strategies.push_back(new DualByAreaWithTabu(3));
     strategies.push_back(new DualByAreaWithTabu(1));
     strategies.push_back(new DualByAreaWithTabu(2));
-    strategies.push_back(new DualByAreaWithTabu(3));
     strategies.push_back(new DualByAreaWithTabu(1));
     strategies.push_back(new DualByAreaWithTabu(2));
-    strategies.push_back(new DualByAreaWithTabu(3));
+    strategies.push_back(new DualByAreaWithTabu(1));
+    strategies.push_back(new DualByAreaWithTabu(2));
 
     Game games[strategies.size()];
     Game* best = compare(board, strategies, games);
@@ -1408,6 +1408,7 @@ Game* compare(Board *board) {
 //5 3 2 2 3143.43 2.94
 //4 4 2 1 1 3122.29 2.95
 //3 3 3 3 3203.73 2.95
+//3 3 2 2 2 3218.85 2.94
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
@@ -1852,10 +1853,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
