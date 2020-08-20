@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 #include "dirent.h"
 
 #define MAX_WIDTH 52
@@ -1264,7 +1265,7 @@ public:
         for (int v = 0; v < versions; v++) {
             lists[v].tabuColor = tabuColor;
             if (seed) {
-                lists[v].g_seed = seed + v * 1000;
+                lists[v].g_seed = seed + v * 2000;
             }
         }
 
@@ -1287,7 +1288,7 @@ public:
             Shape moves[versions];
             findBest2(lists[0], moves);
 
-            int bestProfit = -1;
+            int bestProfit = INT_MIN;
             int bestVer = 0;
             for (int v = 0; v < versions; v++) {
                 boards[v]->remove(moves[v]);
@@ -1492,11 +1493,18 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    strategies.push_back(new MultiByAreaWithTabu<4>(1));
-    strategies.push_back(new MultiByAreaWithTabu<4>(2));
-    strategies.push_back(new MultiByAreaWithTabu<4>(3));
-    strategies.push_back(new MultiByAreaWithTabu<4>(1));
-    strategies.push_back(new MultiByAreaWithTabu<4>(2));
+    strategies.push_back(new MultiByAreaWithTabu<2>(1));
+    strategies.push_back(new MultiByAreaWithTabu<2>(2));
+    strategies.push_back(new MultiByAreaWithTabu<2>(3));
+    strategies.push_back(new MultiByAreaWithTabu<2>(1));
+    strategies.push_back(new MultiByAreaWithTabu<2>(2));
+    strategies.push_back(new MultiByAreaWithTabu<2>(3));
+    strategies.push_back(new MultiByAreaWithTabu<2>(1));
+    strategies.push_back(new MultiByAreaWithTabu<2>(2));
+    strategies.push_back(new MultiByAreaWithTabu<2>(1));
+    strategies.push_back(new MultiByAreaWithTabu<2>(2));
+    strategies.push_back(new MultiByAreaWithTabu<2>(1));
+    strategies.push_back(new MultiByAreaWithTabu<2>(2));
 
     Game games[strategies.size()];
     Game* best = compare(board, strategies, games);
