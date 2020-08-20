@@ -1509,14 +1509,14 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    strategies.push_back(new MultiByAreaWithTabu<4>(1));
+    strategies.push_back(new MultiByAreaWithTabu<5>(1));
     strategies.push_back(new MultiByAreaWithTabu<4>(2));
     strategies.push_back(new MultiByAreaWithTabu<3>(3));
     strategies.push_back(new MultiByAreaWithTabu<3>(1));
     strategies.push_back(new MultiByAreaWithTabu<2>(2));
     strategies.push_back(new MultiByAreaWithTabu<2>(3));
     strategies.push_back(new MultiByAreaWithTabu<2>(1));
-    strategies.push_back(new MultiByAreaWithTabu<2>(2));
+    strategies.push_back(new MultiByAreaWithTabu<1>(1));
     strategies.push_back(new MultiByAreaWithTabu<1>(1));
 
     Game games[strategies.size()];
@@ -1583,6 +1583,13 @@ Game* compare(Board *board) {
 //3<4, 4, 4> 3<3, 3, 2> 1 S1 3195.36 2.88
 //3<5, 4, 3> 3<3, 2, 2> 2 S1 timeout
 //3<4, 4, 2> 3<3, 3, 2> 2 S1 3238 ?
+//3<5, 4, 3> 3<3, 2, 2> 2    3238.74 2.91
+//3<5, 5, 3> 3<3, 2, 2> 2    timeout
+//3<5, 5, 3> 3<3, 2, 2> 2<2, 1> S1 3236.49 2.91
+//3<5, 4, 3> 3<3, 2, 2> 2<2, 1> S1 3244.86 2.92
+//3<5, 4, 3> 3<3, 2, 2> 2<2, 2> S1 timeout
+//3<5, 5, 3> 3<3, 2, 2> 2<2, 1> S1 timeout
+//3<5, 4, 3> 3<3, 2, 2> 1<2> S1 S1 3246.84 2.92
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
