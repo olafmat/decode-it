@@ -1515,7 +1515,8 @@ Game* compare(Board *board) {
     strategies.push_back(new MultiByAreaWithTabu<3>(1));
     strategies.push_back(new MultiByAreaWithTabu<2>(2));
     strategies.push_back(new MultiByAreaWithTabu<2>(3));
-    strategies.push_back(new MultiByAreaWithTabu<2>(1));
+    strategies.push_back(new MultiByAreaWithTabu<1>(1));
+    strategies.push_back(new MultiByAreaWithTabu<1>(1));
     strategies.push_back(new MultiByAreaWithTabu<1>(1));
     strategies.push_back(new MultiByAreaWithTabu<1>(1));
 
@@ -1589,7 +1590,18 @@ Game* compare(Board *board) {
 //3<5, 4, 3> 3<3, 2, 2> 2<2, 1> S1 3244.86 2.92
 //3<5, 4, 3> 3<3, 2, 2> 2<2, 2> S1 timeout
 //3<5, 5, 3> 3<3, 2, 2> 2<2, 1> S1 timeout
-//3<5, 4, 3> 3<3, 2, 2> 1<2> S1 S1 3246.84 2.92
+//3<5, 4, 3> 3<3, 2, 2> 1 S1 S1    3246.84 2.92
+//3<5, 4, 3> 3<3, 2, 2> 1 S1 S1 S1 timeout
+//3<5, 4, 3> 3<3, 2, 2> 1 1 S1     timeout
+//3<5, 4, 3> 3<3, 3, 2> 1 S1 S1    timeout
+//3<4, 4, 3> 3<3, 3, 2> 1 S1 S1 S1 3236.13 2.9
+//3<4, 4, 3> 3<3, 3, 2> 1 S1 S1 S1 S1 3238.13 2.96
+//3<5, 4, 3> 3<3, 2, 2> S1 S1 S1 S1  3252.78 2.92
+//3<5, 4, 3> 3<3, 2, 1> S1 S1 S1 S1 S1  3219.39 2.92
+//3<5, 4, 3> 3<3, 2, 1> S1 S1 S1 S1 S1 S1 timeout
+//3<5, 4, 3> 3<3, 2, 1> 2<2, 1> S1 S1 3219.48 2.9
+//3<5, 4, 3> 3<3, 2, 1> 2<2, 1> S1 S1 S1 timeout
+//3<5, 4, 3> 3<2, 2, 2> S1 S1 S1 S1 S1  3233.97 2.91
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
