@@ -1511,7 +1511,7 @@ Game* compare(Board *board) {
     vector<Strategy*> strategies;
     strategies.push_back(new MultiByAreaWithTabu<3>(1));
     strategies.push_back(new MultiByAreaWithTabu<3>(2));
-    strategies.push_back(new MultiByAreaWithTabu<2>(3));
+    strategies.push_back(new MultiByAreaWithTabu<3>(3));
     strategies.push_back(new MultiByAreaWithTabu<2>(1));
     strategies.push_back(new MultiByAreaWithTabu<2>(2));
     strategies.push_back(new MultiByAreaWithTabu<2>(3));
@@ -1519,7 +1519,7 @@ Game* compare(Board *board) {
     strategies.push_back(new MultiByAreaWithTabu<2>(2));
     strategies.push_back(new MultiByAreaWithTabu<2>(1));
     strategies.push_back(new MultiByAreaWithTabu<2>(2));
-    strategies.push_back(new MultiByAreaWithTabu<2>(1));
+    //strategies.push_back(new MultiByAreaWithTabu<2>(1));
     //strategies.push_back(new MultiByAreaWithTabu<2>(2));
 
     Game games[strategies.size()];
@@ -1563,7 +1563,10 @@ Game* compare(Board *board) {
 //3 3 2 2 2 S1 timeout / timeout
 //4 2 2 2 2    3174.21 2.96
 //3<3, 2, 2> 3 2 2 2    3195.81 2.76
-//3<3, 3, 2> 3 2 2 2    3228.3  2.96
+//3<3, 3, 2> 3 2 2 1    3228.3  2.96
+//3<3, 2, 2> 3<3, 2, 2> 2 2 1    3198.33 2.91
+//3<3> 3 2 2 1    timeout
+//3<3> 3 2 2   3231.18  2.82
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
