@@ -1512,7 +1512,7 @@ Game* compare(Board *board) {
     strategies.push_back(new MultiByAreaWithTabu<3>(1));
     strategies.push_back(new MultiByAreaWithTabu<3>(2));
     strategies.push_back(new MultiByAreaWithTabu<3>(3));
-    strategies.push_back(new MultiByAreaWithTabu<2>(1));
+    strategies.push_back(new MultiByAreaWithTabu<3>(1));
     strategies.push_back(new MultiByAreaWithTabu<2>(2));
     strategies.push_back(new MultiByAreaWithTabu<2>(3));
     strategies.push_back(new MultiByAreaWithTabu<2>(1));
@@ -1567,6 +1567,7 @@ Game* compare(Board *board) {
 //3<3, 2, 2> 3<3, 2, 2> 2 2 1    3198.33 2.91
 //3<3> 3 2 2 1    timeout
 //3<3> 3 2 2   3231.18  2.82
+//3<3> 3<1, 2, 2> 2 2   3236.31  2.99
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
