@@ -307,6 +307,19 @@ struct ShapeList {
         tabuColor = src.tabuColor;
     }
 
+    void shuffle() {
+        for (int a = 0; a < 2; a++) {
+            for (int b = 0; b < 2; b++) {
+                Shape *sh = shapes[a][b];
+                Shape *end = sh + size[a][b];
+                while (sh != end) {
+                    sh->rand = fastRand();
+                    sh++;
+                }
+            }
+        }
+    }
+
     int addSegment(const Board* board, int x, int minY, int maxY1, bool left, bool right, Shape* dest) const {
         char c = dest->c;
         const char *col = board->board[x];
@@ -1141,10 +1154,12 @@ public:
                 game.move(moves[0]);
                 board2 = *board1;
                 list2 = list1;
+                //list2.shuffle();
             } else {
                 game.move(moves[1]);
                 *board1 = board2;
                 list1 = list2;
+                //list1.shuffle();
             }
             #ifdef VALIDATION
             validate(board1, list1);
@@ -1313,6 +1328,7 @@ public:
                 if (v != bestVer) {
                     *boards[v] = *boards[bestVer];
                     lists[v] = lists[bestVer];
+                    // lists[v].shuffle();
                 }
             }
             #ifdef VALIDATION
@@ -1493,8 +1509,8 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    strategies.push_back(new MultiByAreaWithTabu<2>(1));
-    strategies.push_back(new MultiByAreaWithTabu<2>(2));
+    strategies.push_back(new MultiByAreaWithTabu<3>(1));
+    strategies.push_back(new MultiByAreaWithTabu<3>(2));
     strategies.push_back(new MultiByAreaWithTabu<2>(3));
     strategies.push_back(new MultiByAreaWithTabu<2>(1));
     strategies.push_back(new MultiByAreaWithTabu<2>(2));
@@ -1504,7 +1520,7 @@ Game* compare(Board *board) {
     strategies.push_back(new MultiByAreaWithTabu<2>(1));
     strategies.push_back(new MultiByAreaWithTabu<2>(2));
     strategies.push_back(new MultiByAreaWithTabu<2>(1));
-    strategies.push_back(new MultiByAreaWithTabu<2>(2));
+    //strategies.push_back(new MultiByAreaWithTabu<2>(2));
 
     Game games[strategies.size()];
     Game* best = compare(board, strategies, games);
@@ -1546,6 +1562,8 @@ Game* compare(Board *board) {
 //3 2 2 2 2 1  timeout
 //3 3 2 2 2 S1 timeout / timeout
 //4 2 2 2 2    3174.21 2.96
+//3<3, 2, 2> 3 2 2 2    3195.81 2.76
+//3<3, 3, 2> 3 2 2 2    3228.3  2.96
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
