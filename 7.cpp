@@ -1263,7 +1263,7 @@ public:
     virtual void play(Board *board, Game &game, int seed = 0) {
         ShapeList lists[versions];
         for (int v = 0; v < versions; v++) {
-            lists[v].tabuColor = tabuColor;
+            new (&lists[v]) ShapeList(tabuColor);
             if (seed) {
                 lists[v].g_seed = seed + v * 2000;
             }
@@ -1274,7 +1274,7 @@ public:
         for (int v = 1; v < versions; v++) {
             boards[v] = new Board();
             *boards[v] = *board;
-            lists[v] = lists[0];
+            lists[v].update(boards[v]);
         }
 
         #ifdef VALIDATION
@@ -1539,12 +1539,12 @@ Game* compare(Board *board) {
 //5 3 2 2 3143.43 2.94
 //4 4 2 1 1    3122.29 2.95
 //3 3 3 3      3203.73 2.95
-//3 3 2 2 2    3218.85 2.94
+//3 3 2 2 2    3218.85 2.94 / 2.85 with multi
 //2 2 2 2 2 2  3185.64 2.96
 //3 3 3 2 1    3213.99 2.97
 //3 3 2 2 1 1  3208.05 2.94
 //3 2 2 2 2 1  timeout
-//3 3 2 2 2 S1 timeout
+//3 3 2 2 2 S1 timeout / timeout
 //4 2 2 2 2    3174.21 2.96
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
@@ -1990,10 +1990,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
@@ -2255,6 +2255,27 @@ reference:
 5093577
 229.426
 3203.73
+*/
+
+/*
+5 1283758
+6 932069
+7 487494
+8 286767
+9 214331
+10 181898
+11 176220
+12 174026
+13 178689
+14 183127
+15 189102
+16 195899
+17 204692
+18 214418
+19 217727
+5120217
+276.466
+3218.85
 */
 
 //4962332 216.918 3080.61 2.9
