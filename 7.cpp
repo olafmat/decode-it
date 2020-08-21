@@ -1516,10 +1516,12 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<3>(1));
         strategies.push_back(new MultiByAreaWithTabu<3>(2));
         strategies.push_back(new MultiByAreaWithTabu<2>(3));
-    } else {
+    } else if (!board->colorHistogram[11].count) {
         strategies.push_back(new MultiByAreaWithTabu<10>(1));
         strategies.push_back(new MultiByAreaWithTabu<8>(2));
         strategies.push_back(new MultiByAreaWithTabu<5>(3));
+    } else {
+        strategies.push_back(new MultiByAreaWithTabu<20>(1));
     }
 
     Game games[strategies.size()];
@@ -2095,10 +2097,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
@@ -2443,7 +2445,7 @@ reference:
 19 224549
 5192589
 191.407
-3202.91
+3302.91
 */
 
 //4962332 216.918 3080.61 2.9
