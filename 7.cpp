@@ -1516,12 +1516,8 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<3>(1));
         strategies.push_back(new MultiByAreaWithTabu<3>(2));
         strategies.push_back(new MultiByAreaWithTabu<2>(3));
-    } else /*if (!board->colorHistogram[11].count)*/ {
-        /*strategies.push_back(new MultiByAreaWithTabu<10>(1));
-        strategies.push_back(new MultiByAreaWithTabu<8>(2));
-        strategies.push_back(new MultiByAreaWithTabu<5>(3));
-    } else {*/
-        strategies.push_back(new MultiByAreaWithTabu<20>(1));
+    } else {
+        strategies.push_back(new MultiByAreaWithTabu<21>(1));
     }
 
     Game games[strategies.size()];
