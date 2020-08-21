@@ -284,7 +284,7 @@ void removeFromDom(Node* node) {
     if (!isDominated(node, node)) {
         ndom.insert(node);
     }
-    updateConf(node, 0, 2, 2);
+    updateConf(node, 1, 2, 2);
     for (unordered_set<Node*>::iterator it = node->edges.begin(); it != node->edges.end(); it++) {
         Node *node2 = *it;
         if (!isDominated(node2, node)) {
@@ -451,8 +451,8 @@ int main() {
     /*if (nodes.size() <= 20) {
         bruteForce();
     } else {*/
-        findDominatingSet2();
-        //optimize();
+        findDominatingSet();
+        optimize();
     //}
     printResults();
     freeMemory();
