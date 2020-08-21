@@ -1509,12 +1509,18 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    strategies.push_back(new MultiByAreaWithTabu<7>(1));
-    strategies.push_back(new MultiByAreaWithTabu<5>(2));
-    strategies.push_back(new MultiByAreaWithTabu<3>(3));
-    strategies.push_back(new MultiByAreaWithTabu<3>(1));
-    strategies.push_back(new MultiByAreaWithTabu<3>(2));
-    strategies.push_back(new MultiByAreaWithTabu<2>(3));
+    if (!board->colorHistogram[10].count) {
+        strategies.push_back(new MultiByAreaWithTabu<7>(1));
+        strategies.push_back(new MultiByAreaWithTabu<5>(2));
+        strategies.push_back(new MultiByAreaWithTabu<3>(3));
+        strategies.push_back(new MultiByAreaWithTabu<3>(1));
+        strategies.push_back(new MultiByAreaWithTabu<3>(2));
+        strategies.push_back(new MultiByAreaWithTabu<2>(3));
+    } else {
+        strategies.push_back(new MultiByAreaWithTabu<10>(1));
+        strategies.push_back(new MultiByAreaWithTabu<7>(2));
+        strategies.push_back(new MultiByAreaWithTabu<5>(3));
+    }
 
     Game games[strategies.size()];
     Game* best = compare(board, strategies, games);
@@ -1630,7 +1636,21 @@ Game* compare(Board *board) {
 //3<7, 4, 2> 3<5, 3, 2>                   timeout
 //3<7, 4, 2> 3<4, 4, 2>                   3210.84 2.84
 //3<7, 5, 3> 3<3, 3, 2>                   3292.92 2.96
-
+//3<7, 6, 3> 3<3, 2, 2>                   3279.15 2.91
+//3<7, 6, 3> 3<3, 3, 2>                   timeout
+//3<7, 5, 4> 3<3, 3, 1>                   3232.26 2.97
+//3<7, 5, 2> 3<3, 3, 3>                   3258.36 2.99
+//3<7, 5, 2> 2<3, 3> 1<2>                 3261.24 2.99
+//3<10, 7, 5>                             3282.31 2.82
+//3<10, 8, 5>                             3273.76 2.90 !!
+//3<11, 7, 5>                             timeout
+//3<10, 7, 6>                             3175.2  2.95
+//3<8, 7, 6> 1<2>                         3156.57 2.93
+//3<10, 7, 7>                             timeout
+//3<11, 7, 4>                             3120.39 2.9
+//3<9, 9, 5>                              3185.64 2.99
+//3<9, 8, 6>                              3117.51 2.9
+//3<9, 10, 5>                             timeout
 
 int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     int bestGame;
@@ -2361,6 +2381,48 @@ reference:
 5120217
 276.466
 3218.85
+*/
+
+/*
+5 1287904
+6 931737
+7 492001
+8 290986
+9 214104
+10 184026
+11 179147
+12 178219
+13 182192
+14 187083
+15 193177
+16 200131
+17 208967
+18 217802
+19 221614
+5169090
+183.968
+3292.92
+*/
+
+/*
+5 1249233
+6 888939
+7 477396
+8 279899
+9 209682
+10 185532
+11 179784
+12 179863
+13 184414
+14 189983
+15 196285
+16 203324
+17 211775
+18 220666
+19 224698
+5081473
+191.817
+3185.64
 */
 
 //4962332 216.918 3080.61 2.9
