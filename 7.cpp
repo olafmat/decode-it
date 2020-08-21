@@ -1318,7 +1318,7 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<2>(3));
         strategies.push_back(new MultiByAreaWithTabu<1>(1));
         strategies.push_back(new MultiByAreaWithTabu<1>(1));
-    } else if (!board->colorHistogram[15].count) {
+    } else if (!board->colorHistogram[14].count) {
         strategies.push_back(new MultiByAreaWithTabu<21>(1));
     } else {
         strategies.push_back(new MultiByAreaWithTabu<21>(0));
@@ -1776,10 +1776,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
