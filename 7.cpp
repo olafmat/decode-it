@@ -1509,7 +1509,7 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    if (!board->colorHistogram[10].count) {
+    if (!board->colorHistogram[9].count) {
         strategies.push_back(new MultiByAreaWithTabu<7>(1));
         strategies.push_back(new MultiByAreaWithTabu<5>(2));
         strategies.push_back(new MultiByAreaWithTabu<3>(3));
