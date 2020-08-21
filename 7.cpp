@@ -1517,6 +1517,7 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<3>(2));
         strategies.push_back(new MultiByAreaWithTabu<2>(3));
         strategies.push_back(new MultiByAreaWithTabu<1>(1));
+        strategies.push_back(new MultiByAreaWithTabu<1>(1));
     } else {
         strategies.push_back(new MultiByAreaWithTabu<21>(1));
     }
