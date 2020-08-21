@@ -1518,7 +1518,7 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<2>(3));
     } else {
         strategies.push_back(new MultiByAreaWithTabu<10>(1));
-        strategies.push_back(new MultiByAreaWithTabu<7>(2));
+        strategies.push_back(new MultiByAreaWithTabu<8>(2));
         strategies.push_back(new MultiByAreaWithTabu<5>(3));
     }
 
@@ -2095,10 +2095,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
@@ -2423,6 +2423,27 @@ reference:
 5081473
 191.817
 3185.64
+*/
+
+/*
+5 1287904
+6 931737
+7 492001
+8 290986
+9 214104
+10 184854
+11 179690
+12 180204
+13 184565
+14 190006
+15 196260
+16 203101
+17 211684
+18 220944
+19 224549
+5192589
+191.407
+3202.91
 */
 
 //4962332 216.918 3080.61 2.9
