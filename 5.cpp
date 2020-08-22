@@ -204,6 +204,7 @@ void findDominatingSet() {
             break;
         }
         dom.insert(best);
+        updateConf(best, 0, 1, 2);
         unordered_set<Node*> nndom;
 
         repeat = false;
