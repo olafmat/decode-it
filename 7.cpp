@@ -1192,7 +1192,7 @@ public:
             }
             #endif
         }
-        
+
         for (int v = 1; v < versions; v++) {
             delete boards[v];
         }
