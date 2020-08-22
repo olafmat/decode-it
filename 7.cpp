@@ -1321,7 +1321,7 @@ Game* compare(Board *board) {
     } else if (!board->colorHistogram[13].count) {
         strategies.push_back(new MultiByAreaWithTabu<23>(1));
     } else {
-        strategies.push_back(new MultiByAreaWithTabu<21>(0));
+        strategies.push_back(new MultiByAreaWithTabu<23>(0));
     }
 
     Game games[strategies.size()];
