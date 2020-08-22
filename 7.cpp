@@ -22,7 +22,7 @@
 //#define USE_ELECTIONS
 //#define VALIDATION
 
-#pragma pack(1)
+//#pragma pack(1)
 
 using namespace std;
 
