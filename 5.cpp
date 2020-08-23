@@ -22,6 +22,13 @@ unordered_set<Node*> nodes;
 unordered_map<string, Node*> names;
 set<Node*> dom;
 unordered_set<Node*> ndom;
+int g_seed = 76858726;
+
+inline int fastRand() {
+  g_seed = (214013 * g_seed + 2531011);
+  return (g_seed >> 16) & 0x7FFF;
+}
+
 
 /*void removeNode(Node* node) {
     nodes.erase(node);
@@ -201,7 +208,7 @@ void findDominatingSet() {
                 bestScore = sc;
                 best = node;
                 equals = 1;
-            } else if (sc == bestScore && random() % (++equals) == 0) {
+            } else if (sc == bestScore && fastRand() % (++equals) == 0) {
                 best = node;
             }
         }
@@ -263,7 +270,7 @@ void findDominatingSet2() {
 
 Node* pickRandom(set<Node*>& s) {
     while (true) {
-        int i = random() % s.size();
+        int i = fastRand() % s.size();
         set<Node*>::iterator it = begin(s);
         if (i) {
             advance(it, i);
@@ -276,7 +283,7 @@ Node* pickRandom(set<Node*>& s) {
 }
 
 Node* bms(int step) {
-    int k = double(random()) / RAND_MAX < exp(-step) ? 1024 : 50 + (random() % 10);
+    int k = double(fastRand()) / 32767 < exp(-step) ? 1024 : 50 + (fastRand() % 10);
     Node* u2 = pickRandom(dom);
     double score1 = score(u2);
     Node* u = u2;
