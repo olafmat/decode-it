@@ -23,7 +23,7 @@ unordered_map<string, Node*> names;
 set<Node*> dom;
 unordered_set<Node*> ndom;
 
-void removeNode(Node* node) {
+/*void removeNode(Node* node) {
     nodes.erase(node);
     ndom.erase(node);
     unordered_set<Node*>::iterator it;
@@ -32,7 +32,7 @@ void removeNode(Node* node) {
         node2->edges.erase(node);
     }
     node->edges.clear();
-}
+}*/
 
 bool isDominated(Node *node, Node* excl = NULL) {
     if (node != excl && dom.count(node)) {
@@ -47,7 +47,7 @@ bool isDominated(Node *node, Node* excl = NULL) {
     return false;
 }
 
-void getN2(Node* node, unordered_set<Node*>& n2) {
+/*void getN2(Node* node, unordered_set<Node*>& n2) {
     for (unordered_set<Node*>::iterator it1 = node->edges.begin(); it1 != node->edges.end(); it1++) {
         Node* node1 = *it1;
         for (unordered_set<Node*>::iterator it2 = node1->edges.begin(); it2 != node->edges.end(); it2++) {
@@ -59,7 +59,7 @@ void getN2(Node* node, unordered_set<Node*>& n2) {
     }
 }
 
-/*void updateConf(Node *node, int n0, int n1, int n2) {
+void updateConf(Node *node, int n0, int n1, int n2) {
     for (unordered_set<Node*>::iterator it1 = node->edges.begin(); it1 != node->edges.end(); it1++) {
         Node* node1 = *it1;
         node1->conf = n1;
@@ -96,7 +96,7 @@ void loadData() {
     for (int i = 0; i < t; i++) {
         Node * node = new Node();
         cin >> node -> name >> node -> weight;
-        node->freq = 1;
+        node -> freq = node -> weight;
         //node->conf = 1;
         all.insert(node);
         nodes.insert(node);
@@ -116,7 +116,7 @@ void loadData() {
     }
 }
 
-void bruteForce() {
+/*void bruteForce() {
     uint32_t max = uint32_t(1) << ndom.size();
     set<Node*> bestDom;
     int32_t bestCost = 0x7FFFFFFF;
@@ -148,7 +148,7 @@ void bruteForce() {
         }
     }
     dom = bestDom;
-}
+}*/
 
 void findDominatingSet() {
     /*bool change = true;
@@ -253,7 +253,7 @@ void findDominatingSet2() {
     }
 }
 
-int totalWeight(set<Node*>& dom) {
+/*int totalWeight(set<Node*>& dom) {
     int total = 0;
     for (set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
         total += (*it)->weight;
@@ -261,7 +261,7 @@ int totalWeight(set<Node*>& dom) {
     return total;
 }
 
-/*Node* pickRandom(set<Node*>& s) {
+Node* pickRandom(set<Node*>& s) {
     while (true) {
         int i = random() % s.size();
         set<Node*>::iterator it = begin(s);
