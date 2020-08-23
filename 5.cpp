@@ -13,7 +13,7 @@ struct Node {
     int weight;
     unordered_set<Node*> edges;
     int freq;
-    int conf;
+    //int conf;
 };
 
 clock_t cutoff;
@@ -59,7 +59,7 @@ void getN2(Node* node, unordered_set<Node*>& n2) {
     }
 }
 
-void updateConf(Node *node, int n0, int n1, int n2) {
+/*void updateConf(Node *node, int n0, int n1, int n2) {
     for (unordered_set<Node*>::iterator it1 = node->edges.begin(); it1 != node->edges.end(); it1++) {
         Node* node1 = *it1;
         node1->conf = n1;
@@ -73,7 +73,7 @@ void updateConf(Node *node, int n0, int n1, int n2) {
         node1->conf = n1;
     }
     node->conf = n0;
-}
+}*/
 
 double score(Node *node) {
     int sum = isDominated(node, node) ? 0 : node->freq;
@@ -91,12 +91,13 @@ double score(Node *node) {
 void loadData() {
 	int t;
 	cin >> t;
-    cutoff = clock() + CLOCKS_PER_SEC * (t > 100 ? 5 : 2) - CLOCKS_PER_SEC / 20;
+    cutoff = clock() + CLOCKS_PER_SEC * (t > 100 ? 5 : 2) - CLOCKS_PER_SEC / 50;
 
     for (int i = 0; i < t; i++) {
         Node * node = new Node();
         cin >> node -> name >> node -> weight;
-        node->freq = node->conf = 1;
+        node->freq = 1;
+        //node->conf = 1;
         all.insert(node);
         nodes.insert(node);
         ndom.insert(node);
@@ -260,7 +261,7 @@ int totalWeight(set<Node*>& dom) {
     return total;
 }
 
-Node* pickRandom(set<Node*>& s) {
+/*Node* pickRandom(set<Node*>& s) {
     while (true) {
         int i = random() % s.size();
         set<Node*>::iterator it = begin(s);
@@ -352,10 +353,10 @@ void optimize() {
 
     //print();
     //cout << "b1 " << ndom.size() << " " <<maxScoreNode << endl;
-        /*if (maxScoreNode) {
-            removeFromDom(maxScoreNode);
-            totalW -= maxScoreNode->weight;
-        }*/
+        //if (maxScoreNode) {
+        //    removeFromDom(maxScoreNode);
+        //    totalW -= maxScoreNode->weight;
+        //}
     //cout << "b2 " << ndom.size() << endl;
 
         Node* bmsNode = bms(nonImpr);
@@ -409,7 +410,7 @@ void optimize() {
     //cout << "b4 " << ndom.size() << endl;
         nonImpr++;
     }
-}
+}*/
 
 void printResults() {
     cout << dom.size() << endl;
@@ -466,18 +467,6 @@ int main() {
         //optimize();
     //}
     printResults();
-    freeMemory();
+    //freeMemory();
     return 0;
 }
-
-//0 4855
-//1 4757
-//2 4605
-//3 4186
-//4 4540
-//5 17327
-//6 16982
-//7 16953
-//8 15811
-//9 14118
-
