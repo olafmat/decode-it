@@ -84,7 +84,7 @@ double score(Node *node) {
             sum += node2->freq;
         }
     }
-    return dom.count(node) ? -double(sum) / node->weight : node->freq + double(sum) / node->weight;
+    return dom.count(node) ? -double(sum) / node->weight : double(sum) / node->weight;
 }
 
 
@@ -452,8 +452,8 @@ int main() {
     /*if (nodes.size() <= 20) {
         bruteForce();
     } else {*/
-        findDominatingSet();
-        optimize();
+        findDominatingSet2();
+        //optimize();
     //}
     printResults();
     freeMemory();
