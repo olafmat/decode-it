@@ -8,10 +8,13 @@
 #include <math.h>
 using namespace std;
 
+#define MAX_NODES 300
+
 struct Node {
     string name;
     int weight;
-    unordered_set<Node*> edges;
+    int nedges;
+    Node* edges[MAX_NODES];
     int freq;
     //int conf;
 };
@@ -22,7 +25,7 @@ unordered_set<Node*> nodes;
 unordered_map<string, Node*> names;
 set<Node*> dom;
 unordered_set<Node*> ndom;
-int g_seed = 76858726;
+int g_seed = 76858727;
 
 inline int fastRand() {
   g_seed = (214013 * g_seed + 2531011);
@@ -45,8 +48,8 @@ bool isDominated(Node *node, Node* excl = NULL) {
     if (node != excl && dom.count(node)) {
         return true;
     }
-    for (unordered_set<Node*>::iterator it = node->edges.begin(); it != node->edges.end(); it++) {
-        Node* node2 = *it;
+    for (int it = node->nedges - 1; it >= 0; it--) {
+        Node* node2 = node->edges[it];
         if (node2 != excl && dom.count(node2)) {
             return true;
         }
@@ -84,9 +87,8 @@ void updateConf(Node *node, int n0, int n1, int n2) {
 
 double score(Node *node) {
     int sum = isDominated(node, node) ? 0 : node->freq;
-    unordered_set<Node*>::iterator it;
-    for (it = node->edges.begin(); it != node->edges.end(); it++) {
-        Node* node2 = *it;
+    for (int it = node->nedges - 1; it >= 0; it--) {
+        Node* node2 = node->edges[it];
         if (!isDominated(node2, node)) {
             sum += node2->freq;
         }
@@ -106,10 +108,10 @@ void loadData() {
         node -> freq = node -> weight;
         //node->conf = 1;
         all.insert(node);
-        nodes.insert(node);
-        ndom.insert(node);
         names[node->name] = node;
     }
+    nodes = all;
+    ndom = all;
 
     int m;
     cin >> m;
@@ -118,8 +120,8 @@ void loadData() {
         cin >> name1 >> name2;
         Node *node1 = names[name1];
         Node *node2 = names[name2];
-        node1->edges.insert(node2);
-        node2->edges.insert(node1);
+        node1->edges[node1->nedges++] = node2;
+        node2->edges[node2->nedges++] = node1;
     }
 }
 
@@ -234,24 +236,28 @@ void findDominatingSet() {
 
 void findDominatingSet2() {
     set<Node*> best;
+    //unordered_set<Node*> fixed;
     int bestScore = 0x3ffffff;
     while (true) {
         for (unordered_set<Node*>::iterator it = all.begin(); it != all.end(); it++) {
             dom.clear();
             nodes = all;
             ndom = nodes;
-            dom.insert(*it);
-            ndom.erase(*it);
+            Node* node = *it;
+            dom.insert(node);
+            ndom.erase(node);
             findDominatingSet();
             int total = 0;
-            for (set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
-                Node *node = *it;
-                total += node->weight;
+            for (set<Node*>::iterator it2 = dom.begin(); it2 != dom.end(); it2++) {
+                Node *node2 = *it2;
+                total += node2->weight;
             }
             if (total < bestScore) {
                 bestScore = total;
                 best = dom;
+                //fixed.insert()
             }
+            //cout << bestScore << endl;
             if (clock() >= cutoff) {
                 dom = best;
                 return;
@@ -433,7 +439,6 @@ void printResults() {
 void freeMemory() {
     for (unordered_set<Node*>::iterator it = all.begin(); it != all.end(); it++) {
         Node *node = *it;
-        node->edges.clear();
         delete node;
     }
     all.clear();
