@@ -213,7 +213,7 @@ void findDominatingSet() {
             if (!isDominated(node, NULL)) {
                 repeat = true;
                 nndom.insert(node);
-                node->freq++;
+                node->freq += node->weight;
             }
         }
         ndom = nndom;
@@ -225,6 +225,7 @@ void findDominatingSet2() {
     int bestScore = 0x3ffffff;
     for (unordered_set<Node*>::iterator it = all.begin(); it != all.end(); it++) {
         dom.clear();
+        nodes = all;
         ndom = nodes;
         dom.insert(*it);
         ndom.erase(*it);
