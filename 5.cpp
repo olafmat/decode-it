@@ -237,16 +237,14 @@ void findDominatingSet() {
 void findDominatingSet2() {
     set<Node*> best;
     set<Node*> fixed;
+    unordered_set<Node*> nfixed = all;
     int bestScore = 0x3ffffff;
     Node* bestNode;
     while (true) {
         for (unordered_set<Node*>::iterator it = all.begin(); it != all.end(); it++) {
             dom = fixed;
             nodes = all;
-            ndom = nodes;
-            for (set<Node*>::iterator it3 = fixed.begin(); it3 != fixed.end(); it3++) {
-                ndom.erase(*it3);
-            }
+            ndom = nfixed;
             Node* node = *it;
             dom.insert(node);
             ndom.erase(node);
@@ -268,6 +266,7 @@ void findDominatingSet2() {
             }
         }
         fixed.insert(bestNode);
+        nfixed.erase(bestNode);
     }
 }
 
