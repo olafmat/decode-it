@@ -91,7 +91,7 @@ double score(Node *node) {
 void loadData() {
 	int t;
 	cin >> t;
-    cutoff = clock() + CLOCKS_PER_SEC * (t > 100 ? 5 : 3) - CLOCKS_PER_SEC / 20;
+    cutoff = clock() + CLOCKS_PER_SEC * (t > 100 ? 5 : 2) - CLOCKS_PER_SEC / 20;
 
     for (int i = 0; i < t; i++) {
         Node * node = new Node();
@@ -192,11 +192,15 @@ void findDominatingSet() {
     while(repeat) {
         double bestScore = -1e30;
         Node *best;
+        int equals = 1;
         for (unordered_set<Node*>::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
             double sc = score(node);
             if (sc > bestScore) {
                 bestScore = sc;
+                best = node;
+                equals = 1;
+            } else if (sc == bestScore && random() % (++equals) == 0) {
                 best = node;
             }
         }
@@ -204,7 +208,7 @@ void findDominatingSet() {
             break;
         }
         dom.insert(best);
-        updateConf(best, 0, 1, 2);
+        //updateConf(best, 0, 1, 2);
         unordered_set<Node*> nndom;
 
         repeat = false;
@@ -223,24 +227,29 @@ void findDominatingSet() {
 void findDominatingSet2() {
     set<Node*> best;
     int bestScore = 0x3ffffff;
-    for (unordered_set<Node*>::iterator it = all.begin(); it != all.end(); it++) {
-        dom.clear();
-        nodes = all;
-        ndom = nodes;
-        dom.insert(*it);
-        ndom.erase(*it);
-        findDominatingSet();
-        int total = 0;
-        for (set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
-            Node *node = *it;
-            total += node->weight;
-        }
-        if (total < bestScore) {
-            bestScore = total;
-            best = dom;
+    while (true) {
+        for (unordered_set<Node*>::iterator it = all.begin(); it != all.end(); it++) {
+            dom.clear();
+            nodes = all;
+            ndom = nodes;
+            dom.insert(*it);
+            ndom.erase(*it);
+            findDominatingSet();
+            int total = 0;
+            for (set<Node*>::iterator it = dom.begin(); it != dom.end(); it++) {
+                Node *node = *it;
+                total += node->weight;
+            }
+            if (total < bestScore) {
+                bestScore = total;
+                best = dom;
+            }
+            if (clock() >= cutoff) {
+                dom = best;
+                return;
+            }
         }
     }
-    dom = best;
 }
 
 int totalWeight(set<Node*>& dom) {
