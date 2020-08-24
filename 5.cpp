@@ -20,7 +20,8 @@ using namespace std;
 #define MAX_CHUNKS (MAX_NODES + 63) / 64
 
 struct Node {
-    int id;
+    int idA;
+    uint64_t idU, idNU;
     string name;
     int weight;
     int nedges;
@@ -44,18 +45,15 @@ public:
     }
 
     void insert(const Node* node) {
-        const int id = node->id;
-        bset[id >> 6] |= (uint64_t(1) << (id & 63));
+        bset[node -> idA] |= node->idU;
     }
 
     void erase(const Node* node) {
-        const int id = node->id;
-        bset[id >> 6] &=~ (uint64_t(1) << (id & 63));
+        bset[node->idA] &= node->idNU;
     }
 
     bool count(const Node* node) const {
-        const int id = node->id;
-        return (bset[id >> 6] & (uint64_t(1) << (id & 63))) != 0;
+        return (bset[node->idA] & node->idU) != 0;
     }
 
     int size() const {
@@ -137,6 +135,8 @@ public:
 };
 
 clock_t cutoff;
+uint8_t cutoff2;
+uint8_t cutoff3;
 NodeSet all;
 NodeSet nodes;
 unordered_map<string, Node*> names;
@@ -218,10 +218,14 @@ void loadData() {
 	int t;
 	cin >> t;
     cutoff = clock() + CLOCKS_PER_SEC * (t > 100 ? 5 : 2) - CLOCKS_PER_SEC / 50;
+    cutoff2 = 1;
+    cutoff3 = t > 100 ? 15 : 50;
 
     for (int i = 0; i < t; i++) {
         Node * node = new Node();
-        node->id = i;
+        node->idA = i >> 6;
+        node->idU = uint64_t(1) << (i & 63);
+        node->idNU = ~node->idU;
         cin >> node -> name >> node -> weight;
         node -> freq = node -> weight;
         //node->conf = 1;
@@ -379,9 +383,12 @@ void findDominatingSet2() {
                 bestNode = node;
             }
             //cout << bestScore << endl;
-            if (clock() >= cutoff) {
-                dom = best;
-                return;
+            if (!--cutoff2) {
+                cutoff2 = cutoff3;
+                if (clock() >= cutoff) {
+                    dom = best;
+                    return;
+                }
             }
         }
         fixed.insert(bestNode);
