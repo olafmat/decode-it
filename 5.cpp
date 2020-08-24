@@ -27,12 +27,17 @@ struct Node {
     int nedges;
     Node* edges[MAX_NODES];
     int freq;
-    int score;
-    bool dominated;
+    int& score;
+    bool& dominated;
     //int conf;
+
+    Node(int& score, bool& dominated): score(score), dominated(dominated) {
+    }
 };
 
 Node* nodeArr[MAX_NODES];
+int scores[MAX_NODES];
+bool dominated[MAX_NODES];
 
 class NodeSet {
     uint64_t bset[MAX_CHUNKS];
@@ -141,45 +146,55 @@ uint8_t cutoff2;
 uint8_t cutoff3;
 int nnodes;
 NodeSet all;
-NodeSet nodes;
+//NodeSet nodes;
 unordered_map<string, Node*> names;
 NodeSet dom;
 NodeSet ndom;
-int g_seed = 76858727;
+int g_seed = 76858726;
 
 inline int fastRand() {
   g_seed = (214013 * g_seed + 2531011);
   return (g_seed >> 16) & 0x7FFF;
 }
 
-bool isDominated(Node *node, Node* excl = NULL) {
-    if (node != excl && dom.count(node)) {
-        return true;
-    }
-    for (int it = node->nedges - 1; it >= 0; it--) {
-        Node* node2 = node->edges[it];
-        if (node2 != excl && dom.count(node2)) {
+bool isDominated1(Node *node0) {
+    for (int it = node0->nedges - 1; it >= 0; it--) {
+        Node* node1 = node0->edges[it];
+        if (dom.count(node1)) {
             return true;
         }
     }
     return false;
 }
 
-void refreshScore(Node *node) {
-    bool isDom = isDominated(node, node);
-    int sum = isDom ? 0 : node->freq;
-    for (int it = node->nedges - 1; it >= 0; it--) {
-        Node* node2 = node->edges[it];
-        if (!isDominated(node2, node)) {
-            sum += node2->freq;
+bool isDominated2(Node *node1, Node* node0) {
+    if (dom.count(node1)) {
+        return true;
+    }
+    for (int it = node1->nedges - 1; it >= 0; it--) {
+        Node* node2 = node1->edges[it];
+        if (node2 != node0 && dom.count(node2)) {
+            return true;
         }
     }
-    if (dom.count(node)) {
-        node->score = -sum / node->weight;
-        node->dominated = true;
+    return false;
+}
+
+void refreshScore(Node *node0) {
+    bool isDom = isDominated1(node0);
+    int sum = isDom ? 0 : node0->freq;
+    for (int it = node0->nedges - 1; it >= 0; it--) {
+        Node* node1 = node0->edges[it];
+        if (!isDominated2(node1, node0)) {
+            sum += node1->freq;
+        }
+    }
+    if (dom.count(node0)) {
+        node0->score = -sum / node0->weight;
+        node0->dominated = true;
     } else {
-        node->score = sum / node->weight;
-        node->dominated = isDom;
+        node0->score = sum / node0->weight;
+        node0->dominated = isDom;
     }
 }
 
@@ -240,7 +255,7 @@ void loadData() {
     nnodes = t;
 
     for (int i = 0; i < t; i++) {
-        Node * node = new Node();
+        Node * node = new Node(scores[i], dominated[i]);
         node->idA = i >> 6;
         node->idU = uint64_t(1) << (i & 63);
         node->idNU = ~node->idU;
@@ -251,7 +266,7 @@ void loadData() {
         all.insert(node);
         names[node->name] = node;
     }
-    nodes = all;
+    //nodes = all;
     ndom = all;
 
     int m;
@@ -301,10 +316,6 @@ void loadData() {
 }*/
 
 void findDominatingSet() {
-    for (int i = 0; i < nnodes; i++) {
-        Node* node = nodeArr[i];
-        refreshScore(node);
-    }
     /*bool change = true;
     while(change) {
         change = false;
@@ -343,28 +354,31 @@ void findDominatingSet() {
         }
     }*/
 
-    NodeSet notDominated = ndom;
-    while(!notDominated.empty()) {
+    //NodeSet notDominated = ndom;
+    while(!ndom.empty()) {
         int bestScore = INT_MIN;
         Node *best;
-        int equals = 1;
+        //int equals = 1;
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
             int sc = node->score;
             if (sc > bestScore) {
                 bestScore = sc;
                 best = node;
-                equals = 1;
+                /*equals = 1;
             } else if (sc == bestScore && fastRand() % (++equals) == 0) {
-                best = node;
+                best = node;*/
             }
         }
+        //if (!bestScore) {
+          //  break;
+        //}
         addNode(best);
 
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
             if (node->dominated) {
-                notDominated.erase(node);
+                ndom.erase(node);
             } else {
                 node->freq += node->weight;
             }
@@ -376,13 +390,27 @@ void findDominatingSet2() {
     NodeSet best;
     NodeSet fixed;
     NodeSet nfixed = all;
+    //nodes = all;
     int bestScore = 0x3ffffff;
     Node* bestNode;
+    int scores2[MAX_NODES];
+    bool dominated2[MAX_NODES];
     while (true) {
         for (int it = 0; it < nnodes; it++) {
             dom = fixed;
-            nodes = all;
             ndom = nfixed;
+            if (it) {
+                memcpy(scores, scores2, nnodes * sizeof(scores[0]));
+                memcpy(dominated, dominated2, nnodes * sizeof(dominated[0]));
+            } else {
+                for (int i = 0; i < nnodes; i++) {
+                    Node* node = nodeArr[i];
+                    refreshScore(node);
+                }
+                memcpy(scores2, scores, nnodes * sizeof(scores[0]));
+                memcpy(dominated2, dominated, nnodes * sizeof(dominated[0]));
+            }
+
             Node* node = nodeArr[it];
             addNode(node);
             ndom.erase(node);
@@ -586,7 +614,7 @@ void freeMemory() {
         delete nodeArr[it];
     }
     all.clear();
-    nodes.clear();
+    //nodes.clear();
     dom.clear();
     ndom.clear();
     names.clear();
