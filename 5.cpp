@@ -27,6 +27,7 @@ struct Node {
     int nedges;
     Node* edges[MAX_NODES];
     int freq;
+    double score;
     //int conf;
 };
 
@@ -137,6 +138,7 @@ public:
 clock_t cutoff;
 uint8_t cutoff2;
 uint8_t cutoff3;
+int nnodes;
 NodeSet all;
 NodeSet nodes;
 unordered_map<string, Node*> names;
@@ -148,18 +150,6 @@ inline int fastRand() {
   g_seed = (214013 * g_seed + 2531011);
   return (g_seed >> 16) & 0x7FFF;
 }
-
-
-/*void removeNode(Node* node) {
-    nodes.erase(node);
-    ndom.erase(node);
-    NodeSet::iterator it;
-    for (it = node->edges.begin(); it != node->edges.end(); it++) {
-        Node* node2 = *it;
-        node2->edges.erase(node);
-    }
-    node->edges.clear();
-}*/
 
 bool isDominated(Node *node, Node* excl = NULL) {
     if (node != excl && dom.count(node)) {
@@ -173,6 +163,37 @@ bool isDominated(Node *node, Node* excl = NULL) {
     }
     return false;
 }
+
+void refreshScore(Node *node) {
+    int sum = isDominated(node, node) ? 0 : node->freq;
+    for (int it = node->nedges - 1; it >= 0; it--) {
+        Node* node2 = node->edges[it];
+        if (!isDominated(node2, node)) {
+            sum += node2->freq;
+        }
+    }
+    node->score = dom.count(node) ? -double(sum) / node->weight : double(sum) / node->weight;
+}
+
+void addNode(Node *node) {
+    dom.insert(node);
+    refreshScore(node);
+    for (int it = node->nedges - 1; it >= 0; it--) {
+        Node* node2 = node->edges[it];
+        refreshScore(node2);
+    }
+}
+
+/*void removeNode(Node* node) {
+    nodes.erase(node);
+    ndom.erase(node);
+    NodeSet::iterator it;
+    for (it = node->edges.begin(); it != node->edges.end(); it++) {
+        Node* node2 = *it;
+        node2->edges.erase(node);
+    }
+    node->edges.clear();
+}*/
 
 /*void getN2(Node* node, NodeSet& n2) {
     for (NodeSet::iterator it1 = node->edges.begin(); it1 != node->edges.end(); it1++) {
@@ -202,24 +223,13 @@ void updateConf(Node *node, int n0, int n1, int n2) {
     node->conf = n0;
 }*/
 
-double score(Node *node) {
-    int sum = isDominated(node, node) ? 0 : node->freq;
-    for (int it = node->nedges - 1; it >= 0; it--) {
-        Node* node2 = node->edges[it];
-        if (!isDominated(node2, node)) {
-            sum += node2->freq;
-        }
-    }
-    return dom.count(node) ? -double(sum) / node->weight : double(sum) / node->weight;
-}
-
-
 void loadData() {
 	int t;
 	cin >> t;
     cutoff = clock() + CLOCKS_PER_SEC * (t > 100 ? 5 : 2) - CLOCKS_PER_SEC / 50;
     cutoff2 = 1;
     cutoff3 = t > 100 ? 15 : 50;
+    nnodes = t;
 
     for (int i = 0; i < t; i++) {
         Node * node = new Node();
@@ -283,6 +293,10 @@ void loadData() {
 }*/
 
 void findDominatingSet() {
+    for (int i = 0; i < nnodes; i++) {
+        Node* node = nodeArr[i];
+        refreshScore(node);
+    }
     /*bool change = true;
     while(change) {
         change = false;
@@ -328,7 +342,7 @@ void findDominatingSet() {
         int equals = 1;
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
-            double sc = score(node);
+            double sc = node->score;
             if (sc > bestScore) {
                 bestScore = sc;
                 best = node;
@@ -340,20 +354,18 @@ void findDominatingSet() {
         if (bestScore == 0) {
             break;
         }
-        dom.insert(best);
+        addNode(best);
         //updateConf(best, 0, 1, 2);
-        NodeSet nndom;
 
         repeat = false;
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
             if (!isDominated(node, NULL)) {
                 repeat = true;
-                nndom.insert(node);
+                ndom.insert(node);
                 node->freq += node->weight;
             }
         }
-        ndom = nndom;
     }
 }
 
@@ -364,12 +376,12 @@ void findDominatingSet2() {
     int bestScore = 0x3ffffff;
     Node* bestNode;
     while (true) {
-        for (NodeSet::iterator it = all.begin(); it != all.end(); it++) {
+        for (int it = 0; it < nnodes; it++) {
             dom = fixed;
             nodes = all;
             ndom = nfixed;
-            Node* node = *it;
-            dom.insert(node);
+            Node* node = nodeArr[it];
+            addNode(node);
             ndom.erase(node);
             findDominatingSet();
             int total = 0;
@@ -567,9 +579,8 @@ void printResults() {
 }
 
 void freeMemory() {
-    for (NodeSet::iterator it = all.begin(); it != all.end(); it++) {
-        Node *node = *it;
-        delete node;
+    for (int it = 0; it < nnodes; it++) {
+        delete nodeArr[it];
     }
     all.clear();
     nodes.clear();
