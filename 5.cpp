@@ -47,7 +47,7 @@ public:
     }
 
     inline void insert(const Node* node) {
-        bset[node -> idA] |= node->idU;
+        bset[node->idA] |= node->idU;
     }
 
     inline void erase(const Node* node) {
@@ -343,8 +343,10 @@ void findDominatingSet() {
         }
     }*/
 
-    bool repeat = !ndom.empty();
-    while(repeat) {
+    //bool repeat = !ndom.empty();
+    //while(repeat) {
+    NodeSet notDominated = ndom;
+    while(!notDominated.empty()) {
         double bestScore = -1e30;
         Node *best;
         int equals = 1;
@@ -359,18 +361,19 @@ void findDominatingSet() {
                 best = node;
             }
         }
-        if (bestScore == 0) {
+        /*if (bestScore == 0) {
             break;
-        }
+        }*/
         addNode(best);
         //updateConf(best, 0, 1, 2);
 
-        repeat = false;
+        //repeat = false;
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
-            if (!node->dominated) {
-                repeat = true;
-                ndom.insert(node);
+            if (node->dominated) {
+                notDominated.erase(node);
+            } else {
+                //repeat = true;
                 node->freq += node->weight;
             }
         }
