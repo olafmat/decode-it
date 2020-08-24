@@ -27,7 +27,7 @@ struct Node {
     int nedges;
     Node* edges[MAX_NODES];
     int freq;
-    double score;
+    int score;
     bool dominated;
     //int conf;
 };
@@ -175,10 +175,10 @@ void refreshScore(Node *node) {
         }
     }
     if (dom.count(node)) {
-        node->score = -double(sum) / node->weight;
+        node->score = -sum / node->weight;
         node->dominated = true;
     } else {
-        node->score = double(sum) / node->weight;
+        node->score = sum / node->weight;
         node->dominated = isDom;
     }
 }
@@ -345,12 +345,12 @@ void findDominatingSet() {
 
     NodeSet notDominated = ndom;
     while(!notDominated.empty()) {
-        double bestScore = -1e30;
+        int bestScore = INT_MIN;
         Node *best;
         int equals = 1;
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
-            double sc = node->score;
+            int sc = node->score;
             if (sc > bestScore) {
                 bestScore = sc;
                 best = node;
