@@ -28,6 +28,7 @@ struct Node {
     Node* edges[MAX_NODES];
     int freq;
     double score;
+    bool dominated;
     //int conf;
 };
 
@@ -45,15 +46,15 @@ public:
         clear();
     }
 
-    void insert(const Node* node) {
+    inline void insert(const Node* node) {
         bset[node -> idA] |= node->idU;
     }
 
-    void erase(const Node* node) {
+    inline void erase(const Node* node) {
         bset[node->idA] &= node->idNU;
     }
 
-    bool count(const Node* node) const {
+    inline bool count(const Node* node) const {
         return (bset[node->idA] & node->idU) != 0;
     }
 
@@ -114,7 +115,7 @@ public:
             return a < MAX_CHUNKS;
         }
 
-        Node* operator*() const {
+        inline Node* operator*() const {
             //cout << this << " " << a << " " << bit << " " << nodeArr[(a << 6) + bit] <<endl;
             return nodeArr[(a << 6) + bit];
         }
@@ -130,7 +131,7 @@ public:
         return it;
     }
 
-    int end() {
+    inline int end() const {
         return 0;
     }
 };
@@ -165,14 +166,21 @@ bool isDominated(Node *node, Node* excl = NULL) {
 }
 
 void refreshScore(Node *node) {
-    int sum = isDominated(node, node) ? 0 : node->freq;
+    bool isDom = isDominated(node, node);
+    int sum = isDom ? 0 : node->freq;
     for (int it = node->nedges - 1; it >= 0; it--) {
         Node* node2 = node->edges[it];
         if (!isDominated(node2, node)) {
             sum += node2->freq;
         }
     }
-    node->score = dom.count(node) ? -double(sum) / node->weight : double(sum) / node->weight;
+    if (dom.count(node)) {
+        node->score = -double(sum) / node->weight;
+        node->dominated = true;
+    } else {
+        node->score = double(sum) / node->weight;
+        node->dominated = isDom;
+    }
 }
 
 void addNode(Node *node) {
@@ -228,7 +236,7 @@ void loadData() {
 	cin >> t;
     cutoff = clock() + CLOCKS_PER_SEC * (t > 100 ? 5 : 2) - CLOCKS_PER_SEC / 50;
     cutoff2 = 1;
-    cutoff3 = t > 100 ? 15 : 50;
+    cutoff3 = t > 100 ? 14 : 50;
     nnodes = t;
 
     for (int i = 0; i < t; i++) {
@@ -360,7 +368,7 @@ void findDominatingSet() {
         repeat = false;
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
-            if (!isDominated(node, NULL)) {
+            if (!node->dominated) {
                 repeat = true;
                 ndom.insert(node);
                 node->freq += node->weight;
@@ -625,8 +633,8 @@ void handler(int sig) {
 }
 
 int main() {
-    signal(SIGSEGV, handler);
-    signal(SIGBUS, handler);
+    //signal(SIGSEGV, handler);
+    //signal(SIGBUS, handler);
     loadData();
     /*if (nodes.size() <= 20) {
         bruteForce();
