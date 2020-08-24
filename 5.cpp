@@ -17,7 +17,7 @@
 using namespace std;
 
 #define MAX_NODES 300
-#define MAX_CHUNKS (MAX_NODES + 63) / 64
+#define MAX_CHUNKS ((MAX_NODES + 63) / 64)
 
 struct Node {
     int idA;
@@ -343,8 +343,6 @@ void findDominatingSet() {
         }
     }*/
 
-    //bool repeat = !ndom.empty();
-    //while(repeat) {
     NodeSet notDominated = ndom;
     while(!notDominated.empty()) {
         double bestScore = -1e30;
@@ -361,19 +359,13 @@ void findDominatingSet() {
                 best = node;
             }
         }
-        /*if (bestScore == 0) {
-            break;
-        }*/
         addNode(best);
-        //updateConf(best, 0, 1, 2);
 
-        //repeat = false;
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
             if (node->dominated) {
                 notDominated.erase(node);
             } else {
-                //repeat = true;
                 node->freq += node->weight;
             }
         }
