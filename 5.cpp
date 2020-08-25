@@ -16,6 +16,9 @@
 
 using namespace std;
 
+
+//#define VERIFY
+
 #define MAX_NODES 300
 #define MAX_CHUNKS ((MAX_NODES + 63) / 64)
 
@@ -83,13 +86,13 @@ public:
         return true;
     }
 
-    void operator -=(NodeSet& b) {
+    inline void operator -=(NodeSet& b) {
         for (int a = 0; a < MAX_CHUNKS; a++) {
             bset[a] &=~ b.bset[a];
         }
     }
 
-    void operator +=(NodeSet& b) {
+    inline void operator +=(NodeSet& b) {
         for (int a = 0; a < MAX_CHUNKS; a++) {
             bset[a] |= b.bset[a];
         }
@@ -127,7 +130,7 @@ public:
             }
         }
 
-        bool operator != (int x) {
+        inline bool operator != (int x) {
             return a < MAX_CHUNKS;
         }
 
@@ -137,7 +140,7 @@ public:
         }
     };
 
-    iterator begin() {
+    inline iterator begin() {
         iterator it;
         it.bset = bset;
         it.a = -1;
@@ -173,7 +176,7 @@ public:
             }
         }
 
-        bool operator != (int x) {
+        inline bool operator != (int x) {
             return n < nnodes;
         }
 
@@ -183,7 +186,7 @@ public:
         }
     };
 
-    niterator nbegin() {
+    inline niterator nbegin() {
         niterator it;
         it.bset = bset;
         it.a = -1;
@@ -207,7 +210,7 @@ unordered_map<string, Node*> names;
 NodeSet dom;
 NodeSet ndom;
 NodeSet dominated;
-int g_seed = 76858726;
+int g_seed = 76858720;
 
 inline int fastRand() {
   g_seed = (214013 * g_seed + 2531011);
@@ -258,6 +261,7 @@ void refreshScore(Node *node0) {
         }
     }
 }
+
 
 void addNode(Node *node) {
     dom.insert(node);
@@ -337,6 +341,11 @@ void loadData() {
         cin >> name1 >> name2;
         Node *node1 = names[name1];
         Node *node2 = names[name2];
+        #ifdef VERIFY
+        if (node1 == node2) {
+            cout << "EQ " << node1 << endl;
+        }
+        #endif
         node1->edges[node1->nedges++] = node2;
         node2->edges[node2->nedges++] = node1;
     }
@@ -478,6 +487,30 @@ void findDominatingSet2() {
                 addNode(node);
                 ndom.erase(node);
                 findDominatingSet();
+
+                #ifdef VERIFY
+                for (int it = 0; it < nnodes; it++) {
+                    Node *node = nodeArr[it];
+                    bool isDom = isDominated2(node, NULL);
+                    if (dom.count(node) && !isDom) {
+                        cout << "A " << it << " " << isDom << " " << dom.count(node) << " " << ndom.count(node) << " "
+                            << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
+                    }
+                    if (dominated.count(node) == ndom.count(node)) {
+                        cout << "B " << it << " " << isDom << " " << dom.count(node) << " " << ndom.count(node) << " "
+                            << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
+                    }
+                    if (dominated.count(node) != isDom) {
+                        cout << "C " << it << " " << isDom << " " << dom.count(node) << " " << ndom.count(node) << " "
+                            << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
+                    }
+                    if (fixed.count(node) && !dom.count(node)) {
+                        cout << "D " << it << " " << isDom << " " << dom.count(node) << " " << ndom.count(node) << " "
+                            << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
+                    }
+                }
+                #endif
+
                 int total = 0;
                 for (NodeSet::iterator it2 = dom.begin(); it2 != dom.end(); it2++) {
                     Node *node2 = *it2;
