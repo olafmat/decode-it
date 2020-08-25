@@ -213,8 +213,8 @@ uint8_t cutoff3;
 NodeSet all;
 //NodeSet nodes;
 unordered_map<string, Node*> names;
+NodeSet nfixed;
 NodeSet dom;
-NodeSet ndom;
 NodeSet dominated;
 int g_seed = 76858720;
 
@@ -280,7 +280,6 @@ void addNode(Node *node) {
 
 /*void removeNode(Node* node) {
     nodes.erase(node);
-    ndom.erase(node);
     NodeSet::iterator it;
     for (it = node->edges.begin(); it != node->edges.end(); it++) {
         Node* node2 = *it;
@@ -337,8 +336,6 @@ void loadData() {
         all.insert(node);
         names[node->name] = node;
     }
-    //nodes = all;
-    ndom = all;
 
     int m;
     cin >> m;
@@ -357,40 +354,6 @@ void loadData() {
     }
 }
 
-/*void bruteForce() {
-    uint32_t max = uint32_t(1) << ndom.size();
-    NodeSet bestDom;
-    int32_t bestCost = 0x7FFFFFFF;
-    for (uint32_t iter = 1; iter < max; iter++) {
-        int cost = 0;
-        uint32_t c = iter;
-        dom.clear();
-        for (NodeSet::iterator it = nodes.begin(); c != 0 && it != nodes.end(); it++, c >>= 1) {
-            if (c & 1) {
-                Node *node = *it;
-                dom.insert(node);
-                cost += node->weight;
-            }
-        }
-        if (cost > bestCost) {
-            continue;
-        }
-
-        bool ok = true;
-        for (NodeSet::iterator it = nodes.begin(); it != nodes.end(); it++) {
-            if (!isDominated(*it, NULL)) {
-                ok = false;
-                break;
-            }
-        }
-        if (ok) {
-            bestCost = cost;
-            bestDom = dom;
-        }
-    }
-    dom = bestDom;
-}*/
-
 void findDominatingSet() {
     /*bool change = true;
     while(change) {
@@ -403,7 +366,6 @@ void findDominatingSet() {
                 removeNode(node);
                 dom.insert(node);
                 node->conf = -1;
-                ndom.erase(node);
                 change = true;
             };
 
@@ -424,21 +386,19 @@ void findDominatingSet() {
                 }
                 removeNode(node);
                 dom.insert(node);
-                ndom.erase(node);
                 change =true;
             }
         }
     }*/
 
-    //NodeSet notDominated = ndom;
-    while(!ndom.empty()) {
+    while(dominated.size() != nnodes) {
         int bestScore = INT_MIN;
         Node *best;
         int equals = 1;
-        for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
+        for (NodeSet::niterator it = dom.nbegin(); it != dom.end(); it++) {
             Node *node = *it;
             int sc = node->score;
-            cout << node->name << " " << sc << " " << dom.count(node) << ndom.count(node) << endl;
+            //cout << node->name << " " << sc << " " << dom.count(node) << endl;
             if (sc > bestScore) {
                 bestScore = sc;
                 best = node;
@@ -450,14 +410,13 @@ void findDominatingSet() {
         //if (!bestScore) {
           //  break;
         //}
-        cout << "BEST " << best->name << endl;
+        //cout << "BEST " << best->name << endl;
         addNode(best);
 
         for (NodeSet::niterator it = dominated.nbegin(); it != dominated.end(); it++) {
             Node *node = *it;
             node->freq += node->weight;
         }
-        ndom -= dominated;
     }
 }
 
@@ -469,7 +428,7 @@ void findDominatingSet2() {
     int n = 0;
     while (true) {
         NodeSet fixed;
-        NodeSet nfixed = all;
+        nfixed = all;
         //nodes = all;
         int bestScore = 0x3ffffff;
         Node* bestNode;
@@ -479,7 +438,6 @@ void findDominatingSet2() {
             for (int it = 0; it < nnodes; it++) {
                 n++;
                 dom = fixed;
-                ndom = nfixed;
                 if (it) {
                     memcpy(scores, scores2, nnodes * sizeof(scores[0]));
                     dominated = dominated2;
@@ -493,7 +451,6 @@ void findDominatingSet2() {
 
                 Node* node = nodeArr[it];
                 addNode(node);
-                ndom.erase(node);
                 findDominatingSet();
 
                 #ifdef VERIFY
@@ -501,19 +458,19 @@ void findDominatingSet2() {
                     Node *node = nodeArr[it];
                     bool isDom = isDominated2(node, NULL);
                     if (dom.count(node) && !isDom) {
-                        cout << "A " << it << " " << isDom << " " << dom.count(node) << " " << ndom.count(node) << " "
+                        cout << "A " << it << " " << isDom << " " << dom.count(node) << " "
                             << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
                     }
                     if (dominated.count(node) == ndom.count(node)) {
-                        cout << "B " << it << " " << isDom << " " << dom.count(node) << " " << ndom.count(node) << " "
+                        cout << "B " << it << " " << isDom << " " << dom.count(node) << " "
                             << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
                     }
                     if (dominated.count(node) != isDom) {
-                        cout << "C " << it << " " << isDom << " " << dom.count(node) << " " << ndom.count(node) << " "
+                        cout << "C " << it << " " << isDom << " " << dom.count(node) << " "
                             << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
                     }
                     if (fixed.count(node) && !dom.count(node)) {
-                        cout << "D " << it << " " << isDom << " " << dom.count(node) << " " << ndom.count(node) << " "
+                        cout << "D " << it << " " << isDom << " " << dom.count(node) << " "
                             << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
                     }
                 }
@@ -730,9 +687,7 @@ void freeMemory() {
         delete nodeArr[it];
     }
     all.clear();
-    //nodes.clear();
     dom.clear();
-    ndom.clear();
     names.clear();
 }
 
