@@ -308,8 +308,7 @@ void addNode(Node *node) {
     dom.insert(node);
     refreshScore(node);
     for (int it = node->nedges - 1; it >= 0; it--) {
-        Node* node2 = node->edges[it];
-        refreshScore(node2);
+        refreshScore(node->edges[it]);
     }
     //cout << node->score << endl;
 }
