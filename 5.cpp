@@ -136,6 +136,12 @@ public:
     inline int end() const {
         return 0;
     }
+
+    void print() {
+        for (NodeSet::iterator it = begin(); it != end(); it++) {
+            cout << (*it)->name << " ";
+        }
+    }
 };
 
 clock_t cutoff;
@@ -192,6 +198,7 @@ void refreshScore(Node *node) {
 }
 
 void addNode(Node *node) {
+    cout << "adding " << node->name << endl;
     dom.insert(node);
     refreshScore(node);
     for (int it = node->nedges - 1; it >= 0; it--) {
@@ -309,6 +316,7 @@ void loadData() {
 }*/
 
 void findDominatingSet() {
+    cout << "start" << endl;
     for (int i = 0; i < nnodes; i++) {
         Node* node = nodeArr[i];
         refreshScore(node);
@@ -359,6 +367,7 @@ void findDominatingSet() {
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
             int sc = node->score;
+            cout << node->name << " " << sc << " " << dom.count(node) << ndom.count(node) << notDominated.count(node) << endl;
             if (sc > bestScore) {
                 bestScore = sc;
                 best = node;
