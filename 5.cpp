@@ -53,6 +53,14 @@ public:
         clear();
     }
 
+    void setAll() {
+        int last = nnodes >> 6;
+        for (int a = 0; a < last; a++) {
+            bset[a] = int64_t(-1);
+        }
+        bset[last] = (uint64_t(1) << (nnodes & 63)) - 1;
+    }
+
     inline void insert(const Node* node) {
         bset[node->idA] |= node->idU;
     }
@@ -210,10 +218,7 @@ public:
 clock_t cutoff;
 uint8_t cutoff2;
 uint8_t cutoff3;
-NodeSet all;
-//NodeSet nodes;
 unordered_map<string, Node*> names;
-NodeSet nfixed;
 NodeSet dom;
 NodeSet dominated;
 int g_seed = 76858720;
@@ -270,6 +275,7 @@ void refreshScore(Node *node0) {
 
 
 void addNode(Node *node) {
+    cout << "adding " << node->name << endl;
     dom.insert(node);
     refreshScore(node);
     for (int it = node->nedges - 1; it >= 0; it--) {
@@ -333,7 +339,6 @@ void loadData() {
         node -> freq = node -> weight;
         //node->conf = 1;
         nodeArr[i] = node;
-        all.insert(node);
         names[node->name] = node;
     }
 
@@ -390,7 +395,7 @@ void findDominatingSet() {
             }
         }
     }*/
-
+    cout << "start" << endl;
     while(dominated.size() != nnodes) {
         int bestScore = INT_MIN;
         Node *best;
@@ -398,7 +403,7 @@ void findDominatingSet() {
         for (NodeSet::niterator it = dom.nbegin(); it != dom.end(); it++) {
             Node *node = *it;
             int sc = node->score;
-            //cout << node->name << " " << sc << " " << dom.count(node) << endl;
+            cout << node->name << " " << sc << " " << dom.count(node) << endl;
             if (sc > bestScore) {
                 bestScore = sc;
                 best = node;
@@ -410,7 +415,6 @@ void findDominatingSet() {
         //if (!bestScore) {
           //  break;
         //}
-        //cout << "BEST " << best->name << endl;
         addNode(best);
 
         for (NodeSet::niterator it = dominated.nbegin(); it != dominated.end(); it++) {
@@ -428,8 +432,6 @@ void findDominatingSet2() {
     int n = 0;
     while (true) {
         NodeSet fixed;
-        nfixed = all;
-        //nodes = all;
         int bestScore = 0x3ffffff;
         Node* bestNode;
         int scores2[MAX_NODES];
@@ -459,19 +461,15 @@ void findDominatingSet2() {
                     bool isDom = isDominated2(node, NULL);
                     if (dom.count(node) && !isDom) {
                         cout << "A " << it << " " << isDom << " " << dom.count(node) << " "
-                            << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
-                    }
-                    if (dominated.count(node) == ndom.count(node)) {
-                        cout << "B " << it << " " << isDom << " " << dom.count(node) << " "
-                            << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
+                            << dominated.count(node) << " " << fixed.count(node) << endl;
                     }
                     if (dominated.count(node) != isDom) {
                         cout << "C " << it << " " << isDom << " " << dom.count(node) << " "
-                            << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
+                            << dominated.count(node) << " " << fixed.count(node) << endl;
                     }
                     if (fixed.count(node) && !dom.count(node)) {
                         cout << "D " << it << " " << isDom << " " << dom.count(node) << " "
-                            << dominated.count(node) << " " << fixed.count(node) << " " << nfixed.count(node) << endl;
+                            << dominated.count(node) << " " << fixed.count(node) << endl;
                     }
                 }
                 #endif
@@ -503,8 +501,7 @@ void findDominatingSet2() {
                 break;
             }
             fixed.insert(bestNode);
-            nfixed.erase(bestNode);
-            //cout << "S " << fixed.size() << " " << nfixed.size() << endl;
+            //cout << "S " << fixed.size() << endl;
         }
         g_seed++;
         //printResults();
@@ -686,7 +683,6 @@ void freeMemory() {
     for (int it = 0; it < nnodes; it++) {
         delete nodeArr[it];
     }
-    all.clear();
     dom.clear();
     names.clear();
 }
@@ -727,8 +723,8 @@ void handler(int sig) {
 }
 
 int main() {
-    signal(SIGSEGV, handler);
-    signal(SIGBUS, handler);
+    //signal(SIGSEGV, handler);
+    //signal(SIGBUS, handler);
     loadData();
     /*if (nodes.size() <= 20) {
         bruteForce();
