@@ -10,3 +10,17 @@ Test #7 	accepted 	0 	4.97 	6824 	9.84
 Test #8 	accepted 	0 	4.98 	6824 	10.68
 Test #9 	accepted 	0 	4.97 	6824 	11.37
 Wynik 	accepted 	0 	34.73 	6824 	435.42
+
+without memcpy
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.98 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.97 	6296 	11.07
+Test #3 	accepted 	0 	1.97 	6296 	11.79
+Test #4 	accepted 	0 	1.97 	6296 	12.96
+Test #5 	accepted 	0 	4.93 	6824 	9.27
+Test #6 	accepted 	0 	4.96 	6824 	9.36
+Test #7 	accepted 	0 	4.98 	6824 	9.75
+Test #8 	accepted 	0 	4.97 	6824 	10.5
+Test #9 	accepted 	0 	4.98 	6824 	11.1
+Wynik 	accepted 	0 	34.69 	6824 	430.59

@@ -433,7 +433,7 @@ void printResults();
 void findDominatingSet2() {
     NodeSet best;
     int bestScore2 = 0x3ffffff;
-    int n = 0;
+    //int n = 0;
     while (true) {
         NodeSet fixed;
         int bestScore = 0x3ffffff;
@@ -441,8 +441,9 @@ void findDominatingSet2() {
         int scores2[MAX_NODES];
         NodeSet dominated2;
         while (true) {
+            //cout << "start " << fixed.size() << endl;
             for (int it = 0; it < nnodes; it++) {
-                n++;
+                //n++;
                 dom = fixed;
                 if (it) {
                     memcpy(scores, scores2, nnodes * sizeof(scores[0]));
