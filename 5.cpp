@@ -374,40 +374,49 @@ void findDominatingSet() {
 
 void findDominatingSet2() {
     NodeSet best;
-    NodeSet fixed;
-    NodeSet nfixed = all;
-    int bestScore = 0x3ffffff;
-    Node* bestNode;
+    int bestScore2 = 0x3ffffff;
     while (true) {
-        for (int it = 0; it < nnodes; it++) {
-            dom = fixed;
-            nodes = all;
-            ndom = nfixed;
-            Node* node = nodeArr[it];
-            addNode(node);
-            ndom.erase(node);
-            findDominatingSet();
-            int total = 0;
-            for (NodeSet::iterator it2 = dom.begin(); it2 != dom.end(); it2++) {
-                Node *node2 = *it2;
-                total += node2->weight;
-            }
-            if (total < bestScore) {
-                bestScore = total;
-                best = dom;
-                bestNode = node;
-            }
-            //cout << bestScore << endl;
-            if (!--cutoff2) {
-                cutoff2 = cutoff3;
-                if (clock() >= cutoff) {
-                    dom = best;
-                    return;
+        NodeSet fixed;
+        NodeSet nfixed = all;
+        int bestScore = 0x3ffffff;
+        Node* bestNode;
+        while (true) {
+            for (int it = 0; it < nnodes; it++) {
+                dom = fixed;
+                nodes = all;
+                ndom = nfixed;
+                Node* node = nodeArr[it];
+                addNode(node);
+                ndom.erase(node);
+                findDominatingSet();
+                int total = 0;
+                for (NodeSet::iterator it2 = dom.begin(); it2 != dom.end(); it2++) {
+                    Node *node2 = *it2;
+                    total += node2->weight;
+                }
+                if (total < bestScore) {
+                    bestScore = total;
+                    bestNode = node;
+                    if (total < bestScore2) {
+                        bestScore2 = total;
+                        best = dom;
+                    }
+                }
+                //cout << bestScore << endl;
+                if (!--cutoff2) {
+                    cutoff2 = cutoff3;
+                    if (clock() >= cutoff) {
+                        dom = best;
+                        return;
+                    }
                 }
             }
+            if (fixed.count(bestNode)) {
+                break;
+            }
+            fixed.insert(bestNode);
+            nfixed.erase(bestNode);
         }
-        fixed.insert(bestNode);
-        nfixed.erase(bestNode);
     }
 }
 
