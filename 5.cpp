@@ -145,11 +145,13 @@ NodeSet nodes;
 unordered_map<string, Node*> names;
 NodeSet dom;
 NodeSet ndom;
-int g_seed = 76858724;
+int g_seed = 76858720;
 
 //395
 //433.71
-
+//434.4
+//434.07
+//432.72
 
 inline int fastRand() {
   g_seed = (214013 * g_seed + 2531011);
