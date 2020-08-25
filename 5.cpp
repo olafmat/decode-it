@@ -138,7 +138,11 @@ public:
             }
         }
 
-        inline bool operator != (int x) {
+        inline operator bool() {
+            return a < MAX_CHUNKS;
+        }
+
+        inline bool operator != (int x) const {
             return a < MAX_CHUNKS;
         }
 
@@ -184,7 +188,11 @@ public:
             }
         }
 
-        inline bool operator != (int x) {
+        inline operator bool() const {
+            return n < nnodes;
+        }
+
+        inline bool operator != (int x) const {
             return n < nnodes;
         }
 
@@ -425,14 +433,14 @@ void findDominatingSet() {
         }
     }*/
     //cout << "start" << endl;
-    for (NodeSet::niterator it = dominated.nbegin(); it != dominated.end(); it++) {
+    for (NodeSet::niterator it = dominated.nbegin(); it; it++) {
         refreshScore2(*it);
     }
     while(dominated.size() != nnodes) {
         int bestScore = INT_MIN;
         Node *best;
         int equals = 1;
-        for (NodeSet::niterator it = dom.nbegin(); it != dom.end(); it++) {
+        for (NodeSet::niterator it = dom.nbegin(); it; it++) {
             Node *node = *it;
             int sc = node->score;
             //cout << node->name << " " << sc << " " << dom.count(node) << endl;
@@ -449,7 +457,7 @@ void findDominatingSet() {
         //}
         addNode(best);
 
-        for (NodeSet::niterator it = dominated.nbegin(); it != dominated.end(); it++) {
+        for (NodeSet::niterator it = dominated.nbegin(); it; it++) {
             Node *node = *it;
             node->freq += node->weight;
         }
@@ -508,7 +516,7 @@ void findDominatingSet2() {
                 #endif
 
                 int total = 0;
-                for (NodeSet::iterator it2 = dom.begin(); it2 != dom.end(); it2++) {
+                for (NodeSet::iterator it2 = dom.begin(); it2; it2++) {
                     Node *node2 = *it2;
                     total += node2->weight;
                 }
@@ -544,7 +552,7 @@ void findDominatingSet2() {
 
 /*int totalWeight(NodeSet& dom) {
     int total = 0;
-    for (NodeSet::iterator it = dom.begin(); it != dom.end(); it++) {
+    for (NodeSet::iterator it = dom.begin(); it; it++) {
         total += (*it)->weight;
     }
     return total;
@@ -704,7 +712,7 @@ void optimize() {
 void printResults() {
     cout << dom.size() << endl;
     int total = 0;
-    for (NodeSet::iterator it = dom.begin(); it != dom.end(); it++) {
+    for (NodeSet::iterator it = dom.begin(); it; it++) {
         Node *node = *it;
         cout << node->name << endl;
         total += node->weight;
