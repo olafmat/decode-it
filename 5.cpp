@@ -151,22 +151,21 @@ public:
         uint64_t* bset;
         int a;
         uint64_t b;
-        int bit;
+        int n;
 
         void operator++(int) {
-            if (a >= MAX_CHUNKS) {
+            if (n >= nnodes) {
                 return;
             }
             while(true) {
                 b <<= 1;
-                bit++;
-                if (b > bset[a]) {
+                n++;
+                if (n >= nnodes) {
+                    return;
+                }
+                if (!(n & 63)) {
                     b = 1;
-                    bit = 0;
                     a++;
-                    if (a >= MAX_CHUNKS - 1 && (a << 6) + b >= nnodes) {
-                        return;
-                    }
                 }
                 if ((bset[a] & b) == uint64_t(0)) {
                     return;
@@ -175,12 +174,12 @@ public:
         }
 
         bool operator != (int x) {
-            return a < MAX_CHUNKS;
+            return n < nnodes;
         }
 
         inline Node* operator*() const {
-            //cout << this << " " << a << " " << bit << " " << nodeArr[(a << 6) + bit] <<endl;
-            return nodeArr[(a << 6) + bit];
+            //cout << this << " " << a << " " << n << " " << nnodes << " " << nodeArr[n] <<endl;
+            return nodeArr[n];
         }
     };
 
@@ -189,7 +188,7 @@ public:
         it.bset = bset;
         it.a = -1;
         it.b = 0;
-        it.bit = -1;
+        it.n = -1;
         it++;
         return it;
     }
@@ -420,16 +419,16 @@ void findDominatingSet() {
     while(!ndom.empty()) {
         int bestScore = INT_MIN;
         Node *best;
-        //int equals = 1;
+        int equals = 1;
         for (NodeSet::iterator it = ndom.begin(); it != ndom.end(); it++) {
             Node *node = *it;
             int sc = node->score;
             if (sc > bestScore) {
                 bestScore = sc;
                 best = node;
-                /*equals = 1;
+                equals = 1;
             } else if (sc == bestScore && fastRand() % (++equals) == 0) {
-                best = node;*/
+                best = node;
             }
         }
         //if (!bestScore) {
@@ -437,13 +436,15 @@ void findDominatingSet() {
         //}
         addNode(best);
 
-        for (NodeSet::iterator it = dominated.begin(); it != dominated.end(); it++) {
+        for (NodeSet::niterator it = dominated.nbegin(); it != dominated.end(); it++) {
             Node *node = *it;
             node->freq += node->weight;
         }
         ndom -= dominated;
     }
 }
+
+void printResults();
 
 void findDominatingSet2() {
     NodeSet best;
@@ -467,8 +468,7 @@ void findDominatingSet2() {
                     dominated = dominated2;
                 } else {
                     for (int i = 0; i < nnodes; i++) {
-                        Node* node = nodeArr[i];
-                        refreshScore(node);
+                        refreshScore(nodeArr[i]);
                     }
                     memcpy(scores2, scores, nnodes * sizeof(scores[0]));
                     dominated2 = dominated;
@@ -508,6 +508,9 @@ void findDominatingSet2() {
             nfixed.erase(bestNode);
             //cout << "S " << fixed.size() << " " << nfixed.size() << endl;
         }
+        g_seed++;
+        //printResults();
+        //break;
     }
 }
 
@@ -728,8 +731,8 @@ void handler(int sig) {
 }
 
 int main() {
-    //signal(SIGSEGV, handler);
-    //signal(SIGBUS, handler);
+    signal(SIGSEGV, handler);
+    signal(SIGBUS, handler);
     loadData();
     /*if (nodes.size() <= 20) {
         bruteForce();
