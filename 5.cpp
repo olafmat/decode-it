@@ -275,13 +275,14 @@ void refreshScore(Node *node0) {
 
 
 void addNode(Node *node) {
-    cout << "adding " << node->name << endl;
+    //cout << "adding " << node->name << " " << node->score << endl;
     dom.insert(node);
     refreshScore(node);
     for (int it = node->nedges - 1; it >= 0; it--) {
         Node* node2 = node->edges[it];
         refreshScore(node2);
     }
+    //cout << node->score << endl;
 }
 
 /*void removeNode(Node* node) {
@@ -395,7 +396,10 @@ void findDominatingSet() {
             }
         }
     }*/
-    cout << "start" << endl;
+    //cout << "start" << endl;
+    for (NodeSet::niterator it = dominated.nbegin(); it != dominated.end(); it++) {
+        refreshScore(*it);
+    }
     while(dominated.size() != nnodes) {
         int bestScore = INT_MIN;
         Node *best;
@@ -403,7 +407,7 @@ void findDominatingSet() {
         for (NodeSet::niterator it = dom.nbegin(); it != dom.end(); it++) {
             Node *node = *it;
             int sc = node->score;
-            cout << node->name << " " << sc << " " << dom.count(node) << endl;
+            //cout << node->name << " " << sc << " " << dom.count(node) << endl;
             if (sc > bestScore) {
                 bestScore = sc;
                 best = node;
@@ -503,7 +507,7 @@ void findDominatingSet2() {
             fixed.insert(bestNode);
             //cout << "S " << fixed.size() << endl;
         }
-        g_seed++;
+        //g_seed++;
         //printResults();
         //break;
     }
