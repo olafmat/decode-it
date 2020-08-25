@@ -16,6 +16,8 @@
 
 using namespace std;
 
+//#define VERIFY
+
 #define MAX_NODES 300
 #define MAX_CHUNKS ((MAX_NODES + 63) / 64)
 
@@ -376,6 +378,14 @@ void findDominatingSet() {
             }
         }
     }
+    #ifdef VERIFY
+    for (NodeSet::iterator it2 = all.begin(); it2 != all.end(); it2++) {
+        Node *node = *it2;
+        if (dom.count(node) && notDominated.count(node)) {
+            cout << "B " << " " << dom.count(node) << endl;
+        }
+    }
+    #endif
 }
 
 void findDominatingSet2() {
@@ -395,6 +405,20 @@ void findDominatingSet2() {
                 addNode(node);
                 ndom.erase(node);
                 findDominatingSet();
+
+                #ifdef VERIFY
+                for (NodeSet::iterator it2 = all.begin(); it2 != all.end(); it2++) {
+                    Node *node = *it2;
+                    bool isDom = isDominated(node);
+                    if (dom.count(node) && !isDom) {
+                        cout << "A " << " " << isDom << endl;
+                    }
+                    if (fixed.count(node) && !dom.count(node)) {
+                        cout << "D " << " " << fixed.count(node) << endl;
+                    }
+                }
+                #endif
+
                 int total = 0;
                 for (NodeSet::iterator it2 = dom.begin(); it2 != dom.end(); it2++) {
                     Node *node2 = *it2;
