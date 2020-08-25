@@ -251,6 +251,19 @@ bool isDominated2(Node *node1, Node* node0) {
     return false;
 }
 
+bool isDominated3(Node *node1, Node* node0) {
+    if (node1->score < 0) {
+        return true;
+    }
+    for (int it = node1->nedges - 1; it >= 0; it--) {
+        Node* node2 = node1->edges[it];
+        if (node2 != node0 && node2->score < 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void refreshScore(Node *node0) {
     bool isDom = isDominated1(node0);
     int sum = isDom ? 0 : node0->freq;
@@ -270,6 +283,22 @@ void refreshScore(Node *node0) {
         } else {
             dominated.erase(node0);
         }
+    }
+}
+
+void refreshScore2(Node *node0) {
+    bool isDom = dominated.count(node0);
+    int sum = isDom ? 0 : node0->freq;
+    for (int it = node0->nedges - 1; it >= 0; it--) {
+        Node* node1 = node0->edges[it];
+        if (!isDominated3(node1, node0)) {
+            sum += node1->freq;
+        }
+    }
+    if (node0->score < 0) {
+        node0->score = -sum / node0->weight;
+    } else {
+        node0->score = sum / node0->weight;
     }
 }
 
@@ -398,7 +427,7 @@ void findDominatingSet() {
     }*/
     //cout << "start" << endl;
     for (NodeSet::niterator it = dominated.nbegin(); it != dominated.end(); it++) {
-        refreshScore(*it);
+        refreshScore2(*it);
     }
     while(dominated.size() != nnodes) {
         int bestScore = INT_MIN;
