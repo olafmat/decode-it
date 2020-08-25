@@ -217,7 +217,7 @@ public:
     }
 
     void print() {
-        for (NodeSet::iterator it = begin(); it != end(); it++) {
+        for (NodeSet::iterator it = begin(); it; it++) {
             cout << (*it)->name << " ";
         }
     }
@@ -319,6 +319,14 @@ void addNode(Node *node) {
         refreshScore(node->edges[it]);
     }
     //cout << node->score << endl;
+}
+
+void removeFromDom(Node* node) {
+    dom.erase(node);
+    refreshScore(node);
+    for (int it = node->nedges - 1; it >= 0; it--) {
+        refreshScore(node->edges[it]);
+    }
 }
 
 /*void removeNode(Node* node) {
