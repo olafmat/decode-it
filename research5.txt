@@ -1,0 +1,39 @@
+76858725
+Test #0 	accepted 	0 	1.98 	6292 	10.65
+Test #1 	accepted 	0 	1.98 	6292 	11.22
+Test #2 	accepted 	0 	1.97 	6292 	11.19
+Test #3 	accepted 	0 	1.97 	6292 	11.79
+Test #4 	accepted 	0 	1.98 	6292 	13.02
+Test #5 	accepted 	0 	4.95 	6820 	9.3
+Test #6 	accepted 	0 	4.97 	6820 	9.42
+Test #7 	accepted 	0 	4.98 	6820 	9.84
+Test #8 	accepted 	0 	4.99 	6820 	10.65
+Test #9 	accepted 	0 	4.99 	6820 	11.37
+Wynik 	accepted 	0 	34.76 	6820 	433.71
+
+76858727
+Test #0 	accepted 	0 	1.98 	6292 	10.65
+Test #1 	accepted 	0 	1.98 	6292 	11.22
+Test #2 	accepted 	0 	1.98 	6292 	11.22
+Test #3 	accepted 	0 	1.98 	6292 	11.79
+Test #4 	accepted 	0 	1.98 	6292 	12.96
+Test #5 	accepted 	0 	4.96 	6820 	9.42
+Test #6 	accepted 	0 	4.98 	6820 	9.39
+Test #7 	accepted 	0 	4.98 	6820 	9.93
+Test #8 	accepted 	0 	4.98 	6820 	10.65
+Test #9 	accepted 	0 	4.96 	6820 	11.34
+Wynik 	accepted 	0 	34.76 	6820 	434.13
+
+76858724
+Test #0 	accepted 	0 	1.98 	6292 	10.65
+Test #1 	accepted 	0 	1.98 	6292 	11.22
+Test #2 	accepted 	0 	1.97 	6292 	11.19
+Test #3 	accepted 	0 	1.97 	6292 	11.79
+Test #4 	accepted 	0 	1.98 	6292 	12.96
+Test #5 	accepted 	0 	4.98 	6820 	9.36
+Test #6 	accepted 	0 	4.98 	6820 	9.51
+Test #7 	accepted 	0 	4.97 	6820 	10.02
+Test #8 	accepted 	0 	4.97 	6820 	10.65
+Test #9 	accepted 	0 	4.98 	6820 	11.31
+Wynik 	accepted 	0 	34.76 	6820 	434.4
+

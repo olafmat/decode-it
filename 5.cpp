@@ -145,7 +145,11 @@ NodeSet nodes;
 unordered_map<string, Node*> names;
 NodeSet dom;
 NodeSet ndom;
-int g_seed = 76858727;
+int g_seed = 76858724;
+
+//395
+//433.71
+
 
 inline int fastRand() {
   g_seed = (214013 * g_seed + 2531011);
@@ -650,3 +654,4 @@ int main() {
     //freeMemory();
     return 0;
 }
+
