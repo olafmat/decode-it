@@ -1349,7 +1349,16 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    if (!board->colorHistogram[9]) {
+    if (!board->colorHistogram[6]) {
+        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
+        strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
+        strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 3>(2));
+        strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+    } else if (!board->colorHistogram[9]) {
         strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
