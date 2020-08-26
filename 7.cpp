@@ -70,7 +70,8 @@ int colorComparator(const void* va, const void* vb) {
 struct Board {
     int w, h;
     char board[MAX_WIDTH][MAX_HEIGHT2];
-    Color colorHistogram[MAX_COLOR + 1];
+    int colorHistogram[MAX_COLOR + 1];
+    long maxPossibleScore;
     mutable uint64_t used[MAX_WIDTH];
 
     #ifdef USE_RAND
@@ -83,7 +84,8 @@ struct Board {
         for (int x = 0; x <= w + 1; x++) {
             memcpy(board[x], src.board[x], h + 2);
         }
-        //memcpy(colorHistogram, src.colorHistogram, sizeof(colorHistogram));
+        memcpy(colorHistogram, src.colorHistogram, sizeof(colorHistogram));
+        maxPossibleScore = src.maxPossibleScore;
     }
 
     void addFrame() {
@@ -92,6 +94,14 @@ struct Board {
         }
         for (int y = 1; y <= h; y++) {
             board[0][y] = board[w + 1][y] = 0;
+        }
+    }
+
+    void setMaxPossibleScore() {
+        maxPossibleScore = 0;
+        for (int c = 1; c <= MAX_COLOR; c++) {
+            int size = colorHistogram[c];
+            maxPossibleScore += size * (size - 1);
         }
     }
 
@@ -233,13 +243,19 @@ struct Board {
             }
             s++;
         }
+
+        int oldColorSize = colorHistogram[shape.c];
+        int newColorSize = oldColorSize - shape.size;
+        colorHistogram[shape.c] = newColorSize;
+        maxPossibleScore += shape.score() + newColorSize * (newColorSize - 1) - oldColorSize * (oldColorSize - 1);
     }
 
     int remove2(const Move move) {
         memset(used, 0, sizeof(uint64_t) * (w + 2));
         Segment segments[MAX_WIDTH * MAX_HEIGHT];
         Segment *segm = segments;
-        addSegment(move.x, move.y, move.y + 1, true, true, board[move.x][move.y], segm);
+        char c = board[move.x][move.y];
+        addSegment(move.x, move.y, move.y + 1, true, true, c, segm);
         qsort(segments, segm - segments, sizeof(Segment), segmentComparator);
         segm->x = (MAX_WIDTH + 1);
 
@@ -271,7 +287,13 @@ struct Board {
             }
             s++;
         }
-        return size * (size - 1);
+
+        int score = size * (size - 1);
+        int oldColorSize = colorHistogram[c];
+        int newColorSize = oldColorSize - size;
+        colorHistogram[c] = newColorSize;
+        maxPossibleScore += score + newColorSize * (newColorSize - 1) - oldColorSize * (oldColorSize - 1);
+        return score;
     }
 };
 
@@ -748,7 +770,7 @@ public:
 
     virtual void print() const = 0;
 
-    virtual void play(Board *board, Game &game, int seed = 0) {
+    virtual void play(Board *board, Game &game, long bestScore, int seed) {
         ShapeList list(tabuColor);
         if (seed) {
             list.g_seed = seed;
@@ -767,6 +789,9 @@ public:
             #endif
             game.move(*move);
             board->remove(*move);
+            if (board->maxPossibleScore < bestScore) {
+                return;
+            }
             list.update(board, move->minX - 1, move->maxX + 1, move->minY - 1);
             #ifdef VALIDATION
             if (move->score() > 6250000) {
@@ -1130,7 +1155,7 @@ public:
 
     virtual void findBest2(ShapeList& list, Shape* results) = 0;
 
-    virtual void play(Board *board, Game &game, int seed = 0) {
+    virtual void play(Board *board, Game &game, long bestScore, int seed) {
         ShapeList lists[versions];
         for (int v = 0; v < versions; v++) {
             new (&lists[v]) ShapeList(tabuColor);
@@ -1162,6 +1187,7 @@ public:
             int bestVer = 0;
             for (int v = 0; v < versions; v++) {
                 boards[v]->remove(moves[v]);
+
                 int profit = moves[v].score() + lists[v].update2(boards[v], moves[v].minX - 1, moves[v].maxX + 1, moves[v].minY - 1);
                 if (profit > bestProfit) {
                     bestProfit = profit;
@@ -1177,6 +1203,9 @@ public:
                 validate(boards[v], lists[v]);
             }
             #endif
+            if (boards[bestVer]->maxPossibleScore < bestScore) {
+                break;
+            }
 
             game.move(moves[bestVer]);
             for (int v = 0; v < versions; v++) {
@@ -1251,29 +1280,33 @@ public:
 
 
 void calcHistogram(Board *board) {
-    memset(board -> colorHistogram, 0, sizeof(board -> colorHistogram));
+    Color colorHistogram[MAX_COLOR + 1];
+    memset(colorHistogram, 0, sizeof(colorHistogram));
 
     const int w = board->w;
     const int h = board->h;
 
     for (int c = 1; c <= MAX_COLOR; c++) {
-        board->colorHistogram[c].c = c;
+        colorHistogram[c].c = c;
     }
 
     for (int x = 1; x <= w; x++) {
         const char* col = board->board[x] + 1;
         for (int y = 1; y <= h; y++) {
             if (*col) {
-                board->colorHistogram[*col].count++;
+                colorHistogram[*col].count++;
             }
             col++;
         }
     }
 
-    qsort(board->colorHistogram + 1, MAX_COLOR, sizeof(Color), colorComparator);
+    qsort(colorHistogram + 1, MAX_COLOR, sizeof(Color), colorComparator);
     int map[MAX_COLOR + 1];
     for (int c = 1; c <= MAX_COLOR; c++) {
-        map[board->colorHistogram[c].c] = c;
+        map[colorHistogram[c].c] = c;
+    }
+    for (int c = 1; c <= MAX_COLOR; c++) {
+        board->colorHistogram[c] = colorHistogram[c].count;
     }
 
     for (int x = 1; x <= w; x++) {
@@ -1282,6 +1315,8 @@ void calcHistogram(Board *board) {
             col[y] = map[col[y]];
         }
     }
+
+    board->setMaxPossibleScore();
 }
 
 const int NCOMP = 1000;
@@ -1291,7 +1326,7 @@ Game* compare(Board *board, vector<Strategy*>& strategies, Game* games) {
     long bestScore = -1;
     for (int i = 0; i < strategies.size(); i++) {
         Board board2 = *board;
-        strategies[i]->play(&board2, games[i], 1000 + i);
+        strategies[i]->play(&board2, games[i], bestScore, 1000 + i);
         if (games[i].total > bestScore) {
             bestGame = i;
             bestScore = games[i].total;
@@ -1309,7 +1344,7 @@ Game* compare(Board *board) {
     calcHistogram(board);
 
     vector<Strategy*> strategies;
-    if (!board->colorHistogram[9].count) {
+    if (!board->colorHistogram[9]) {
         strategies.push_back(new MultiByAreaWithTabu<7>(1));
         strategies.push_back(new MultiByAreaWithTabu<5>(2));
         strategies.push_back(new MultiByAreaWithTabu<3>(3));
@@ -1318,7 +1353,7 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<2>(3));
         strategies.push_back(new MultiByAreaWithTabu<1>(1));
         strategies.push_back(new MultiByAreaWithTabu<3>(1));
-    } else if (!board->colorHistogram[13].count) {
+    } else if (!board->colorHistogram[13]) {
         strategies.push_back(new MultiByAreaWithTabu<24>(1));
         strategies.push_back(new MultiByAreaWithTabu<1>(1));
     } else {
@@ -1777,10 +1812,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
