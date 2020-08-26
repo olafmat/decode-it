@@ -1142,7 +1142,7 @@ public:
     }
 };
 
-template<int versions> class MultiStrategy: public Strategy {
+template<bool checkMax, int versions> class MultiStrategy: public Strategy {
 public:
     MultiStrategy(char tabuColor): Strategy(tabuColor) {
     }
@@ -1213,9 +1213,11 @@ public:
                 }
             }
 
-            board->updateHistogram(move.c, move.size);
-            if (board->maxPossibleScore < bestScore) {
-                break;
+            if (checkMax) {
+                board->updateHistogram(move.c, move.size);
+                if (board->maxPossibleScore < bestScore) {
+                    break;
+                }
             }
 
             #ifdef VALIDATION
@@ -1231,9 +1233,9 @@ public:
     }
 };
 
-template<int versions> class MultiByAreaWithTabu: public MultiStrategy<versions> {
+template<bool checkMax, int versions> class MultiByAreaWithTabu: public MultiStrategy<checkMax, versions> {
 public:
-    MultiByAreaWithTabu(char tabuColor): MultiStrategy<versions>(tabuColor) {
+    MultiByAreaWithTabu(char tabuColor): MultiStrategy<checkMax, versions>(tabuColor) {
     }
 
     virtual void findBest2(ShapeList& list, Shape* best) {
@@ -1277,7 +1279,7 @@ public:
     }
 
     virtual void print() const {
-        cout << "MultiByAreaWithTabu<" << versions << ">(" << int(Strategy::tabuColor) << ")" << endl;
+        cout << "MultiByAreaWithTabu<" << checkMax << "," << versions << ">(" << int(Strategy::tabuColor) << ")" << endl;
     }
 };
 
@@ -1348,19 +1350,19 @@ Game* compare(Board *board) {
 
     vector<Strategy*> strategies;
     if (!board->colorHistogram[9]) {
-        strategies.push_back(new MultiByAreaWithTabu<7>(1));
-        strategies.push_back(new MultiByAreaWithTabu<5>(2));
-        strategies.push_back(new MultiByAreaWithTabu<3>(3));
-        strategies.push_back(new MultiByAreaWithTabu<3>(1));
-        strategies.push_back(new MultiByAreaWithTabu<3>(2));
-        strategies.push_back(new MultiByAreaWithTabu<2>(3));
-        strategies.push_back(new MultiByAreaWithTabu<1>(1));
-        strategies.push_back(new MultiByAreaWithTabu<3>(1));
+        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
+        strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
+        strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 3>(2));
+        strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
+        strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
     } else if (!board->colorHistogram[13]) {
-        strategies.push_back(new MultiByAreaWithTabu<24>(1));
-        strategies.push_back(new MultiByAreaWithTabu<1>(1));
+        strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
     } else {
-        strategies.push_back(new MultiByAreaWithTabu<23>(0));
+        strategies.push_back(new MultiByAreaWithTabu<false, 23>(0));
     }
 
     Game games[strategies.size()];
