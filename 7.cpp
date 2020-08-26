@@ -84,8 +84,8 @@ struct Board {
         for (int x = 0; x <= w + 1; x++) {
             memcpy(board[x], src.board[x], h + 2);
         }
-        memcpy(colorHistogram, src.colorHistogram, sizeof(colorHistogram));
-        maxPossibleScore = src.maxPossibleScore;
+        //memcpy(colorHistogram, src.colorHistogram, sizeof(colorHistogram));
+        //maxPossibleScore = src.maxPossibleScore;
     }
 
     void addFrame() {
@@ -243,11 +243,6 @@ struct Board {
             }
             s++;
         }
-
-        int oldColorSize = colorHistogram[shape.c];
-        int newColorSize = oldColorSize - shape.size;
-        colorHistogram[shape.c] = newColorSize;
-        maxPossibleScore += shape.score() + newColorSize * (newColorSize - 1) - oldColorSize * (oldColorSize - 1);
     }
 
     int remove2(const Move move) {
@@ -287,13 +282,15 @@ struct Board {
             }
             s++;
         }
+        return size * (size - 1);
+    }
 
+    void updateHistogram(char c, int size) {
         int score = size * (size - 1);
         int oldColorSize = colorHistogram[c];
         int newColorSize = oldColorSize - size;
         colorHistogram[c] = newColorSize;
         maxPossibleScore += score + newColorSize * (newColorSize - 1) - oldColorSize * (oldColorSize - 1);
-        return score;
     }
 };
 
@@ -789,6 +786,7 @@ public:
             #endif
             game.move(*move);
             board->remove(*move);
+            board->updateHistogram(move->c, move->size);
             if (board->maxPossibleScore < bestScore) {
                 return;
             }
@@ -1164,7 +1162,8 @@ public:
             }
         }
 
-        Board* boards[versions] = {board};
+        Board* boards[versions];
+        boards[0] = board;
         lists[0].update(board);
         for (int v = 1; v < versions; v++) {
             boards[v] = new Board();
@@ -1203,11 +1202,9 @@ public:
                 validate(boards[v], lists[v]);
             }
             #endif
-            if (boards[bestVer]->maxPossibleScore < bestScore) {
-                break;
-            }
 
-            game.move(moves[bestVer]);
+            Shape& move = moves[bestVer];
+            game.move(move);
             for (int v = 0; v < versions; v++) {
                 if (v != bestVer) {
                     *boards[v] = *boards[bestVer];
@@ -1215,6 +1212,12 @@ public:
                     // lists[v].shuffle();
                 }
             }
+
+            board->updateHistogram(move.c, move.size);
+            if (board->maxPossibleScore < bestScore) {
+                break;
+            }
+
             #ifdef VALIDATION
             for (int v = 0; v < versions; v++) {
                 validate(boards[v], lists[v]);
@@ -1812,10 +1815,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
