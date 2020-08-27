@@ -18,6 +18,7 @@
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
 #define MAX_GAMES 500
+#define MAX_SIZE 500
 //#define USE_RAND
 //#define USE_ELECTIONS
 //#define VALIDATION
@@ -101,6 +102,9 @@ struct Board {
         maxPossibleScore = 0;
         for (int c = 1; c <= MAX_COLOR; c++) {
             int size = colorHistogram[c];
+            if (size > MAX_SIZE) {
+                size = MAX_SIZE;
+            }
             maxPossibleScore += size * (size - 1);
         }
     }
@@ -290,6 +294,13 @@ struct Board {
         int oldColorSize = colorHistogram[c];
         int newColorSize = oldColorSize - size;
         colorHistogram[c] = newColorSize;
+        if (oldColorSize > MAX_SIZE) {
+            oldColorSize = MAX_SIZE;
+        }
+        if (newColorSize > MAX_SIZE) {
+            newColorSize = MAX_SIZE;
+        }
+
         maxPossibleScore += score + newColorSize * (newColorSize - 1) - oldColorSize * (oldColorSize - 1);
     }
 };
