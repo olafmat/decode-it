@@ -18,7 +18,6 @@
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
 #define MAX_GAMES 500
-#define MAX_SIZE 500
 //#define USE_RAND
 //#define USE_ELECTIONS
 //#define VALIDATION
@@ -74,6 +73,7 @@ struct Board {
     int colorHistogram[MAX_COLOR + 1];
     long maxPossibleScore;
     mutable uint64_t used[MAX_WIDTH];
+    int16_t maxShapeSize;
 
     #ifdef USE_RAND
     mutable int size[MAX_WIDTH];
@@ -102,8 +102,8 @@ struct Board {
         maxPossibleScore = 0;
         for (int c = 1; c <= MAX_COLOR; c++) {
             int size = colorHistogram[c];
-            if (size > MAX_SIZE) {
-                size = MAX_SIZE;
+            if (size > maxShapeSize) {
+                size = maxShapeSize;
             }
             maxPossibleScore += size * (size - 1);
         }
@@ -294,11 +294,11 @@ struct Board {
         int oldColorSize = colorHistogram[c];
         int newColorSize = oldColorSize - size;
         colorHistogram[c] = newColorSize;
-        if (oldColorSize > MAX_SIZE) {
-            oldColorSize = MAX_SIZE;
+        if (oldColorSize > maxShapeSize) {
+            oldColorSize = maxShapeSize;
         }
-        if (newColorSize > MAX_SIZE) {
-            newColorSize = MAX_SIZE;
+        if (newColorSize > maxShapeSize) {
+            newColorSize = maxShapeSize;
         }
 
         maxPossibleScore += score + newColorSize * (newColorSize - 1) - oldColorSize * (oldColorSize - 1);
@@ -1332,6 +1332,7 @@ void calcHistogram(Board *board) {
         }
     }
 
+    board->maxShapeSize = w * h / 5;
     board->setMaxPossibleScore();
 }
 
