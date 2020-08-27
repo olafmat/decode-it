@@ -1429,9 +1429,9 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(4));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
     } else if (!board->colorHistogram[10]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 23>(1));
+        strategies.push_back(new MultiByAreaWithTabu<false, 21>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
+        strategies.push_back(new MultiByAreaWithTabu<true, 1>(3));
     } else if (!board->colorHistogram[12]) {
         strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
     } else if (!board->colorHistogram[13]) {
