@@ -829,6 +829,7 @@ public:
     }
 
     virtual void play(Board *board, Game &game, long bestScore, int seed) {
+        game.reset();
     }
 };
 
@@ -1402,14 +1403,14 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
+        strategies.push_back(new EmptySlot());
         strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
     } else if (!board->colorHistogram[8]) {
         strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
-        strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
+        strategies.push_back(new EmptySlot());
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(2));
         strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
