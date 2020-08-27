@@ -815,6 +815,23 @@ public:
     }
 };
 
+class EmptySlot: public Strategy {
+public:
+    EmptySlot(): Strategy(-1) {
+    }
+
+    virtual const Shape* findBest(ShapeList& list) {
+        return NULL;
+    }
+
+    virtual void print() const {
+        cout << "EmptySlot()" << endl;
+    }
+
+    virtual void play(Board *board, Game &game, long bestScore, int seed) {
+    }
+};
+
 class FromTop: public Strategy {
 public:
     FromTop(): Strategy(-1) {
@@ -1368,7 +1385,7 @@ Game* compare(Board *board) {
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 3>(2));
-            strategies.push_back(new MultiByAreaWithTabu<true, 1>(0));
+            strategies.push_back(new EmptySlot());
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
         } else {
