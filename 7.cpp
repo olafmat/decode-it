@@ -964,6 +964,194 @@ public:
     }
 };
 
+template<int versions1, int versions2> class DoubleStrategy: public Strategy {
+public:
+    DoubleStrategy(char tabuColor): Strategy(tabuColor) {
+    }
+
+    virtual void findBest(ShapeList& list, Shape* results, const int size) = 0;
+
+    virtual void play(Board *board, Game &game, long bestScore, int seed) {
+        constexpr auto versions = versions1 + versions2;
+
+        ShapeList lists[versions];
+        for (int v = 0; v < versions; v++) {
+            new (&lists[v]) ShapeList(tabuColor);
+            if (seed) {
+                lists[v].g_seed = seed + v * 2000;
+            }
+        }
+
+        Board* boards[versions];
+        Game games[versions];
+        boards[0] = board;
+        lists[0].update(board);
+        games[0].reset();
+        for (int v = 1; v < versions; v++) {
+            boards[v] = new Board();
+            *boards[v] = *board;
+            lists[v].update(boards[v]);
+            games[v].reset();
+        }
+
+        #ifdef VALIDATION
+        for (int v = 0; v < versions; v++) {
+            validate(boards[v], lists[v]);
+        }
+        #endif
+
+        while(!lists[0].isEmpty() && !lists[versions1].isEmpty()) {
+            Shape moves[versions];
+            if (!lists[0].isEmpty()) {
+                findBest(lists[0], moves, versions1);
+            }
+            if (!lists[versions1].isEmpty()) {
+                findBest(lists[versions1], moves + versions1, versions2);
+            }
+
+            int bestProfit1 = INT_MIN;
+            int bestVer1 = 0;
+            int bestProfit2 = INT_MIN;
+            int bestVer2 = 0;
+            int minVer = lists[0].isEmpty() ? versions1 : 0;
+            int maxVer = lists[versions1].isEmpty() ? versions1 : versions;
+            for (int v = minVer; v < maxVer; v++) {
+                boards[v]->remove(moves[v]);
+
+                int profit = moves[v].score() + lists[v].update2(boards[v], moves[v].minX - 1, moves[v].maxX + 1, moves[v].minY - 1);
+                if (profit > bestProfit2) {
+                    if (profit > bestProfit1) {
+                        bestProfit2 = bestProfit1;
+                        bestVer2 = bestVer1;
+                        bestProfit1 = profit;
+                        bestVer1 = v;
+                    } else {
+                        bestProfit2 = profit;
+                        bestVer2 = v;
+                    }
+                }
+            }
+
+            #ifdef VALIDATION
+            for (int v = minVer; v < maxVer; v++) {
+                if (moves[v].score() > 6250000) {
+                    moves[v].print();
+                }
+            }
+            for (int v = 0; v < versions; v++) {
+                validate(boards[v], lists[v]);
+            }
+            #endif
+
+            Shape& move1 = moves[bestVer1];
+            Shape& move2 = moves[bestVer2];
+            games[bestVer1].move(move1);
+            if (bestVer2 != bestVer1) {
+                games[bestVer2].move(move2);
+            }
+            int v = 0;
+            for (; v < versions1; v++) {
+                if (v != bestVer2) {
+                    if (v != bestVer1) {
+                        *boards[v] = *boards[bestVer1];
+                        lists[v] = lists[bestVer1];
+                        games[v] = games[bestVer1];
+                    }
+                }
+            }
+            for (; v < versions2; v++) {
+                if (v != bestVer2) {
+                    *boards[v] = *boards[bestVer2];
+                    lists[v] = lists[bestVer2];
+                    games[v] = games[bestVer2];
+                }
+            }
+            if (bestVer2 < versions1) {
+                *boards[bestVer2] = *boards[bestVer1];
+                lists[bestVer2] = lists[bestVer1];
+                games[bestVer2] = games[bestVer1];
+            }
+
+            /*if (checkMax) {
+                board->updateHistogram(move.c, move.size);
+                if (board->maxPossibleScore < bestScore) {
+                    break;
+                }
+            }*/
+
+            #ifdef VALIDATION
+            for (int v = 0; v < versions; v++) {
+                validate(boards[v], lists[v]);
+            }
+            #endif
+        }
+
+        int bestGame = 0;
+        long best = games[0].total;
+        for (int v = 1; v < versions; v++) {
+            delete boards[v];
+            long score = games[v].total;
+            if (score > best) {
+                bestGame = v;
+                best = score;
+            }
+        }
+
+        game = games[bestGame];
+    }
+};
+
+template<int versions1, int versions2> class DoubleByAreaWithTabu: public DoubleStrategy<versions1, versions2> {
+public:
+    DoubleByAreaWithTabu(char tabuColor): DoubleStrategy<versions1, versions2>(tabuColor) {
+    }
+
+    virtual void findBest(ShapeList& list, Shape* best, const int ver) {
+        memset(best, 0, sizeof(best[0]) * ver);
+        int16_t areas[ver];
+        for (int v = 0; v < ver; v++) {
+            areas[v] = -1;
+        }
+        for (int a = 0; a < 2; a++) {
+            for (int b = 0; b < 2; b++) {
+                int size = list.size[a][b];
+                if (size) {
+                    const Shape* shape = list.shapes[a][b];
+                    const Shape* end = shape + size;
+                    while(shape != end) {
+                        int v = ver - 1;
+                        while (v >= 0 && (shape->area > areas[v] ||
+                            (shape->area == areas[v] && shape->rand > best[v].rand))) {
+                            v--;
+                        }
+                        v++;
+                        if (v < ver) {
+                            memmove(best + v + 1, best + v, ((ver - 1) - v) * sizeof(best[0]));
+                            memmove(areas + v + 1, areas + v, ((ver - 1) - v) * sizeof(areas[0]));
+                            best[v] = *shape;
+                            areas[v] = shape->area;
+                        }
+                        shape++;
+                    }
+                    if (best[ver - 1].size) {
+                        return;
+                    }
+                }
+            }
+        }
+
+        for (int v = 1; v < ver; v++) {
+            if (!best[v].size) {
+                best[v] = best[0];
+            }
+        }
+    }
+
+    virtual void print() const {
+        cout << "DoubleByAreaWithTabu<" << versions1 << "," << versions2 << ">(" << int(Strategy::tabuColor) << ")" << endl;
+    }
+};
+
 
 const int NCOMP = 1000;
 
@@ -992,7 +1180,7 @@ Game* compare(Board *board) {
     vector<Strategy*> strategies;
     if (!board->colorHistogram[6]) {
         if (board->w < 35) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 14>(1));
+            strategies.push_back(new DoubleByAreaWithTabu<13, 1>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
@@ -1001,7 +1189,7 @@ Game* compare(Board *board) {
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
         } else {
-            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
+            strategies.push_back(new DoubleByAreaWithTabu<6, 1>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
             strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
@@ -1011,7 +1199,7 @@ Game* compare(Board *board) {
             strategies.push_back(new MultiByAreaWithTabu<true, 10>(1));
         }
     } else if (!board->colorHistogram[7]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
+        strategies.push_back(new DoubleByAreaWithTabu<6, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
@@ -1020,7 +1208,7 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
     } else if (!board->colorHistogram[8]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
+        strategies.push_back(new DoubleByAreaWithTabu<6, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
         strategies.push_back(new EmptySlot());
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
@@ -1029,7 +1217,7 @@ Game* compare(Board *board) {
         strategies.push_back(new EmptySlot());
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
     } else if (!board->colorHistogram[9]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
+        strategies.push_back(new DoubleByAreaWithTabu<6, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
@@ -1041,16 +1229,16 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(4));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
     } else if (!board->colorHistogram[10]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 21>(1));
+        strategies.push_back(new DoubleByAreaWithTabu<19, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
     } else if (!board->colorHistogram[12]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
+        strategies.push_back(new DoubleByAreaWithTabu<22, 1>(1));
     } else if (!board->colorHistogram[13]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
+        strategies.push_back(new DoubleByAreaWithTabu<22, 1>(1));
+        //strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
     } else {
-        strategies.push_back(new MultiByAreaWithTabu<false, 21>(0));
+        strategies.push_back(new DoubleByAreaWithTabu<19, 1>(0));
     }
 
     Game games[strategies.size()];
@@ -1310,9 +1498,9 @@ void optimalSet2(int ncols, int width) {
         cout << bestScore << "\t" << bestTotal << "\t" << double(bestTime) / CLOCKS_PER_SEC << "\t";
         best->print();
     }
-}
+}*/
 
-void handler(int sig) {
+/*void handler(int sig) {
     void *array[10];
     size_t size;
 
@@ -1323,16 +1511,16 @@ void handler(int sig) {
     fprintf(stderr, "Error: signal %d:\n", sig);
     backtrace_symbols_fd(array, size, STDERR_FILENO);
     exit(1);
-}
-*/
+}*/
+
 
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
