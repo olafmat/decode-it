@@ -243,12 +243,12 @@ struct Board {
     }
 
     void remove(const Shape& shape) {
-        memset(used + shape.minX, 0, (shape.maxX - shape.minX + 1) << 3);
+        memset(used + shape.minX, 0, sizeof(uint64_t) * (shape.maxX - shape.minX + 1));
         Segment segments[MAX_WIDTH * MAX_HEIGHT];
         Segment *segm = segments;
         addSegment(shape.minX, shape.y, shape.y + 1, true, true, shape.c, segm);
         qsort(segments, segm - segments, sizeof(Segment), Segment::comparator);
-        segm->x = (MAX_WIDTH + 1);
+        segm->x = MAX_WIDTH + 1;
 
         Segment *s = segments;
         char *col;
@@ -260,10 +260,10 @@ struct Board {
                 dest = col + s->minY;
             }
             newLine = s[1].x != s->x;
-            char* src = col + s->maxY1;
+            const char* src = col + s->maxY1;
             if (*src) {
-                int nminY = newLine ? h + 1 : s[1].minY;
-                int len = nminY - s->maxY1;
+                const int nminY = newLine ? h + 1 : s[1].minY;
+                const int len = nminY - s->maxY1;
                 memcpy(dest, src, len);
                 dest += len;
             }
@@ -279,13 +279,13 @@ struct Board {
     }
 
     int remove2(const Move move) {
-        memset(used, 0, (w + 2) << 3);
+        memset(used, 0, sizeof(uint64_t) * (w + 2));
         Segment segments[MAX_WIDTH * MAX_HEIGHT];
         Segment *segm = segments;
         const char c = board[move.x][move.y];
         addSegment(move.x, move.y, move.y + 1, true, true, c, segm);
         qsort(segments, segm - segments, sizeof(Segment), Segment::comparator);
-        segm->x = (MAX_WIDTH + 1);
+        segm->x = MAX_WIDTH + 1;
 
         Segment *s = segments;
         char *col;
@@ -299,10 +299,10 @@ struct Board {
                 dest = col + s->minY;
             }
             newLine = s[1].x != s->x;
-            char* src = col + s->maxY1;
+            const char* src = col + s->maxY1;
             if (*src) {
-                int nminY = newLine ? h + 1 : s[1].minY;
-                int len = nminY - s->maxY1;
+                const int nminY = newLine ? h + 1 : s[1].minY;
+                const int len = nminY - s->maxY1;
                 memcpy(dest, src, len);
                 dest += len;
             }
@@ -505,7 +505,7 @@ struct ShapeList {
                 shapes[1][1] + size[1][1]
             }
         };
-        memset(used, 0, (w + 2) << 3);
+        memset(used, 0, sizeof(uint64_t) * (w + 2));
         uint64_t* usedCol = used + minX;
 
         for (int x = minX; x <= maxX; x++) {
@@ -518,8 +518,8 @@ struct ShapeList {
                     break;
                 }
                 if (!((*usedCol >> y) & 1) &&
-                (pcol[y] == c || ncol[y] == c ||
-                 col[-1] == c || col[1] == c))  {
+                        (pcol[y] == c || ncol[y] == c ||
+                         col[-1] == c || col[1] == c))  {
                     const bool isTabu = c == tabuColor;
                     Shape* dest2 = dest[0][isTabu];
                     addShape(board, x, y, dest2);
@@ -539,7 +539,7 @@ struct ShapeList {
         size[1][1] = dest[1][1] - shapes[1][1];
     }
 
-    int update2(const Board * const board, int minX = 1, int maxX = MAX_WIDTH, int minY = 1) {
+    int update2(const Board* const board, int minX = 1, int maxX = MAX_WIDTH, int minY = 1) {
         int profit = 0;
         if (minX < 1) {
             minX = 1;
@@ -582,7 +582,7 @@ struct ShapeList {
                 shapes[1][1] + size[1][1]
             }
         };
-        memset(used, 0, (w + 2) << 3);
+        memset(used, 0, sizeof(uint64_t) * (w + 2));
         const uint64_t* usedCol = used + minX;
 
         for (int x = minX; x <= maxX; x++) {
@@ -595,9 +595,9 @@ struct ShapeList {
                     break;
                 }
                 if (!((*usedCol >> y) & 1) &&
-                (pcol[y] == c || ncol[y] == c ||
-                 col[-1] == c || col[1] == c))  {
-                    bool isTabu = c == tabuColor;
+                        (pcol[y] == c || ncol[y] == c ||
+                         col[-1] == c || col[1] == c))  {
+                    const bool isTabu = c == tabuColor;
                     Shape* dest2 = dest[0][isTabu];
                     addShape(board, x, y, dest2);
                     profit += dest2->score();
@@ -817,7 +817,7 @@ public:
 
 template<bool checkMax, int versions> class MultiStrategy: public Strategy {
 public:
-    MultiStrategy(char tabuColor): Strategy(tabuColor) {
+    MultiStrategy(const char tabuColor): Strategy(tabuColor) {
     }
 
     virtual void findBest(const ShapeList& list, Shape* results) = 0;
@@ -1304,10 +1304,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
