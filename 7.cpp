@@ -351,7 +351,7 @@ struct ShapeList {
     ShapeList(const char tabuColor = 0):
         tabuColor(tabuColor),
         seed(5325353) {
-        memset(size, 0, sizeof(size));
+        size[0][0] = size[0][1] = size[1][0] = size[1][1] = 0;
     }
 
     inline bool isEmpty() const {
