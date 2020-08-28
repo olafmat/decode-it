@@ -11,7 +11,6 @@ using namespace std;
 
 typedef double real;
 
-const real epsilon = 0;//(real)1e-15;
 const real PI2 = (real)M_PI / 2;
 
 struct Coordinates {
@@ -49,11 +48,6 @@ vector<Point*> findConvexHull(vector<Point*> &points) {
 
     sort(points.begin(), points.end(), comparator);
 
-    /*for (int i = 0; i < n; i++) {
-        Point *p = points[i];
-        cout << p->x << " " << p->y << " " << p->circle << " " << p->angle * 180 / M_PI << endl;
-    }*/
-
     vector<Point*> hull(n << 1);
 
     int k = 0;
@@ -70,13 +64,6 @@ vector<Point*> findConvexHull(vector<Point*> &points) {
         }
         hull[k++] = points[i - 1];
     }
-
-    /*for (int i = n - 1; i > 0; i--) {
-        while (k >= 2 && direction(hull[k - 2], hull[k - 1], points[i - 1]) <= 0) {
-            k--;
-        }
-        hull[k++] = points[i - 1];
-    }*/
 
     hull.resize(k - 1);
     return hull;
@@ -99,7 +86,7 @@ void removeInternal(vector<Circle*> &out, vector<Circle*> &in) {
                 d2 = 0;
             }
             const real d = sqrt(d2) + r1 - r2;
-            if (d < -epsilon || (d <= epsilon && wasI)) {
+            if (d < 0 || (d <= 0 && wasI)) {
                 enclosed = true;
                 break;
             }
@@ -111,7 +98,7 @@ void removeInternal(vector<Circle*> &out, vector<Circle*> &in) {
     }
 }
 
-void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
+void findEdge(vector<Point*> &points, vector<Circle*> &circles) {
     int size = circles.size();
     int pcount = 225000 / size;
     if (pcount < 16) {
@@ -120,29 +107,7 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
     if (pcount > 400) {
         pcount = 400;
     }
-    //160000 16 500 891.9 6.26 2.9  8.37
-    //160000 16 600 891.9 6.52
-    //170000 16 500 789.3      3.01 8.37
-    //160000 17 500 891.9 6.23 2.84 8.37
-    //160000 16 400 891.9 5.73 2.74 8.37
-    //long double too long
-    //float         687.6 4.91 2.39 7.83
-    //circ+tangents too long
-    //220000 16 400 892.8 5.75 2.69 8.46
-    //250000 16 400 891.9 6.05 2.91 8.28
-    //220000 250000 891   5.92 2.83 8.28
-    //250000 220000 891   6.42 2.79 8.28
-    //230000 230000 891   5.97 2.79 8.28
-    //210000 210000 888.3 5.72 2.65 8.1
-    //225000 225000 895.5 5.84 2.74 8.64
-    //bez pcount2<4 895.5 5.92 2.79 8.64
-    //227000 227000 893.7 5.87 2.78 8.46
-    //222000 222000 893.7 5.89 2.78 8.55
-    //224000 224000 895.5 5.86 2.74 8.64
-    //226000 226000 895.5 5.89 2.78 8.64
-    //225000 227000 893.7 5.85 2.78 8.46
-    //225000 225000 895.5 5.9  2.77 8.64 5
-    //225000 225000 895.5 5.92 2.8  8.64 1
+
     real total = 0;
     for (vector<Circle*>::iterator i = circles.begin(); i != circles.end(); i++) {
         total += (*i)->r;
@@ -166,41 +131,6 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
             p1 -> angle = angle;
             points.push_back(p1);
         }
-        /*for (vector<Circle*>::iterator j = i + 1; j != circles.end(); j++) {
-            const real x2 = (*j)->x;
-            const real y2 = (*j)->y;
-            const real r2 = (*j)->r;
-            const real dx = x2 - x1;
-            const real dy = y2 - y1;
-            const real dr = r2 - r1;
-            const real d2 = dx * dx + dy * dy;
-            const real d = d2 > 0 ? sqrt(d2) : 0.0;
-            if (d < epsilon || abs(dr) > d + epsilon) {
-                continue;
-            }
-            const real beta1 = dr > d - epsilon ? PI2 : dr < -d + epsilon ? -PI2 : asin(dr / d);
-            const real gamma = -atan2(dy, dx);
-            for (int sign = -1; sign <= 1; sign += 2) {
-                const real beta = beta1 * sign;
-                const real alpha = gamma - beta;
-                const real sinAlpha = sin(alpha) * sign;
-                const real cosAlpha = cos(alpha) * sign;
-
-                Point* p1 = new Point();
-                p1 -> x = x1 + r1 * sinAlpha;
-                p1 -> y = y1 + r1 * cosAlpha;
-                p1 -> circle = *i;
-                p1 -> angle = fmod(sign > 0 ? alpha + (real)M_PI * 2: alpha + (real)M_PI * 3, (real)M_PI * 2);
-                points.push_back(p1);
-
-                Point* p2 = new Point();
-                p2 -> x = x2 + r2 * sinAlpha;
-                p2 -> y = y2 + r2 * cosAlpha;
-                p2 -> circle = *j;
-                p2 -> angle = fmod(sign > 0 ? alpha + (real)M_PI * 2: alpha + (real)M_PI * 3, (real)M_PI * 2);
-                points.push_back(p2);
-            }
-        }*/
     }
 }
 
@@ -216,7 +146,7 @@ void findTangle(vector<Point*> &points, Circle *a, Circle *b) {
     const real dr = r2 - r1;
     const real d2 = dx * dx + dy * dy;
     const real d = d2 > 0 ? sqrt(d2) : 0.0;
-    const real beta1 = dr > d - epsilon ? PI2 : dr < -d + epsilon ? -PI2 : asin(dr / d);
+    const real beta1 = dr > d ? PI2 : dr < -d ? -PI2 : asin(dr / d);
     const real gamma = -atan2(dy, dx);
     for (int sign = -1; sign <= 1; sign += 2) {
         const real beta = beta1 * sign;
@@ -259,7 +189,7 @@ real beltLength(const Point *a, const Point *b) {
     } else if (a -> circle != b -> circle) {
         real d2 = dist2(a, b);
         return d2 > 0 ? sqrt(d2) : 0.0;
-    } else if (a -> angle >= b -> angle - epsilon) {
+    } else if (a -> angle >= b -> angle) {
         return a -> circle -> r * (M_PI * 2 + b -> angle - a -> angle);
     } else {
         return a -> circle -> r * (b -> angle - a -> angle);
@@ -320,7 +250,7 @@ int main() {
         }
 
         vector<Point*> points;
-        outerTangle(points, circles2);
+        findEdge(points, circles2);
 
         vector<Point*> result = findConvexHull(points);
 
