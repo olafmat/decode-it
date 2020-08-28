@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <memory.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -203,8 +204,59 @@ void outerTangle(vector<Point*> &points, vector<Circle*> &circles) {
     }
 }
 
+void findTangle(vector<Point*> &points, Circle *a, Circle *b) {
+    const real x1 = a->x;
+    const real y1 = a->y;
+    const real r1 = a->r;
+    const real x2 = b->x;
+    const real y2 = b->y;
+    const real r2 = b->r;
+    const real dx = x2 - x1;
+    const real dy = y2 - y1;
+    const real dr = r2 - r1;
+    const real d2 = dx * dx + dy * dy;
+    const real d = d2 > 0 ? sqrt(d2) : 0.0;
+    const real beta1 = dr > d - epsilon ? PI2 : dr < -d + epsilon ? -PI2 : asin(dr / d);
+    const real gamma = -atan2(dy, dx);
+    for (int sign = -1; sign <= 1; sign += 2) {
+        const real beta = beta1 * sign;
+        const real alpha = gamma - beta;
+        const real sinAlpha = sin(alpha) * sign;
+        const real cosAlpha = cos(alpha) * sign;
+
+        Point* p1 = new Point();
+        p1 -> x = x1 + r1 * sinAlpha;
+        p1 -> y = y1 + r1 * cosAlpha;
+        p1 -> circle = a;
+        p1 -> angle = fmod(sign > 0 ? alpha + (real)M_PI * 2: alpha + (real)M_PI * 3, (real)M_PI * 2);
+        points.push_back(p1);
+
+        Point* p2 = new Point();
+        p2 -> x = x2 + r2 * sinAlpha;
+        p2 -> y = y2 + r2 * cosAlpha;
+        p2 -> circle = b;
+        p2 -> angle = fmod(sign > 0 ? alpha + (real)M_PI * 2: alpha + (real)M_PI * 3, (real)M_PI * 2);
+        points.push_back(p2);
+    }
+}
+
+Point* findNearest(vector<Point*> &points, const Point *a) {
+    Point* best = points[0];
+    real dist = dist2(best, a);
+    for (int i = 1; i < points.size(); i++) {
+        real d = dist2(points[i], a);
+        if (d < dist) {
+            best = points[i];
+            dist = d;
+        }
+    }
+    return best;
+}
+
 real beltLength(const Point *a, const Point *b) {
-    if (a -> circle != b -> circle) {
+    if (a == b) {
+        return 0;
+    } else if (a -> circle != b -> circle) {
         real d2 = dist2(a, b);
         return d2 > 0 ? sqrt(d2) : 0.0;
     } else if (a -> angle >= b -> angle - epsilon) {
@@ -218,13 +270,25 @@ real beltLength(vector<Point*> &points) {
     if (points.empty()) {
         return 0;
     }
+
+    Point* prev = points[points.size() - 1];
+    vector<Point*> points2;
+    for (vector<Point*>::iterator it = points.begin(); it != points.end(); it++) {
+        Point* p = *it;
+        if (p->circle != prev->circle) {
+            vector<Point*> tangle;
+            findTangle(tangle, p->circle, prev->circle);
+            points2.push_back(findNearest(tangle, prev));
+            points2.push_back(findNearest(tangle, p));
+        }
+        prev = p;
+    }
+
     real length = 0;
-    const Point* prev = points[points.size() - 1];
-    vector<Point*>::iterator it;
-    for (it = points.begin(); it != points.end(); it++) {
-        const Point* p = *it;
+    prev = points2[points2.size() - 1];
+    for (vector<Point*>::iterator it = points2.begin(); it != points2.end(); it++) {
+        Point* p = *it;
         real len = beltLength(p, prev);
-        //cout << p->x << " " << p->y << " " << len << " " << p->circle << " " << p->angle * 180 / M_PI << endl;
         length += len;
         prev = p;
     }
