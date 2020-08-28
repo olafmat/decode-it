@@ -18,8 +18,6 @@
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
 #define MAX_GAMES 500
-//#define USE_RAND
-//#define USE_ELECTIONS
 //#define VALIDATION
 
 //#pragma pack(1)
@@ -75,10 +73,6 @@ struct Board {
     mutable uint64_t used[MAX_WIDTH];
     int16_t maxShapeSize;
 
-    #ifdef USE_RAND
-    mutable int size[MAX_WIDTH];
-    #endif
-
     void operator= (const Board& src) {
         w = src.w;
         h = src.h;
@@ -96,6 +90,44 @@ struct Board {
         for (int y = 1; y <= h; y++) {
             board[0][y] = board[w + 1][y] = 0;
         }
+    }
+
+    void calcHistogram() {
+        Color hist[MAX_COLOR + 1];
+        memset(hist, 0, sizeof(hist));
+
+        for (int c = 1; c <= MAX_COLOR; c++) {
+            hist[c].c = c;
+        }
+
+        for (int x = 1; x <= w; x++) {
+            const char* col = board[x] + 1;
+            for (int y = 1; y <= h; y++) {
+                if (*col) {
+                    hist[*col].count++;
+                }
+                col++;
+            }
+        }
+
+        qsort(hist + 1, MAX_COLOR, sizeof(Color), colorComparator);
+        int map[MAX_COLOR + 1];
+        for (int c = 1; c <= MAX_COLOR; c++) {
+            map[hist[c].c] = c;
+        }
+        for (int c = 1; c <= MAX_COLOR; c++) {
+            colorHistogram[c] = hist[c].count;
+        }
+
+        for (int x = 1; x <= w; x++) {
+            char* col = board[x];
+            for (int y = 1; y <= h; y++) {
+                col[y] = map[col[y]];
+            }
+        }
+
+        maxShapeSize = w * h / 5;
+        setMaxPossibleScore();
     }
 
     void setMaxPossibleScore() {
@@ -774,42 +806,9 @@ public:
         return tabuColor;
     }
 
-    virtual const Shape* findBest(ShapeList& list) = 0;
-
     virtual void print() const = 0;
 
-    virtual void play(Board *board, Game &game, long bestScore, int seed) {
-        ShapeList list(tabuColor);
-        if (seed) {
-            list.g_seed = seed;
-        }
-        list.update(board);
-        #ifdef VALIDATION
-        validate(board, list);
-        #endif
-        game.reset();
-        while(!list.isEmpty()) {
-            const Shape* move = findBest(list);
-            #ifdef VALIDATION
-            if (!move) {
-                list.print();
-            }
-            #endif
-            game.move(*move);
-            board->remove(*move);
-            board->updateHistogram(move->c, move->size);
-            if (board->maxPossibleScore < bestScore) {
-                return;
-            }
-            list.update(board, move->minX - 1, move->maxX + 1, move->minY - 1);
-            #ifdef VALIDATION
-            if (move->score() > 6250000) {
-                move->print();
-            }
-            validate(board, list);
-            #endif
-        }
-    }
+    virtual void play(Board *board, Game &game, long bestScore, int seed) = 0;
 
     virtual ~Strategy() {
     }
@@ -818,10 +817,6 @@ public:
 class EmptySlot: public Strategy {
 public:
     EmptySlot(): Strategy(-1) {
-    }
-
-    virtual const Shape* findBest(ShapeList& list) {
-        return NULL;
     }
 
     virtual void print() const {
@@ -833,354 +828,12 @@ public:
     }
 };
 
-class FromTop: public Strategy {
-public:
-    FromTop(): Strategy(-1) {
-    }
-
-    virtual const Shape* findBest(ShapeList& list) {
-        for (int a = 0; a < 2; a++) {
-            const Shape* best = NULL;
-            int8_t y = -1;
-            for (int b = 0; b < 2; b++) {
-                int size = list.size[a][b];
-                if (size) {
-                    const Shape* shape = list.shapes[a][b];
-                    const Shape* end = shape + size;
-                    while(shape != end) {
-                        if (shape->y > y || (shape->y == y && shape->rand > best->rand)) {
-                            best = shape;
-                            y = shape->y;
-                        }
-                        shape++;
-                    }
-                }
-            }
-            if (best) {
-                return best;
-            }
-        }
-        return NULL;
-    }
-
-    virtual void print() const {
-        cout << "FromTop()" << endl;
-    }
-};
-
-
-
-class FromTopWithTabu: public Strategy {
-public:
-    FromTopWithTabu(char tabuColor): Strategy(tabuColor) {
-    }
-
-    virtual const Shape* findBest(ShapeList& list) {
-        for (int a = 0; a < 2; a++) {
-            for (int b = 0; b < 2; b++) {
-                int size = list.size[a][b];
-                if (size) {
-                    const Shape* shape = list.shapes[a][b];
-                    const Shape* end = shape + size;
-                    const Shape* best = shape++;
-                    int8_t y = best->y;
-                    while(shape != end) {
-                        if (shape->y > y || (shape->y == y && shape->rand > best->rand)) {
-                            best = shape;
-                            y = shape->y;
-                        }
-                        shape++;
-                    }
-                    return best;
-                }
-            }
-        }
-        return NULL;
-    }
-
-    virtual void print() const {
-        cout << "FromTopWithTabu(" << int(tabuColor) << ")" << endl;
-    }
-};
-
-class ByWidthWithTabu: public Strategy {
-public:
-    ByWidthWithTabu(char tabuColor): Strategy(tabuColor) {
-    }
-
-    virtual const Shape* findBest(ShapeList& list) {
-        for (int a = 0; a < 2; a++) {
-            for (int b = 0; b < 2; b++) {
-                int size = list.size[a][b];
-                if (size) {
-                    const Shape* shape = list.shapes[a][b];
-                    const Shape* end = shape + size;
-                    const Shape* best = NULL;
-                    int8_t w = -1;
-                    while(shape != end) {
-                        int8_t width = shape->maxX - shape->minX;
-                        if (width > w || (width == w && (shape->y > best->y || (shape->y == best->y && shape->rand > best->rand)))) {
-                            best = shape;
-                            w = width;
-                        }
-                        shape++;
-                    }
-                    return best;
-                }
-            }
-        }
-        return NULL;
-    }
-
-    virtual void print() const {
-        cout << "ByWidthWithTabu(" << int(tabuColor) << ")" << endl;
-    }
-};
-
-class ByAreaWithTabu: public Strategy {
-public:
-    ByAreaWithTabu(char tabuColor): Strategy(tabuColor) {
-    }
-
-    virtual const Shape* findBest(ShapeList& list) {
-        for (int a = 0; a < 2; a++) {
-            for (int b = 0; b < 2; b++) {
-                int size = list.size[a][b];
-                if (size) {
-                    const Shape* shape = list.shapes[a][b];
-                    const Shape* end = shape + size;
-                    const Shape* best = shape++;
-                    int16_t area= best->area;
-                    while(shape != end) {
-                        if (shape->area > area || (shape->area == area && shape->rand > best->rand)) {
-                            best = shape;
-                            area = shape->area;
-                        }
-                        shape++;
-                    }
-                    return best;
-                }
-            }
-        }
-        return NULL;
-    }
-
-    virtual void print() const {
-        cout << "ByAreaWithTabu(" << int(tabuColor) << ")" << endl;
-    }
-};
-
-class ByColorAndArea: public Strategy {
-public:
-    ByColorAndArea(): Strategy(-1) {
-    }
-
-    virtual const Shape* findBest(ShapeList& list) {
-        for (int a = 0; a < 2; a++) {
-            const Shape* best = NULL;
-            int bestCol = -1;
-            int16_t bestArea= -1;
-            for (int b = 0; b < 2; b++) {
-                int size = list.size[a][b];
-                if (size) {
-                    const Shape* shape = list.shapes[a][b];
-                    const Shape* end = shape + size;
-                    while(shape != end) {
-                        char col = shape->c;
-                        if (col > bestCol || (col == bestCol && (shape->area > bestArea || (shape->area == bestArea && shape->rand > best->rand)))) {
-                            best = shape;
-                            bestCol = col;
-                            bestArea = shape->area;
-                        }
-                        shape++;
-                    }
-                }
-            }
-            if (best) {
-                return best;
-            }
-        }
-        return NULL;
-    }
-
-    virtual void print() const {
-        cout << "ByColorAndArea()" << endl;
-    }
-};
-
-class DualStrategy: public Strategy {
-public:
-    DualStrategy(char tabuColor): Strategy(tabuColor) {
-    }
-
-    virtual const Shape* findBest(ShapeList& list) {
-        return NULL;
-    }
-
-    virtual void findBest2(ShapeList& list, Shape* results) = 0;
-
-    virtual void play(Board *board1, Game &game, int seed = 0) {
-        ShapeList list1(tabuColor);
-        ShapeList list2(tabuColor);
-        if (seed) {
-            list1.g_seed = seed;
-            list2.g_seed = seed + 2000;
-        }
-
-        Board board2 = *board1;
-        list1.update(board1);
-        list2.update(&board2);
-
-        #ifdef VALIDATION
-        validate(board1, list1);
-        validate(&board2, list2);
-        #endif
-
-        game.reset();
-        while(!list1.isEmpty()) {
-            Shape moves[2];
-            findBest2(list1, moves);
-
-            board1->remove(moves[0]);
-            int profit1 = moves[0].score() + list1.update2(board1, moves[0].minX - 1, moves[0].maxX + 1, moves[0].minY - 1);
-            board2.remove(moves[1]);
-            int profit2 = moves[1].score() + list2.update2(&board2, moves[1].minX - 1, moves[1].maxX + 1, moves[1].minY - 1);
-
-            #ifdef VALIDATION
-            if (moves[0].score() > 6250000) {
-                moves[0].print();
-            }
-            validate(board1, list1);
-            if (moves[1].score() > 6250000) {
-                moves[1].print();
-            }
-            validate(&board2, list2);
-            #endif
-
-            if (profit1 >= profit2) {
-                game.move(moves[0]);
-                board2 = *board1;
-                list2 = list1;
-                //list2.shuffle();
-            } else {
-                game.move(moves[1]);
-                *board1 = board2;
-                list1 = list2;
-                //list1.shuffle();
-            }
-            #ifdef VALIDATION
-            validate(board1, list1);
-            validate(&board2, list2);
-            #endif
-        }
-    }
-};
-
-class DualByAreaWithTabu: public DualStrategy {
-public:
-    DualByAreaWithTabu(char tabuColor): DualStrategy(tabuColor) {
-    }
-
-    virtual void findBest2(ShapeList& list, Shape* results) {
-        const Shape* best1 = NULL;
-        const Shape* best2 = NULL;
-        int16_t area1 = -1;
-        int16_t area2 = -1;
-        for (int a = 0; a < 2; a++) {
-            for (int b = 0; b < 2; b++) {
-                int size = list.size[a][b];
-                if (size) {
-                    const Shape* shape = list.shapes[a][b];
-                    const Shape* end = shape + size;
-                    while(shape != end) {
-                        if (shape->area > area2 || (shape->area == area2 && shape->rand > best2->rand)) {
-                            if (shape->area > area1 || (shape->area == area1 && shape->rand > best1->rand)) {
-                                best2 = best1;
-                                area2 = area1;
-                                best1 = shape;
-                                area1 = shape->area;
-                            } else {
-                                best2 = shape;
-                                area2 = shape->area;
-                            }
-                        }
-                        shape++;
-                    }
-                    if (best2) {
-                        results[0] = *best1;
-                        results[1] = *best2;
-                        return;
-                    }
-                }
-            }
-        }
-        results[0] = *best1;
-        results[1] = best2 ? *best2 : *best1;
-    }
-
-    virtual void print() const {
-        cout << "DualByAreaWithTabu(" << int(tabuColor) << ")" << endl;
-    }
-};
-
-class DualByWidthWithTabu: public DualStrategy {
-public:
-    DualByWidthWithTabu(char tabuColor): DualStrategy(tabuColor) {
-    }
-
-    virtual void findBest2(ShapeList& list, Shape* results) {
-        const Shape* best1 = NULL;
-        const Shape* best2 = NULL;
-        int8_t width1 = -1;
-        int8_t width2 = -1;
-        for (int a = 0; a < 2; a++) {
-            for (int b = 0; b < 2; b++) {
-                int size = list.size[a][b];
-                if (size) {
-                    const Shape* shape = list.shapes[a][b];
-                    const Shape* end = shape + size;
-                    while(shape != end) {
-                        const int8_t width = shape->maxX - shape->minX;
-                        if (width > width2 || (width == width2 && shape->rand > best2->rand)) {
-                            if (width > width1 || (width == width1 && shape->rand > best1->rand)) {
-                                best2 = best1;
-                                width2 = width1;
-                                best1 = shape;
-                                width1 = width;
-                            } else {
-                                best2 = shape;
-                                width2 = width;
-                            }
-                        }
-                        shape++;
-                    }
-                    if (best2) {
-                        results[0] = *best1;
-                        results[1] = *best2;
-                        return;
-                    }
-                }
-            }
-        }
-        results[0] = *best1;
-        results[1] = best2 ? *best2 : *best1;
-    }
-
-    virtual void print() const {
-        cout << "DualByWidthWithTabu(" << int(tabuColor) << ")" << endl;
-    }
-};
-
 template<bool checkMax, int versions> class MultiStrategy: public Strategy {
 public:
     MultiStrategy(char tabuColor): Strategy(tabuColor) {
     }
 
-    virtual const Shape* findBest(ShapeList& list) {
-        return NULL;
-    }
-
-    virtual void findBest2(ShapeList& list, Shape* results) = 0;
+    virtual void findBest(ShapeList& list, Shape* results) = 0;
 
     virtual void play(Board *board, Game &game, long bestScore, int seed) {
         ShapeList lists[versions];
@@ -1209,7 +862,7 @@ public:
         game.reset();
         while(!lists[0].isEmpty()) {
             Shape moves[versions];
-            findBest2(lists[0], moves);
+            findBest(lists[0], moves);
 
             int bestProfit = INT_MIN;
             int bestVer = 0;
@@ -1238,7 +891,6 @@ public:
                 if (v != bestVer) {
                     *boards[v] = *boards[bestVer];
                     lists[v] = lists[bestVer];
-                    // lists[v].shuffle();
                 }
             }
 
@@ -1267,7 +919,7 @@ public:
     MultiByAreaWithTabu(char tabuColor): MultiStrategy<checkMax, versions>(tabuColor) {
     }
 
-    virtual void findBest2(ShapeList& list, Shape* best) {
+    virtual void findBest(ShapeList& list, Shape* best) {
         memset(best, 0, sizeof(best[0]) * versions);
         int16_t areas[versions];
         for (int v = 0; v < versions; v++) {
@@ -1313,47 +965,6 @@ public:
 };
 
 
-void calcHistogram(Board *board) {
-    Color colorHistogram[MAX_COLOR + 1];
-    memset(colorHistogram, 0, sizeof(colorHistogram));
-
-    const int w = board->w;
-    const int h = board->h;
-
-    for (int c = 1; c <= MAX_COLOR; c++) {
-        colorHistogram[c].c = c;
-    }
-
-    for (int x = 1; x <= w; x++) {
-        const char* col = board->board[x] + 1;
-        for (int y = 1; y <= h; y++) {
-            if (*col) {
-                colorHistogram[*col].count++;
-            }
-            col++;
-        }
-    }
-
-    qsort(colorHistogram + 1, MAX_COLOR, sizeof(Color), colorComparator);
-    int map[MAX_COLOR + 1];
-    for (int c = 1; c <= MAX_COLOR; c++) {
-        map[colorHistogram[c].c] = c;
-    }
-    for (int c = 1; c <= MAX_COLOR; c++) {
-        board->colorHistogram[c] = colorHistogram[c].count;
-    }
-
-    for (int x = 1; x <= w; x++) {
-        char* col = board->board[x];
-        for (int y = 1; y <= h; y++) {
-            col[y] = map[col[y]];
-        }
-    }
-
-    board->maxShapeSize = w * h / 5;
-    board->setMaxPossibleScore();
-}
-
 const int NCOMP = 1000;
 
 Game* compare(Board *board, vector<Strategy*>& strategies, Game* games) {
@@ -1376,7 +987,7 @@ Game* compare(Board *board, vector<Strategy*>& strategies, Game* games) {
 }
 
 Game* compare(Board *board) {
-    calcHistogram(board);
+    board->calcHistogram();
 
     vector<Strategy*> strategies;
     if (!board->colorHistogram[6]) {
@@ -1464,144 +1075,6 @@ int findBestGame(const Game* games, const ShapeList* lists, int cnt) {
     return bestGame;
 }
 
-#ifdef USE_ELECTIONS
-Game games[NCOMP2];
-Board boards[NCOMP2];
-ShapeList lists[NCOMP2];
-Game* test3(Board *board, int electionPeriod) {
-    calcHistogram(board);
-    for (int i = 0; i < NCOMP2; i++) {
-        boards[i] = *board;
-        games[i].reset();
-    }
-    lists[0].update(board);
-    for (int i = 1; i < NCOMP2; i++) {
-        lists[i] = lists[0];
-    }
-
-    int moveNo = 0;
-    bool change = true;
-    while(change) {
-        change = false;
-        for (int i = 0; i < NCOMP2; i++) {
-            if (!lists[i].isEmpty) {
-                const Shape& move = lists[i].findBest(comparators2[i]);
-                games[i].move(move);
-                boards[i].remove(move);
-                lists[i].update(boards + i, move.minX - 1, move.maxX + 1, move.minY - 1);
-                change = true;
-            }
-        }
-        moveNo++;
-        if (moveNo % electionPeriod == 0) {
-            int bestGame = findBestGame(games, lists, NCOMP2);
-            for (int i = 0; i < NCOMP2; i++) {
-                if (i != bestGame) {
-                    games[i] = games[bestGame];
-                    boards[i] = boards[bestGame];
-                    lists[i] = lists[bestGame];
-                }
-            }
-            calcHistogram(&boards[0]);
-        }
-    }
-
-    return games + findBestGame(games, lists, NCOMP2);
-}
-#endif
-
-#ifdef USE_RAND
-Move pickRandomMove(const Board *board) {
-    Move move;
-    for (int i = 0; i < board->w * board->h; i++) {
-        int x = 1 + (random() % board->w);
-        int h = board->size[x];
-        if (h == 0) {
-            continue;
-        }
-        int y = 1 + (random() % h);
-        char c = board->board[x][y];
-        if (!c) {
-            board->size[x] = y - 1;
-            continue;
-        }
-        if (board->board[x - 1][y] == c ||
-            board->board[x + 1][y] == c ||
-            board->board[x][y - 1] == c ||
-            board->board[x][y + 1] == c) {
-            move.x = x;
-            move.y = y;
-            return move;
-        }
-    }
-    move.x = -1;
-    return move;
-}
-
-Move pickFirstMove(const Board *board) {
-    Move move;
-    for (int x = 1; x <= board->w; x++) {
-        int h = board->size[x];
-        for (int y = h; y > 0; y--) {
-            char c = board->board[x][y];
-            if (!c) {
-                board->size[x] = y;
-                continue;
-            }
-            if (board->board[x - 1][y] == c ||
-                board->board[x + 1][y] == c ||
-                board->board[x][y - 1] == c ||
-                board->board[x][y + 1] == c) {
-                move.x = x;
-                move.y = y;
-                return move;
-            }
-        }
-    }
-    move.x = -1;
-    return move;
-}
-
-void randomPlayer(Board *board, Game &game) {
-    game.reset();
-    for (int x = 1; x <= board->w; x++) {
-        board->size[x] = board->h;
-    }
-    while(true) {
-        Move move = pickRandomMove(board);
-        if (move.x < 0) {
-            break;
-        }
-        int score = board->remove2(move);
-        game.move(move, score);
-    }
-    while(true) {
-        Move move = pickFirstMove(board);
-        if (move.x < 0) {
-            break;
-        }
-        int score = board->remove2(move);
-        game.move(move, score);
-    }
-}
-
-const int NRAND = 1000;
-static Game randomGames[NRAND];
-Game* randomPlayer2(Board *board) {
-    int bestGame;
-    long bestScore = -1;
-    for (int i = 0; i < NRAND; i++) {
-        Board board2 = *board;
-        randomPlayer(&board2, randomGames[i]);
-        if (randomGames[i].total > bestScore) {
-            bestGame = i;
-            bestScore = randomGames[i].total;
-        }
-    }
-    return randomGames + bestGame;
-}
-#endif
-
 void solve(Board &board, string& out) {
     Game* game = compare(&board);
     out = game ? game->getOutput(board.h) : "N\n";
@@ -1626,19 +1099,6 @@ void play() {
     }
 }
 
-#ifdef USE_RAND
-void randomPlay() {
-    int t;
-    cin >> t;
-    for (int i = 0; i < t; i++) {
-        Board board;
-        board.loadFromCin();
-        Game* game = randomPlayer2(&board);
-        cout << game->getOutput(board.h);
-    }
-}
-#endif
-
 void stats() {
     int64_t begin = clock();
     //int width = 20;
@@ -1659,19 +1119,6 @@ void stats() {
             }
             total2 += score;
 
-            #ifdef USE_RAND
-            board2 = *board;
-            game = randomPlayer2(&board2);
-            total[NCOMP + 1] += game->total;
-            total3 += game->total * ncols * ncols / width / height;
-            #endif
-
-            #ifdef USE_ELECTIONS
-            game = test3(board, 5);
-            total[NCOMP + 2] += game->total;
-            total4 += game->total * ncols * ncols / width / height;
-            #endif
-
             delete board;
         }
         /*int best = -1;
@@ -1685,21 +1132,9 @@ void stats() {
         cout << ncols << " " << best << " " << bestV << " " << bestV * ncols * ncols / width / height <<
             " " << total[NCOMP] << " " << total[NCOMP] * ncols * ncols / width / height << endl;*/
         cout << ncols << " " << total[NCOMP];
-        #ifdef USE_RAND
-        cout << " " << total[NCOMP + 1];
-        #endif
-        #ifdef USE_ELECTIONS
-        cout << " " << total[NCOMP + 2];
-        #endif
         cout << /*" " << total[NCOMP] * ncols * ncols / width / height <<*/ endl;
     }
     cout << total2;
-    #ifdef USE_RAND
-    cout << " " << total3;
-    #endif
-    #ifdef USE_ELECTIONS
-    cout << " " << total4;
-    #endif
     cout << endl;
 
     int64_t end = clock();
@@ -1784,7 +1219,7 @@ void optimalSet(int ncols) {
             int width = 5;//(rand() % 47) + 4;
             int height = 5;//(rand() % 47) + 4;
             Board* board = Board::randomBoard(width, height, ncols);
-            calcHistogram(board);
+            board->calcHistogram();
             Game *game = compare(board, strategies, games);
             total += game->total * ncols * ncols / width / height;
             delete board;
@@ -1851,7 +1286,7 @@ void optimalSet2(int ncols, int width) {
                 //int width = 20;//(random() % 47) + 4;
                 int height = width;//(random() % 47) + 4;
                 Board* board = Board::randomBoard(width, height, ncols);
-                calcHistogram(board);
+                board->calcHistogram();
                 Game *game = compare(board, strategies, games);
                 total += game->total * ncols * ncols / width / height;
                 delete board;
@@ -1894,10 +1329,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
