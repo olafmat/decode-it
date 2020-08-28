@@ -1016,9 +1016,17 @@ public:
             int minVer = lists[0].isEmpty() ? versions1 : 0;
             int maxVer = lists[versions1].isEmpty() ? versions1 : versions;
             for (int v = minVer; v < maxVer; v++) {
-                boards[v]->remove(moves[v]);
+                Shape &move = moves[v];
+                #ifdef VALIDATION
+                if (move.score() > 6250000) {
+                    move.print();
+                }
+                #endif
 
-                int profit = moves[v].score() + lists[v].update2(boards[v], moves[v].minX - 1, moves[v].maxX + 1, moves[v].minY - 1);
+                games[v].move(move);
+                boards[v]->remove(move);
+
+                int profit = move.score() + lists[v].update2(boards[v], move.minX - 1, move.maxX + 1, move.minY - 1);
                 if (profit > bestProfit2) {
                     if (profit > bestProfit1) {
                         bestProfit2 = bestProfit1;
@@ -1033,30 +1041,17 @@ public:
             }
 
             #ifdef VALIDATION
-            for (int v = minVer; v < maxVer; v++) {
-                if (moves[v].score() > 6250000) {
-                    moves[v].print();
-                }
-            }
             for (int v = 0; v < versions; v++) {
                 validate(boards[v], lists[v]);
             }
             #endif
 
-            Shape& move1 = moves[bestVer1];
-            Shape& move2 = moves[bestVer2];
-            games[bestVer1].move(move1);
-            if (bestVer2 != bestVer1) {
-                games[bestVer2].move(move2);
-            }
             int v = 0;
             for (; v < versions1; v++) {
-                if (v != bestVer2) {
-                    if (v != bestVer1) {
-                        *boards[v] = *boards[bestVer1];
-                        lists[v] = lists[bestVer1];
-                        games[v] = games[bestVer1];
-                    }
+                if (v != bestVer1 && v != bestVer2) {
+                    *boards[v] = *boards[bestVer1];
+                    lists[v] = lists[bestVer1];
+                    games[v] = games[bestVer1];
                 }
             }
             for (; v < versions2; v++) {
@@ -1229,16 +1224,16 @@ Game* compare(Board *board) {
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(4));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
     } else if (!board->colorHistogram[10]) {
-        strategies.push_back(new DoubleByAreaWithTabu<19, 1>(1));
+        strategies.push_back(new DoubleByAreaWithTabu<20, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
     } else if (!board->colorHistogram[12]) {
-        strategies.push_back(new DoubleByAreaWithTabu<22, 1>(1));
+        strategies.push_back(new DoubleByAreaWithTabu<23, 1>(1));
     } else if (!board->colorHistogram[13]) {
-        strategies.push_back(new DoubleByAreaWithTabu<22, 1>(1));
-        //strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
+        strategies.push_back(new DoubleByAreaWithTabu<23, 1>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
     } else {
-        strategies.push_back(new DoubleByAreaWithTabu<19, 1>(0));
+        strategies.push_back(new DoubleByAreaWithTabu<20, 1>(0));
     }
 
     Game games[strategies.size()];
