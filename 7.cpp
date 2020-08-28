@@ -24,9 +24,6 @@
 
 using namespace std;
 
-struct Shape;
-struct ShapeList;
-
 struct Move {
     int8_t x, y;
 };
@@ -64,15 +61,6 @@ struct Segment {
     }
 };
 
-struct Color {
-    char c;
-    int count;
-
-    static int comparator(const void* va, const void* vb) {
-        return ((const Color*) vb)->count - ((const Color*) va)->count;
-    }
-};
-
 struct Board {
     int w, h;
     char board[MAX_WIDTH][MAX_HEIGHT2];
@@ -100,7 +88,16 @@ struct Board {
         }
     }
 
-    void calcHistogram() {
+    void sortColors() {
+        struct Color {
+            char c;
+            int count;
+
+            static int comparator(const void* va, const void* vb) {
+                return ((const Color*) vb)->count - ((const Color*) va)->count;
+            }
+        };
+
         Color hist[MAX_COLOR + 1];
         memset(hist, 0, sizeof(hist));
 
@@ -211,8 +208,8 @@ struct Board {
             addSegment(x, nmaxY1 + 1, maxY1, left, right, c, segments);
         }
 
-        const uint64_t mask = (uint64_t(1) << nmaxY1) - (uint64_t(1) << nminY);
-        if ((used[x] & mask) != uint64_t(0)) {
+        const uint64_t mask = (UINT64_C(1) << nmaxY1) - (UINT64_C(1) << nminY);
+        if ((used[x] & mask) != UINT64_C(0)) {
             return;
         }
         used[x] |= mask;
@@ -246,7 +243,7 @@ struct Board {
     }
 
     void remove(const Shape& shape) {
-        memset(used + shape.minX, 0, sizeof(uint64_t) * (shape.maxX - shape.minX + 1));
+        memset(used + shape.minX, 0, (shape.maxX - shape.minX + 1) << 3);
         Segment segments[MAX_WIDTH * MAX_HEIGHT];
         Segment *segm = segments;
         addSegment(shape.minX, shape.y, shape.y + 1, true, true, shape.c, segm);
@@ -282,7 +279,7 @@ struct Board {
     }
 
     int remove2(const Move move) {
-        memset(used, 0, sizeof(uint64_t) * (w + 2));
+        memset(used, 0, (w + 2) << 3);
         Segment segments[MAX_WIDTH * MAX_HEIGHT];
         Segment *segm = segments;
         const char c = board[move.x][move.y];
@@ -323,9 +320,11 @@ struct Board {
 
     void updateHistogram(const char c, const int size) {
         const int score = size * (size - 1);
+
         int oldColorSize = colorHistogram[c];
         int newColorSize = oldColorSize - size;
         colorHistogram[c] = newColorSize;
+
         if (oldColorSize > maxShapeSize) {
             oldColorSize = maxShapeSize;
         }
@@ -355,7 +354,7 @@ struct ShapeList {
         memset(size, 0, sizeof(size));
     }
 
-    bool isEmpty() const {
+    inline bool isEmpty() const {
         return !size[0][0] && !size[0][1] && !size[1][0] && !size[1][1];
     }
 
@@ -398,8 +397,8 @@ struct ShapeList {
             total += addSegment(board, x, nmaxY1 + 1, maxY1, left, right, dest);
         }
 
-        const uint64_t mask = (uint64_t(1) << nmaxY1) - (uint64_t(1) << nminY);
-        if ((used[x] & mask) != uint64_t(0)) {
+        const uint64_t mask = (UINT64_C(1) << nmaxY1) - (UINT64_C(1) << nminY);
+        if ((used[x] & mask) != UINT64_C(0)) {
             return total;
         }
         used[x] |= mask;
@@ -506,7 +505,7 @@ struct ShapeList {
                 shapes[1][1] + size[1][1]
             }
         };
-        memset(used, 0, sizeof(uint64_t) * (w + 2));
+        memset(used, 0, (w + 2) << 3);
         uint64_t* usedCol = used + minX;
 
         for (int x = minX; x <= maxX; x++) {
@@ -583,7 +582,7 @@ struct ShapeList {
                 shapes[1][1] + size[1][1]
             }
         };
-        memset(used, 0, sizeof(uint64_t) * (w + 2));
+        memset(used, 0, (w + 2) << 3);
         const uint64_t* usedCol = used + minX;
 
         for (int x = minX; x <= maxX; x++) {
@@ -661,7 +660,7 @@ struct Game {
         memcpy(moves, src.moves, nmoves * sizeof(Move));
     }
 
-    void move(const Shape & shape) {
+    void move(const Shape& shape) {
         total += shape.score();
         #ifdef VALIDATION
         if (total > 6250000) {
@@ -973,7 +972,7 @@ const Game* compare(const Board *const board, vector<Strategy*>& strategies, Gam
 }
 
 const Game* compare(Board *const board) {
-    board->calcHistogram();
+    board->sortColors();
 
     vector<Strategy*> strategies;
     if (!board->colorHistogram[6]) {
@@ -1195,7 +1194,7 @@ void optimalSet(int ncols) {
             int width = 5;//(rand() % 47) + 4;
             int height = 5;//(rand() % 47) + 4;
             Board* board = Board::randomBoard(width, height, ncols);
-            board->calcHistogram();
+            board->sortColors();
             Game *game = compare(board, strategies, games);
             total += game->total * ncols * ncols / width / height;
             delete board;
@@ -1262,7 +1261,7 @@ void optimalSet2(int ncols, int width) {
                 //int width = 20;//(random() % 47) + 4;
                 int height = width;//(random() % 47) + 4;
                 Board* board = Board::randomBoard(width, height, ncols);
-                board->calcHistogram();
+                board->sortColors();
                 Game *game = compare(board, strategies, games);
                 total += game->total * ncols * ncols / width / height;
                 delete board;
@@ -1305,10 +1304,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
