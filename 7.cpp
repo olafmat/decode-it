@@ -18,7 +18,7 @@
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
 #define MAX_GAMES 500
-#define VALIDATION
+//#define VALIDATION
 
 //#pragma pack(1)
 
@@ -341,13 +341,13 @@ struct Board {
     }
 
     #ifdef VALIDATION
-    void validateMove(Move &move) {
+    bool validateMove(Move &move) {
         char c = board[move.x][move.y];
         if (c == 0) {
             cout << "bad move A " << endl;
             move.print();
             print();
-            exit(0);
+            return false;
         }
         if (board[move.x - 1][move.y] != c &&
             board[move.x][move.y - 1] != c &&
@@ -356,15 +356,24 @@ struct Board {
             cout << "bad move B " << endl;
             move.print();
             print();
-            exit(0);
+            return false;
         }
+        return true;
     }
 
-    void validateMove(Shape &shape) {
+    bool validateMove(Shape &shape) {
+        if (shape.score() > 6250000) {
+            shape.print();
+            return false;
+        }
         Move move;
         move.x = shape.minX;
         move.y = shape.y;
-        validateMove(move);
+        bool ok = validateMove(move);
+        if (!ok) {
+            shape.print();
+        }
+        return ok;
     }
     #endif
 };
@@ -699,9 +708,11 @@ struct Game {
         if (total > 6250000) {
             cout << "TOTAL " << total << endl;
             shape.print();
+            exit(0);
         }
         if (nmoves > MAX_WIDTH * MAX_HEIGHT) {
             cout << "MAX " << nmoves << endl;
+            exit(0);
         }
         /*if (nmoves && moves[nmoves - 1].x == shape.minX && moves[nmoves - 1].y == shape.y) {
             cout << "SAME " << endl;
@@ -890,6 +901,12 @@ public:
             int bestProfit = INT_MIN;
             int bestVer = 0;
             for (int v = 0; v < versions; v++) {
+                #ifdef VALIDATION
+                if (!boards[v]->validateMove(moves[v])) {
+                    print();
+                    exit(0);
+                }
+                #endif
                 boards[v]->remove(moves[v]);
 
                 int profit = moves[v].score() + lists[v].update2(boards[v], moves[v].minX - 1, moves[v].maxX + 1, moves[v].minY - 1);
@@ -1048,6 +1065,13 @@ public:
 
             #ifdef VALIDATION
             for (int v = 0; v < versions; v++) {
+                #ifdef VALIDATION
+                if (!boards[v]->validateMove(moves[v])) {
+                    cout << "move2 " << v << " " << versions1 << endl;
+                    print();
+                    exit(0);
+                }
+                #endif
                 if (!validate(boards[v], lists[v])) {
                     cout << "Val 7 " << v << endl;
                     print();
@@ -1065,10 +1089,11 @@ public:
             for (int v = minVer; v < maxVer; v++) {
                 Shape &move = moves[v];
                 #ifdef VALIDATION
-                if (move.score() > 6250000) {
-                    move.print();
+                if (!boards[v]->validateMove(move)) {
+                    cout << "move1 " << v << " " << minVer << " " << maxVer << " " << versions1 << endl;
+                    print();
+                    exit(0);
                 }
-                boards[v]->validateMove(move);
                 #endif
                 games[v].move(move);
                 boards[v]->remove(move);
@@ -1087,7 +1112,7 @@ public:
                 }
             }
 
-cout << bestVer1 << " " <<bestVer2 << " " << empty1 << empty2 << endl;
+            //cout << bestVer1 << " " <<bestVer2 << " " << empty1 << empty2 << endl;
             #ifdef VALIDATION
             for (int v = 0; v < versions; v++) {
                 if (!validate(boards[v], lists[v])) {
@@ -1099,26 +1124,45 @@ cout << bestVer1 << " " <<bestVer2 << " " << empty1 << empty2 << endl;
             #endif
 
             int v = 0;
-            for (; v < versions1; v++) {
-                if (v != bestVer1 && v != bestVer2) {
-                    *boards[v] = *boards[bestVer1];
-                    lists[v] = lists[bestVer1];
-                    games[v] = games[bestVer1];
+            if (versions1 == 1 && !bestVer2) {
+                const Board boardAux = *boards[bestVer1];
+                const ShapeList listAux = lists[bestVer1];
+                const Game gameAux = games[bestVer1];
+                for (v = 1; v < versions; v++) {
+                    //cout << "copy " << 0 << " to " << v << endl;
+                    *boards[v] = *boards[0];
+                    lists[v] = lists[0];
+                    games[v] = games[0];
+                }
+                //cout << "copy saved " << bestVer1 << " to " << 0 << endl;
+                *boards[0] = boardAux;
+                lists[0] = listAux;
+                games[0] = gameAux;
+            } else {
+                for (; v < versions1; v++) {
+                    if (v != bestVer1 && v != bestVer2) {
+                        //cout << "copy " << bestVer1 << " to " << v << endl;
+                        *boards[v] = *boards[bestVer1];
+                        lists[v] = lists[bestVer1];
+                        games[v] = games[bestVer1];
+                    }
+                }
+                for (; v < versions; v++) {
+                    if (v != bestVer2) {
+                        //cout << "copy " << bestVer2 << " to " << v << endl;
+                        *boards[v] = *boards[bestVer2];
+                        lists[v] = lists[bestVer2];
+                        games[v] = games[bestVer2];
+                    }
+                }
+                if (bestVer2 < versions1) {
+                    const int from = bestVer2 ? 0 : 1;
+                    //cout << "copy " << from << " to " << bestVer2 << endl;
+                    *boards[bestVer2] = *boards[from];
+                    lists[bestVer2] = lists[from];
+                    games[bestVer2] = games[from];
                 }
             }
-            for (; v < versions2; v++) {
-                if (v != bestVer2) {
-                    *boards[v] = *boards[bestVer2];
-                    lists[v] = lists[bestVer2];
-                    games[v] = games[bestVer2];
-                }
-            }
-            if (bestVer2 < versions1) {
-                *boards[bestVer2] = *boards[bestVer1];
-                lists[bestVer2] = lists[bestVer1];
-                games[bestVer2] = games[bestVer1];
-            }
-
             /*if (checkMax) {
                 board->updateHistogram(move.c, move.size);
                 if (board->maxPossibleScore < bestScore) {
@@ -1208,7 +1252,9 @@ void validateGame(const Board *const board, const Game& game, bool earlyStop) {
     long total = 0;
     for (int i = 0; i < game.nmoves; i++) {
         Move move = game.moves[i];
-        board2.validateMove(move);
+        if (!board2.validateMove(move)) {
+            exit(0);
+        }
         int score = board2.remove2(move);
         total += score;
     }
@@ -1282,7 +1328,7 @@ const Game* compare(Board *const board) {
             strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
-            //strategies.push_back(new MultiByAreaWithTabu<true, 10>(1));
+            strategies.push_back(new MultiByAreaWithTabu<true, 10>(1));
         }
     } else if (!board->colorHistogram[7]) {
         strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
@@ -1593,10 +1639,10 @@ void optimalSet2(int ncols, int width) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
