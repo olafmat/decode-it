@@ -1391,6 +1391,9 @@ const Game* compare(Board *const board) {
     } else {
         strategies.push_back(new MultiByAreaWithTabu<false, 21>(0));
     }
+    if (board->w < 25) {
+        strategies.push_back(new MultiByAreaWithTabu<false, 5>(1));
+    }
 
     Game games[strategies.size()];
     const Game* best = compare(board, strategies, games);
@@ -1450,6 +1453,8 @@ void stats() {
             int height = width; //(rand() % 47) + 4;
             Board* board = Board::randomBoard(width, height, ncols);
             Board board2 = *board;
+            if (width != 50)
+                continue;
             const Game *game = compare(&board2);
             long score = game->total * ncols * ncols / width / height;
             total += score;
@@ -1658,10 +1663,10 @@ void optimalSet2(int ncols, int width) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
