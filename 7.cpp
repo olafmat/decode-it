@@ -1397,7 +1397,7 @@ const Game* compare(Board *const board) {
     } else {
         strategies.push_back(new MultiByAreaWithTabu<false, 21>(0));
         if (board->w < 25) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 5>(1));
+            strategies.push_back(new MultiByAreaWithTabu<false, 4>(1));
         }
     }
 
