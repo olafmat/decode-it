@@ -1384,7 +1384,7 @@ const Game* compare(Board *const board) {
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
         if (board->w < 25) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 5>(1));
+            strategies.push_back(new MultiByAreaWithTabu<true, 5>(1));
         }
     } else if (!board->colorHistogram[12]) {
         strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
@@ -1392,12 +1392,12 @@ const Game* compare(Board *const board) {
         strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
         if (board->w < 25) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 5>(1));
+            strategies.push_back(new MultiByAreaWithTabu<true, 5>(1));
         }
     } else {
         strategies.push_back(new MultiByAreaWithTabu<false, 21>(0));
         if (board->w < 25) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 3>(1));
+            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
         }
     }
 
