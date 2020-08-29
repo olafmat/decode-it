@@ -714,10 +714,6 @@ struct Game {
             cout << "MAX " << nmoves << endl;
             exit(0);
         }
-        /*if (nmoves && moves[nmoves - 1].x == shape.minX && moves[nmoves - 1].y == shape.y) {
-            cout << "SAME " << endl;
-            shape.print();
-        }*/
         #endif
         moves[nmoves].x = shape.minX;
         moves[nmoves].y = shape.y;
@@ -1383,7 +1379,7 @@ const Game* compare(Board *const board) {
         strategies.push_back(new MultiByAreaWithTabu<false, 21>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
-        if (board->w < 25) {
+        if (board->w < 35) {
             strategies.push_back(new MultiByAreaWithTabu<true, 5>(1));
         }
     } else if (!board->colorHistogram[12]) {
@@ -1459,8 +1455,6 @@ void stats() {
             int height = width; //(rand() % 47) + 4;
             Board* board = Board::randomBoard(width, height, ncols);
             Board board2 = *board;
-            if (width != 50)
-                continue;
             const Game *game = compare(&board2);
             long score = game->total * ncols * ncols / width / height;
             total += score;
