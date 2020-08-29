@@ -177,6 +177,7 @@ struct Board {
     }
 
     void print() const {
+        cout << "Board " << int(w) << "x" << int(h) << endl;
         for (int y = h; y > 0; y--) {
             for (int x = 1; x <= w; x++) {
                 cout << (board[x][y] ? char('A' + board[x][y]) : '-');
@@ -338,6 +339,34 @@ struct Board {
 
         maxPossibleScore += score + newColorSize * (newColorSize - 1) - oldColorSize * (oldColorSize - 1);
     }
+
+    #ifdef VALIDATION
+    void validateMove(Move &move) {
+        char c = board[move.x][move.y];
+        if (c == 0) {
+            cout << "bad move A " << endl;
+            move.print();
+            print();
+            exit(0);
+        }
+        if (board[move.x - 1][move.y] != c &&
+            board[move.x][move.y - 1] != c &&
+            board[move.x + 1][move.y] != c &&
+            board[move.x][move.y + 1] != c) {
+            cout << "bad move B " << endl;
+            move.print();
+            print();
+            exit(0);
+        }
+    }
+
+    void validateMove(Shape &shape) {
+        Move move;
+        move.x = shape.minX;
+        move.y = shape.y;
+        validateMove(move);
+    }
+    #endif
 };
 
 struct ShapeList {
@@ -846,7 +875,10 @@ public:
 
         #ifdef VALIDATION
         for (int v = 0; v < versions; v++) {
-            validate(boards[v], lists[v]);
+            if (!validate(boards[v], lists[v])) {
+                cout << "Val 1" <<endl;
+                exit(0);
+            }
         }
         #endif
 
@@ -872,7 +904,10 @@ public:
                 if (moves[v].score() > 6250000) {
                     moves[v].print();
                 }
-                validate(boards[v], lists[v]);
+                if (!validate(boards[v], lists[v])) {
+                    cout << "Val 2" <<endl;
+                    exit(0);
+                }
             }
             #endif
 
@@ -894,7 +929,10 @@ public:
 
             #ifdef VALIDATION
             for (int v = 0; v < versions; v++) {
-                validate(boards[v], lists[v]);
+                if (!validate(boards[v], lists[v])) {
+                    cout << "Val 3" <<endl;
+                    exit(0);
+                }
             }
             #endif
         }
@@ -987,33 +1025,51 @@ public:
 
         #ifdef VALIDATION
         for (int v = 0; v < versions; v++) {
-            validate(boards[v], lists[v]);
+            if (!validate(boards[v], lists[v])) {
+                cout << "Val 5" <<endl;
+                exit(0);
+            }
         }
         #endif
 
-        while(!lists[0].isEmpty() && !lists[versions1].isEmpty()) {
+        while(true) {
+            const bool empty1 = lists[0].isEmpty();
+            const bool empty2 = lists[versions1].isEmpty();
+            if (empty1 && empty2) {
+                break;
+            }
             Shape moves[versions];
-            if (!lists[0].isEmpty()) {
+            if (!empty1) {
                 findBest(lists[0], moves, versions1);
             }
-            if (!lists[versions1].isEmpty()) {
+            if (!empty2) {
                 findBest(lists[versions1], moves + versions1, versions2);
             }
+
+            #ifdef VALIDATION
+            for (int v = 0; v < versions; v++) {
+                if (!validate(boards[v], lists[v])) {
+                    cout << "Val 7 " << v << endl;
+                    print();
+                    exit(0);
+                }
+            }
+            #endif
 
             int bestProfit1 = INT_MIN;
             int bestVer1 = 0;
             int bestProfit2 = INT_MIN;
             int bestVer2 = 0;
-            int minVer = lists[0].isEmpty() ? versions1 : 0;
-            int maxVer = lists[versions1].isEmpty() ? versions1 : versions;
+            int minVer = empty1 ? versions1 : 0;
+            int maxVer = empty2 ? versions1 : versions;
             for (int v = minVer; v < maxVer; v++) {
                 Shape &move = moves[v];
                 #ifdef VALIDATION
                 if (move.score() > 6250000) {
                     move.print();
                 }
+                boards[v]->validateMove(move);
                 #endif
-
                 games[v].move(move);
                 boards[v]->remove(move);
 
@@ -1031,9 +1087,14 @@ public:
                 }
             }
 
+cout << bestVer1 << " " <<bestVer2 << " " << empty1 << empty2 << endl;
             #ifdef VALIDATION
             for (int v = 0; v < versions; v++) {
-                validate(boards[v], lists[v]);
+                if (!validate(boards[v], lists[v])) {
+                    cout << "Val 6 " << v << endl;
+                    print();
+                    exit(0);
+                }
             }
             #endif
 
@@ -1067,7 +1128,10 @@ public:
 
             #ifdef VALIDATION
             for (int v = 0; v < versions; v++) {
-                validate(boards[v], lists[v]);
+                if (!validate(boards[v], lists[v])) {
+                    cout << "Val 7" <<endl;
+                    exit(0);
+                }
             }
             #endif
         }
@@ -1144,20 +1208,7 @@ void validateGame(const Board *const board, const Game& game, bool earlyStop) {
     long total = 0;
     for (int i = 0; i < game.nmoves; i++) {
         Move move = game.moves[i];
-        char c = board2.board[move.x][move.y];
-        if (c == 0) {
-            cout << "bad move A " << i << endl;
-            move.print();
-            board2.print();
-        }
-        if (board2.board[move.x - 1][move.y] != c &&
-            board2.board[move.x][move.y - 1] != c &&
-            board2.board[move.x + 1][move.y] != c &&
-            board2.board[move.x][move.y + 1] != c) {
-            cout << "bad move B " << i << endl;
-            move.print();
-            board2.print();
-        }
+        board2.validateMove(move);
         int score = board2.remove2(move);
         total += score;
     }
@@ -1231,10 +1282,10 @@ const Game* compare(Board *const board) {
             strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 10>(1));
+            //strategies.push_back(new MultiByAreaWithTabu<true, 10>(1));
         }
     } else if (!board->colorHistogram[7]) {
-        strategies.push_back(new DoubleByAreaWithTabu<4, 3>(1));
+        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
@@ -1243,7 +1294,7 @@ const Game* compare(Board *const board) {
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
     } else if (!board->colorHistogram[8]) {
-        strategies.push_back(new DoubleByAreaWithTabu<7, 1>(1));
+        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
         strategies.push_back(new EmptySlot());
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
@@ -1252,7 +1303,7 @@ const Game* compare(Board *const board) {
         strategies.push_back(new EmptySlot());
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
     } else if (!board->colorHistogram[9]) {
-        strategies.push_back(new DoubleByAreaWithTabu<7, 1>(1));
+        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
         strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
@@ -1264,16 +1315,16 @@ const Game* compare(Board *const board) {
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(4));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
     } else if (!board->colorHistogram[10]) {
-        strategies.push_back(new DoubleByAreaWithTabu<21, 1>(1));
+        strategies.push_back(new MultiByAreaWithTabu<false, 21>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
     } else if (!board->colorHistogram[12]) {
-        strategies.push_back(new DoubleByAreaWithTabu<24, 1>(1));
+        strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
     } else if (!board->colorHistogram[13]) {
-        strategies.push_back(new DoubleByAreaWithTabu<24, 1>(1));
+        strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
     } else {
-        strategies.push_back(new DoubleByAreaWithTabu<21, 1>(0));
+        strategies.push_back(new MultiByAreaWithTabu<false, 21>(0));
     }
 
     Game games[strategies.size()];
