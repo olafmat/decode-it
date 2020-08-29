@@ -28,7 +28,7 @@ struct Move {
     int8_t x, y;
 
     void print() const {
-        cout << x << "x" << y << endl;
+        cout << int(x) << "x" << int(y) << endl;
     }
 };
 
