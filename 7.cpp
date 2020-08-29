@@ -727,14 +727,31 @@ struct Game {
         nmoves++;
     }
 
-    string getOutput(const int height) const noexcept {
-        string out;
-        out += "Y\n";
+    void appendOutput(char *& out, const int height) const noexcept {
+        *(out++) = 'Y';
+        *(out++) = '\n';
         for (int i = 0; i < nmoves; i++) {
-            out += to_string(height - moves[i].y) + ' ' + to_string(moves[i].x - 1) + '\n';
+            const int y = height - moves[i].y;
+            if (y > 9) {
+                *(out++) = '0' + (y / 10);
+            }
+            *(out++) = '0' + (y % 10);
+
+            *(out++) = ' ';
+
+            const int x = moves[i].x - 1;
+            if (x > 9) {
+                *(out++) = '0' + (x / 10);
+            }
+            *(out++) = '0' + (x % 10);
+
+            *(out++) = '\n';
         }
-        out += "-1 -1\n";
-        return out;
+        *(out++) = '-';
+        *(out++) = '1';
+        *(out++) = ' ';
+        *(out++) = '-';
+        *(out++) = '1';
     }
 };
 
@@ -1425,9 +1442,15 @@ int findBestGame(const Game* const games, const ShapeList* const lists, const in
     return bestGame;
 }
 
-void solve(Board &board, string& out) noexcept {
+void solve(Board &board, char* buf) noexcept {
     const Game* game = compare(&board);
-    out = game ? game->getOutput(board.h) : "N\n";
+    char* out = buf;
+    if (game) {
+        game->appendOutput(out, board.h);
+    } else {
+        *(out++) = 'N';
+    }
+    *out = 0;
 }
 
 void play() noexcept {
@@ -1439,13 +1462,13 @@ void play() noexcept {
         boards[i].loadFromCin();
     }
 
-    static string out[MAX_GAMES];
+    static char out[MAX_GAMES][7 * MAX_WIDTH * MAX_HEIGHT + 10];
     for (int i = 0; i < t; i++) {
         solve(boards[i], out[i]);
     }
 
     for (int i = 0; i < t; i++) {
-        cout << out[i];
+        puts(out[i]);
     }
 }
 
