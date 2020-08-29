@@ -41,11 +41,11 @@ struct Shape {
     char vs;
     int8_t rand;
 
-    int score() const {
+    int score() const noexcept {
         return size * (size - 1);
     }
 
-    void print() const {
+    void print() const noexcept {
         cout << "minX=" << (int)minX << " maxX=" << (int)maxX << " minY=" << (int)minY << " maxY=" << (int)maxY <<
             " y=" << (int)y << " size=" << (int)size << " c=" << char('A' + c) << " score=" << score() <<
             " vs=" << (int)vs << endl;
@@ -55,7 +55,7 @@ struct Shape {
 struct Segment {
     uint8_t x, minY, maxY1;
 
-    static int comparator(const void *va, const void *vb) {
+    static int comparator(const void *va, const void *vb) noexcept {
         const Segment* a = (const Segment*) va;
         const Segment* b = (const Segment*) vb;
         if (a->x != b->x) {
@@ -73,7 +73,7 @@ struct Board {
     mutable uint64_t used[MAX_WIDTH];
     int16_t maxShapeSize;
 
-    void operator= (const Board& src) {
+    void operator= (const Board& src) noexcept {
         w = src.w;
         h = src.h;
         for (int x = 0; x <= w + 1; x++) {
@@ -83,7 +83,7 @@ struct Board {
         //maxPossibleScore = src.maxPossibleScore;
     }
 
-    void addFrame() {
+    void addFrame() noexcept {
         for (int x = 0; x <= w + 1; x++) {
             board[x][0] = board[x][h + 1] = 0;
         }
@@ -92,12 +92,12 @@ struct Board {
         }
     }
 
-    void sortColors() {
+    void sortColors() noexcept {
         struct Color {
             char c;
             int count;
 
-            static int comparator(const void* va, const void* vb) {
+            static int comparator(const void* va, const void* vb) noexcept {
                 return ((const Color*) vb)->count - ((const Color*) va)->count;
             }
         };
@@ -139,7 +139,7 @@ struct Board {
         setMaxPossibleScore();
     }
 
-    void setMaxPossibleScore() {
+    void setMaxPossibleScore() noexcept {
         maxPossibleScore = 0;
         for (int c = 1; c <= MAX_COLOR; c++) {
             int size = colorHistogram[c];
@@ -150,7 +150,7 @@ struct Board {
         }
     }
 
-    void loadFromCin() {
+    void loadFromCin() noexcept {
         int nc;
         cin >> h >> w >> nc;
         addFrame();
@@ -163,7 +163,7 @@ struct Board {
         }
     }
 
-    static Board* randomBoard(const int w, const int h, const int c) {
+    static Board* randomBoard(const int w, const int h, const int c) noexcept {
         Board* board = new Board();
         board->w = w;
         board->h = h;
@@ -176,7 +176,7 @@ struct Board {
         return board;
     }
 
-    void print() const {
+    void print() const noexcept {
         cout << "Board " << int(w) << "x" << int(h) << endl;
         for (int y = h; y > 0; y--) {
             for (int x = 1; x <= w; x++) {
@@ -187,7 +187,7 @@ struct Board {
     }
 
     void addSegment(const int x, const int minY, const int maxY1, const bool left, const bool right, const char c,
-            Segment*& segments) const {
+            Segment*& segments) const noexcept {
         const char *col = board[x];
         int nminY = minY;
         if (col[nminY] == c) {
@@ -247,7 +247,7 @@ struct Board {
         }
     }
 
-    void remove(const Shape& shape) {
+    void remove(const Shape& shape) noexcept {
         memset(used + shape.minX, 0, sizeof(uint64_t) * (shape.maxX - shape.minX + 1));
         Segment segments[MAX_WIDTH * MAX_HEIGHT];
         Segment *segm = segments;
@@ -283,7 +283,7 @@ struct Board {
         }
     }
 
-    int remove2(const Move move) {
+    int remove2(const Move move) noexcept {
         memset(used, 0, sizeof(uint64_t) * (w + 2));
         Segment segments[MAX_WIDTH * MAX_HEIGHT];
         Segment *segm = segments;
@@ -323,7 +323,7 @@ struct Board {
         return size * (size - 1);
     }
 
-    void updateHistogram(const char c, const int size) {
+    void updateHistogram(const char c, const int size) noexcept {
         const int score = size * (size - 1);
 
         int oldColorSize = colorHistogram[c];
@@ -341,7 +341,7 @@ struct Board {
     }
 
     #ifdef VALIDATION
-    bool validateMove(Move &move) {
+    bool validateMove(Move &move) noexcept {
         char c = board[move.x][move.y];
         if (c == 0) {
             cout << "bad move A " << endl;
@@ -361,7 +361,7 @@ struct Board {
         return true;
     }
 
-    bool validateMove(Shape &shape) {
+    bool validateMove(Shape &shape) noexcept {
         if (shape.score() > 6250000) {
             shape.print();
             return false;
@@ -385,22 +385,22 @@ struct ShapeList {
     mutable int seed;
     mutable uint64_t used[MAX_WIDTH];
 
-    inline int fastRand() const {
+    inline int fastRand() const noexcept {
       seed = (214013 * seed + 2531011);
       return (seed >> 16) & 0x7FFF;
     }
 
-    ShapeList(const char tabuColor = 0):
+    ShapeList(const char tabuColor = 0) noexcept:
         tabuColor(tabuColor),
         seed(5325353) {
         size[0][0] = size[0][1] = size[1][0] = size[1][1] = 0;
     }
 
-    inline bool isEmpty() const {
+    inline bool isEmpty() const noexcept {
         return !size[0][0] && !size[0][1] && !size[1][0] && !size[1][1];
     }
 
-    void operator=(const ShapeList& src) {
+    void operator=(const ShapeList& src) noexcept {
         memcpy(size, src.size, sizeof(size));
         for (int a = 0; a < 2; a++) {
             for (int b = 0; b < 2; b++) {
@@ -411,7 +411,7 @@ struct ShapeList {
     }
 
     int addSegment(const Board* const board, const int x, const int minY, const int maxY1,
-            const bool left, const bool right, Shape* const dest) const {
+            const bool left, const bool right, Shape* const dest) const noexcept {
         const char c = dest->c;
         const char *col = board->board[x];
         int nminY = minY;
@@ -485,7 +485,7 @@ struct ShapeList {
         return total;
     }
 
-    void addShape(const Board* const board, const int x, const int y, Shape* const dest) const {
+    void addShape(const Board* const board, const int x, const int y, Shape* const dest) const noexcept {
         dest->minX = board->w + 1;
         dest->maxX = -1;
         dest->minY = board->h + 1;
@@ -506,7 +506,7 @@ struct ShapeList {
         dest->rand = fastRand();
     }
 
-    void update(const Board * const board, int minX = 1, int maxX = MAX_WIDTH, int minY = 1) {
+    void update(const Board * const board, int minX = 1, int maxX = MAX_WIDTH, int minY = 1) noexcept {
         if (minX < 1) {
             minX = 1;
         }
@@ -581,7 +581,7 @@ struct ShapeList {
         size[1][1] = dest[1][1] - shapes[1][1];
     }
 
-    int update2(const Board* const board, int minX = 1, int maxX = MAX_WIDTH, int minY = 1) {
+    int update2(const Board* const board, int minX = 1, int maxX = MAX_WIDTH, int minY = 1) noexcept {
         int profit = 0;
         if (minX < 1) {
             minX = 1;
@@ -660,7 +660,7 @@ struct ShapeList {
         return profit;
     }
 
-    long score() const {
+    long score() const noexcept {
         long total = 0;
         for (int a = 0; a < 2; a++) {
             for (int b = 0; b < 2; b++) {
@@ -673,7 +673,7 @@ struct ShapeList {
         return total;
     }
 
-    void print() const {
+    void print() const noexcept {
         for (int a = 0; a < 2; a++) {
             for (int b = 0; b < 2; b++) {
                 cout << "Branch " << a << b << endl;
@@ -691,18 +691,18 @@ struct Game {
     int nmoves;
     Move moves[MAX_WIDTH * MAX_HEIGHT];
 
-    void reset() {
+    void reset() noexcept {
         total = 0;
         nmoves = 0;
     }
 
-    void operator=(const Game& src) {
+    void operator=(const Game& src) noexcept {
         total = src.total;
         nmoves = src.nmoves;
         memcpy(moves, src.moves, nmoves * sizeof(Move));
     }
 
-    void move(const Shape& shape) {
+    void move(const Shape& shape) noexcept {
         total += shape.score();
         #ifdef VALIDATION
         if (total > 6250000) {
@@ -720,14 +720,14 @@ struct Game {
         nmoves++;
     }
 
-    void move(const Move move, const int score) {
+    void move(const Move move, const int score) noexcept {
         total += score;
         moves[nmoves].x = move.x;
         moves[nmoves].y = move.y;
         nmoves++;
     }
 
-    string getOutput(const int height) const {
+    string getOutput(const int height) const noexcept {
         string out;
         out += "Y\n";
         for (int i = 0; i < nmoves; i++) {
@@ -739,7 +739,7 @@ struct Game {
 };
 
 #ifdef VALIDATION
-bool validate(const Board* const board, const ShapeList& list) {
+bool validate(const Board* const board, const ShapeList& list) noexcept {
     int total = 0;
     bool ok = true;
     for (int a = 0; a < 2; a++) {
@@ -826,43 +826,46 @@ protected:
     char tabuColor;
 
 public:
-    Strategy(const char tabuColor): tabuColor(tabuColor) {
+    Strategy(const char tabuColor) noexcept:
+        tabuColor(tabuColor) {
     }
 
-    char getTabu() const {
+    inline char getTabu() const noexcept {
         return tabuColor;
     }
 
-    virtual void print() const = 0;
+    virtual void print() const noexcept = 0;
 
-    virtual void play(Board *board, Game *game, long bestScore, int seed) = 0;
+    virtual void play(Board *board, Game *game, long bestScore, int seed) noexcept = 0;
 
-    virtual ~Strategy() {
+    virtual ~Strategy() noexcept {
     }
 };
 
 class EmptySlot: public Strategy {
 public:
-    EmptySlot(): Strategy(-1) {
+    EmptySlot() noexcept:
+        Strategy(-1) {
     }
 
-    virtual void print() const {
+    virtual void print() const noexcept {
         cout << "EmptySlot()" << endl;
     }
 
-    virtual void play(Board *board, Game *game, long bestScore, int seed) {
+    virtual void play(Board *board, Game *game, long bestScore, int seed) noexcept {
         game->reset();
     }
 };
 
 template<bool checkMax, int versions> class MultiStrategy: public Strategy {
 public:
-    MultiStrategy(const char tabuColor): Strategy(tabuColor) {
+    MultiStrategy(const char tabuColor) noexcept:
+        Strategy(tabuColor) {
     }
 
-    virtual void findBest(const ShapeList& list, Shape* results) = 0;
+    virtual void findBest(const ShapeList& list, Shape* results) noexcept = 0;
 
-    virtual void play(Board *const board, Game *game, long const bestScore, int const seed) {
+    virtual void play(Board *const board, Game *game, long const bestScore, int const seed) noexcept {
         ShapeList lists[versions];
         for (int v = 0; v < versions; v++) {
             new (&lists[v]) ShapeList(tabuColor);
@@ -958,10 +961,11 @@ public:
 
 template<bool checkMax, int versions> class MultiByAreaWithTabu: public MultiStrategy<checkMax, versions> {
 public:
-    MultiByAreaWithTabu(const char tabuColor): MultiStrategy<checkMax, versions>(tabuColor) {
+    MultiByAreaWithTabu(const char tabuColor) noexcept:
+        MultiStrategy<checkMax, versions>(tabuColor) {
     }
 
-    virtual void findBest(const ShapeList& list, Shape* const best) {
+    virtual void findBest(const ShapeList& list, Shape* const best) noexcept {
         memset(best, 0, sizeof(best[0]) * versions);
         int16_t areas[versions];
         for (int v = 0; v < versions; v++) {
@@ -1001,19 +1005,20 @@ public:
         }
     }
 
-    virtual void print() const {
+    virtual void print() const noexcept {
         cout << "MultiByAreaWithTabu<" << checkMax << "," << versions << ">(" << int(Strategy::tabuColor) << ")" << endl;
     }
 };
 
 template<int versions1, int versions2> class DoubleStrategy: public Strategy {
 public:
-    DoubleStrategy(char tabuColor): Strategy(tabuColor) {
+    DoubleStrategy(const char tabuColor) noexcept:
+        Strategy(tabuColor) {
     }
 
-    virtual void findBest(ShapeList& list, Shape* results, const int size) = 0;
+    virtual void findBest(ShapeList& list, Shape* results, const int size) noexcept = 0;
 
-    virtual void play(Board *board, Game *game, long bestScore, int seed) {
+    virtual void play(Board *board, Game *game, long bestScore, int seed) noexcept {
         constexpr auto versions = versions1 + versions2;
 
         ShapeList lists[versions];
@@ -1193,10 +1198,11 @@ public:
 
 template<int versions1, int versions2> class DoubleByAreaWithTabu: public DoubleStrategy<versions1, versions2> {
 public:
-    DoubleByAreaWithTabu(char tabuColor): DoubleStrategy<versions1, versions2>(tabuColor) {
+    DoubleByAreaWithTabu(const char tabuColor) noexcept:
+        DoubleStrategy<versions1, versions2>(tabuColor) {
     }
 
-    virtual void findBest(ShapeList& list, Shape* best, const int ver) {
+    virtual void findBest(ShapeList& list, Shape* best, const int ver) noexcept {
         memset(best, 0, sizeof(best[0]) * ver);
         int16_t areas[ver];
         for (int v = 0; v < ver; v++) {
@@ -1237,13 +1243,13 @@ public:
         }
     }
 
-    virtual void print() const {
+    virtual void print() const noexcept {
         cout << "DoubleByAreaWithTabu<" << versions1 << "," << versions2 << ">(" << int(Strategy::tabuColor) << ")" << endl;
     }
 };
 
 #ifdef VALIDATION
-void validateGame(const Board *const board, const Game& game, bool earlyStop) {
+void validateGame(const Board *const board, const Game& game, bool earlyStop) noexcept {
     Board board2 = *board;
     long total = 0;
     for (int i = 0; i < game.nmoves; i++) {
@@ -1278,7 +1284,7 @@ void validateGame(const Board *const board, const Game& game, bool earlyStop) {
 }
 #endif
 
-const Game* compare(const Board *const board, vector<Strategy*>& strategies, Game* const games) {
+const Game* compare(const Board *const board, vector<Strategy*>& strategies, Game* const games) noexcept {
     int bestGame = 0;
     long bestScore = -1;
     for (int i = 0; i < strategies.size(); i++) {
@@ -1302,7 +1308,7 @@ const Game* compare(const Board *const board, vector<Strategy*>& strategies, Gam
     return games + bestGame;
 }
 
-const Game* compare(Board *const board) {
+const Game* compare(Board *const board) noexcept {
     board->sortColors();
 
     vector<Strategy*> strategies;
@@ -1406,7 +1412,7 @@ const Game* compare(Board *const board) {
     return best;
 }
 
-int findBestGame(const Game* const games, const ShapeList* const lists, const int cnt) {
+int findBestGame(const Game* const games, const ShapeList* const lists, const int cnt) noexcept {
     int bestGame;
     long bestScore = -1;
     for (int i = 0; i < cnt; i++) {
@@ -1419,12 +1425,12 @@ int findBestGame(const Game* const games, const ShapeList* const lists, const in
     return bestGame;
 }
 
-void solve(Board &board, string& out) {
+void solve(Board &board, string& out) noexcept {
     const Game* game = compare(&board);
     out = game ? game->getOutput(board.h) : "N\n";
 }
 
-void play() {
+void play() noexcept {
     int t;
     cin >> t;
 
@@ -1443,7 +1449,7 @@ void play() {
     }
 }
 
-void stats() {
+void stats() noexcept {
     const int64_t begin = clock();
     //int width = 20;
     //int height = 50;
@@ -1475,7 +1481,7 @@ void stats() {
     cout << double(end - begin) / CLOCKS_PER_SEC << endl;
 }
 
-/*void testFill() {
+/*void testFill() noexcept {
     int n = 0;
     while (true) {
         Board* board = Board::randomBoard(8, 8, 3);
@@ -1502,7 +1508,7 @@ struct Combo {
     long result;
 };
 
-bool comboComparator(const Combo& a, const Combo& b) {
+bool comboComparator(const Combo& a, const Combo& b) noexcept {
     int64_t diff = a.time - b.time;
     if (diff < 0) {
         return true;
@@ -1513,7 +1519,7 @@ bool comboComparator(const Combo& a, const Combo& b) {
     return a.result > b.result;
 }
 
-void optimalSet(int ncols) {
+void optimalSet(int ncols) noexcept {
     static vector<Combo> results;
     Game games[200];
 
@@ -1584,7 +1590,7 @@ void optimalSet(int ncols) {
     }
 }
 
-void optimalSet2(int ncols, int width) {
+void optimalSet2(int ncols, int width) noexcept {
     vector<Strategy*> strategies;
     Game games[200];
 
@@ -1660,7 +1666,7 @@ void optimalSet2(int ncols, int width) {
 }*/
 
 
-int main() {
+int main() noexcept {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
     //stats();
