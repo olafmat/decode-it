@@ -1332,10 +1332,11 @@ const Game* compare(Board *const board) {
         } else if (board->w < 45) {
             strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
-            strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
-            strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
+            strategies.push_back(new EmptySlot());
+            strategies.push_back(new EmptySlot());
+            strategies.push_back(new EmptySlot());
+            strategies.push_back(new EmptySlot());
+            strategies.push_back(new EmptySlot());
             strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 9>(1));
         } else {
