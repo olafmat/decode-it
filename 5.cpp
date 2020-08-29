@@ -229,11 +229,11 @@ uint8_t cutoff3;
 unordered_map<string, Node*> names;
 NodeSet dom;
 NodeSet dominated;
-int g_seed = 76858720;
+int seed = 76858720;
 
 inline int fastRand() {
-  g_seed = (214013 * g_seed + 2531011);
-  return (g_seed >> 16) & 0x7FFF;
+  seed = (214013 * seed + 2531011);
+  return (seed >> 16) & 0x7FFF;
 }
 
 bool isDominated1(Node *node0) {
@@ -552,7 +552,7 @@ void findDominatingSet2() {
             fixed.insert(bestNode);
             //cout << "S " << fixed.size() << endl;
         }
-        //g_seed++;
+        //seed++;
         //printResults();
         //break;
     }
