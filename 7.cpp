@@ -26,6 +26,10 @@ using namespace std;
 
 struct Move {
     int8_t x, y;
+
+    void print() const {
+        cout << x << "x" << y << endl;
+    }
 };
 
 struct Shape {
@@ -951,6 +955,52 @@ public:
     }
 };
 
+#ifdef VALIDATION
+void validateGame(const Board *const board, const Game& game, bool earlyStop) {
+    Board board2 = *board;
+    long total = 0;
+    for (int i = 0; i < game.nmoves; i++) {
+        Move move = game.moves[i];
+        char c = board2.board[move.x][move.y];
+        if (c == 0) {
+            cout << "bad move A " << i << endl;
+            move.print();
+            board2.print();
+        }
+        if (board2.board[move.x - 1][move.y] != c &&
+            board2.board[move.x][move.y - 1] != c &&
+            board2.board[move.x + 1][move.y] != c &&
+            board2.board[move.x][move.y + 1] != c) {
+            cout << "bad move B " << i << endl;
+            move.print();
+            board2.print();
+        }
+        int score = board2.remove2(move);
+        total += score;
+    }
+    if (total != game.total) {
+        cout << "bad total " << total << " " << game.total << endl;
+    }
+
+    if (!earlyStop) {
+        for (int x = 1; x <= board->w; x++) {
+            for (int y = 1; y <= board->h; y++) {
+                char c = board2.board[x][y];
+                if (c != 0 &&
+                    (board2.board[x - 1][y] == c ||
+                    board2.board[x][y - 1] == c ||
+                    board2.board[x + 1][y] == c ||
+                    board2.board[x][y + 1] == c))
+                {
+                    cout << "unused move " << x << "x" << y << " " << char('A' + c) << endl;
+                    board2.print();
+                    exit(0);
+                }
+            }
+        }
+    }
+}
+#endif
 
 const Game* compare(const Board *const board, vector<Strategy*>& strategies, Game* const games) {
     int bestGame = 0;
@@ -962,6 +1012,11 @@ const Game* compare(const Board *const board, vector<Strategy*>& strategies, Gam
             bestGame = i;
             bestScore = games[i].total;
         }
+        #ifdef VALIDATION
+        if (games[i].nmoves) {
+            validateGame(board, games[i], i > 0);
+        }
+        #endif
     }
     #ifdef VALIDATION
     if (bestGame < 0 || bestGame >= strategies.size()) {
@@ -1304,10 +1359,10 @@ void handler(int sig) {
 int main() {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
