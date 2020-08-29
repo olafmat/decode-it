@@ -1312,7 +1312,7 @@ const Game* compare(Board *const board) {
     vector<Strategy*> strategies;
     if (!board->colorHistogram[6]) {
         if (board->w < 35) {
-            strategies.push_back(new DoubleByAreaWithTabu<10, 4>(1));
+            strategies.push_back(new MultiByAreaWithTabu<false, 14>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
@@ -1321,7 +1321,7 @@ const Game* compare(Board *const board) {
             strategies.push_back(new MultiByAreaWithTabu<true, 2>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
         } else {
-            strategies.push_back(new DoubleByAreaWithTabu<4, 3>(1));
+            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
             strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
