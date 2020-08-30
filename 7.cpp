@@ -403,7 +403,11 @@ struct ShapeList {
     }
 
     void operator=(const ShapeList& src) noexcept {
-        memcpy(size, src.size, sizeof(size));
+        size[0][0] = src.size[0][0];
+        size[0][1] = src.size[0][1];
+        size[1][0] = src.size[1][0];
+        size[1][1] = src.size[1][1];
+        //memcpy(size, src.size, sizeof(size));
         for (int a = 0; a < 2; a++) {
             for (int b = 0; b < 2; b++) {
                 memcpy(shapes[a][b], src.shapes[a][b], size[a][b] * sizeof(Shape));
@@ -1230,7 +1234,7 @@ public:
         DoubleStrategy<versions1, versions2>(tabuColor) {
     }
 
-    virtual void findBest(ShapeList& list, Shape* best, const int ver) noexcept {
+    virtual void findBest(ShapeList& list, Shape* const best, const int ver) noexcept {
         memset(best, 0, sizeof(best[0]) * ver);
         int16_t areas[ver];
         for (int v = 0; v < ver; v++) {
@@ -1717,10 +1721,10 @@ void optimalSet2(int ncols, int width) noexcept {
 int main() noexcept {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
