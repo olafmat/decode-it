@@ -20,8 +20,6 @@
 #define MAX_GAMES 500
 //#define VALIDATION
 
-//#pragma pack(1)
-
 using namespace std;
 
 struct Move {
@@ -123,8 +121,6 @@ struct Board {
         int map[MAX_COLOR + 1];
         for (int c = 1; c <= MAX_COLOR; c++) {
             map[hist[c].c] = c;
-        }
-        for (int c = 1; c <= MAX_COLOR; c++) {
             colorHistogram[c] = hist[c].count;
         }
 
