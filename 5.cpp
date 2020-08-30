@@ -280,11 +280,12 @@ void refreshScore(Node *node0) noexcept {
             sum += node1->freq;
         }
     }
+    int w = node0->weight;
     if (dom.count(node0)) {
-        node0->score = -sum / node0->weight;
+        node0->score = -(sum + w - 1) / w;
         dominated.insert(node0);
     } else {
-        node0->score = sum / node0->weight;
+        node0->score = (sum + w - 1) / w;
         if (isDom) {
             dominated.insert(node0);
         } else {
@@ -302,10 +303,11 @@ void refreshScore2(Node *node0) noexcept {
             sum += node1->freq;
         }
     }
+    int w = node0->weight;
     if (node0->score < 0) {
-        node0->score = -sum / node0->weight;
+        node0->score = -(sum + w - 1) / w;
     } else {
-        node0->score = sum / node0->weight;
+        node0->score = (sum + w - 1) / w;
     }
 }
 
@@ -473,6 +475,30 @@ void findDominatingSet() noexcept {
 
 void printResults() noexcept;
 
+void shrink() noexcept {
+    bool change = true;
+    while (change) {
+        change = false;
+        for (NodeSet::iterator it = dom.begin(); it; it++) {
+            Node *node1 = *it;
+            if (isDominated1(node1)) {
+                bool ok = true;
+                for (int it = node1->nedges - 1; it >= 0; it--) {
+                    const Node* node2 = node1->edges[it];
+                    if (!isDominated2(node2, node1)) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) {
+                    removeFromDom(node1);
+                    change = true;
+                }
+            }
+        }
+    }
+}
+
 void findDominatingSet2() noexcept {
     NodeSet best;
     int bestScore2 = 0x3ffffff;
@@ -502,11 +528,16 @@ void findDominatingSet2() noexcept {
                 Node* node = nodeArr[it];
                 addNode(node);
                 findDominatingSet();
+                shrink();
 
                 #ifdef VERIFY
                 for (int it = 0; it < nnodes; it++) {
                     Node *node = nodeArr[it];
                     bool isDom = isDominated2(node, NULL);
+                    if (!isDom) {
+                        cout << "N " << it << " " << isDom << " " << dom.count(node) << " "
+                            << dominated.count(node) << " " << fixed.count(node) << endl;
+                    }
                     if (dom.count(node) && !isDom) {
                         cout << "A " << it << " " << isDom << " " << dom.count(node) << " "
                             << dominated.count(node) << " " << fixed.count(node) << endl;
@@ -515,10 +546,10 @@ void findDominatingSet2() noexcept {
                         cout << "C " << it << " " << isDom << " " << dom.count(node) << " "
                             << dominated.count(node) << " " << fixed.count(node) << endl;
                     }
-                    if (fixed.count(node) && !dom.count(node)) {
+                    /*if (fixed.count(node) && !dom.count(node)) {
                         cout << "D " << it << " " << isDom << " " << dom.count(node) << " "
                             << dominated.count(node) << " " << fixed.count(node) << endl;
-                    }
+                    }*/
                 }
                 #endif
 

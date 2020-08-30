@@ -42,7 +42,7 @@ struct Shape {
     int16_t area;
     char c;
     int8_t y;
-    char vs;
+    bool vs;
     int8_t rand;
 
     int score() const noexcept {
@@ -60,8 +60,8 @@ struct Segment {
     uint8_t x, minY, maxY1;
 
     static int comparator(const void *va, const void *vb) noexcept {
-        const Segment* a = (const Segment*) va;
-        const Segment* b = (const Segment*) vb;
+        const Segment* __restrict__ a = (const Segment*) va;
+        const Segment* __restrict__ b = (const Segment*) vb;
         if (a->x != b->x) {
             return a->x - b->x;
         }
@@ -114,7 +114,7 @@ struct Board {
         }
 
         for (int x = 1; x <= w; x++) {
-            const char* col = board[x] + 1;
+            const char* __restrict__ col = board[x] + 1;
             for (int y = 1; y <= h; y++) {
                 if (*col) {
                     hist[*col].count++;
@@ -131,7 +131,7 @@ struct Board {
         }
 
         for (int x = 1; x <= w; x++) {
-            char* col = board[x];
+            char* __restrict__ col = board[x];
             for (int y = 1; y <= h; y++) {
                 col[y] = map[col[y]];
             }
@@ -193,7 +193,7 @@ struct Board {
         const char *col = board[x];
         int nminY = minY;
         if (col[nminY] == c) {
-            const char* col1 = col - 1;
+            const char* __restrict__ col1 = col - 1;
             while (col1[nminY] == c) {
                 nminY--;
             }
@@ -422,7 +422,7 @@ struct ShapeList {
         const char *col = board->board[x];
         int nminY = minY;
         if (col[nminY] == c) {
-            const char* col1 = col - 1;
+            const char* __restrict__ col1 = col - 1;
             while (col1[nminY] == c) {
                 nminY--;
             }
@@ -506,9 +506,7 @@ struct ShapeList {
         }
         #endif
         dest->area = int16_t(dest->maxX - dest->minX) * dest->minY;
-        dest->vs = (dest->maxX == dest->minX && !board->board[dest->minX][dest->maxY + 1])/* ||
-            !(dest->maxX == dest->minX &&
-                board->board[dest->minX][dest->minY - 1] == board->board[dest->minX][dest->maxY + 1])*/;
+        dest->vs = dest->maxX == dest->minX && !board->board[dest->minX][dest->maxY + 1];
         dest->rand = fastRand();
     }
 
@@ -670,7 +668,7 @@ struct ShapeList {
         long total = 0;
         for (int a = 0; a < 2; a++) {
             for (int b = 0; b < 2; b++) {
-                const Shape* shapes2 = shapes[a][b];
+                const Shape* __restrict__ shapes2 = shapes[a][b];
                 for (int i = size[a][b] - 1; i >= 0; i--) {
                     total += shapes2[i].score();
                 }
@@ -736,7 +734,7 @@ struct Game {
         nmoves++;
     }
 
-    void appendOutput(char *& out, const int height) const noexcept {
+    void appendOutput(char *__restrict__ & out, const int height) const noexcept {
         *(out++) = 'Y';
         *(out++) = '\n';
         for (int i = 0; i < nmoves; i++) {
@@ -889,7 +887,7 @@ public:
         Strategy(tabuColor) {
     }
 
-    virtual void findBest(const ShapeList& list, Shape* results) noexcept = 0;
+    virtual void findBest(const ShapeList& list, Shape* __restrict__ results) noexcept = 0;
 
     virtual void play(Board *const board, Game *game, long const bestScore, int const seed) noexcept {
         ShapeList lists[versions];
@@ -994,7 +992,7 @@ public:
         MultiStrategy<checkMax, versions>(tabuColor) {
     }
 
-    virtual void findBest(const ShapeList& list, Shape* const best) noexcept {
+    virtual void findBest(const ShapeList& list, Shape* __restrict__ const best) noexcept {
         memset(best, 0, sizeof(best[0]) * versions);
         int16_t areas[versions];
         for (int v = 0; v < versions; v++) {
@@ -1045,7 +1043,7 @@ public:
         Strategy(tabuColor) {
     }
 
-    virtual void findBest(ShapeList& list, Shape* results, const int size) noexcept = 0;
+    virtual void findBest(ShapeList& list, Shape* __restrict__ results, const int size) noexcept = 0;
 
     virtual void play(Board *board, Game *game, long bestScore, int seed) noexcept {
         constexpr auto versions = versions1 + versions2;
@@ -1234,7 +1232,7 @@ public:
         DoubleStrategy<versions1, versions2>(tabuColor) {
     }
 
-    virtual void findBest(ShapeList& list, Shape* const best, const int ver) noexcept {
+    virtual void findBest(ShapeList& list, Shape* const __restrict__ best, const int ver) noexcept {
         memset(best, 0, sizeof(best[0]) * ver);
         int16_t areas[ver];
         for (int v = 0; v < ver; v++) {
@@ -1462,7 +1460,7 @@ int findBestGame(const Game* const games, const ShapeList* const lists, const in
 
 void solve(Board &board, char* buf) noexcept {
     const Game* game = compare(&board);
-    char* out = buf;
+    char* __restrict__ out = buf;
     if (game) {
         game->appendOutput(out, board.h);
     } else {
@@ -1721,10 +1719,10 @@ void optimalSet2(int ncols, int width) noexcept {
 int main() noexcept {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
