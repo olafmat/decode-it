@@ -18,9 +18,15 @@
 #define MAX_HEIGHT2 64
 #define MAX_COLOR 20
 #define MAX_GAMES 500
+//#define STATS
 //#define VALIDATION
 
 using namespace std;
+
+#ifdef STATS
+int npositions = 0;
+int nvariants = 0;
+#endif
 
 struct Move {
     int8_t x, y;
@@ -714,6 +720,9 @@ struct Game {
         moves[nmoves].x = shape.minX;
         moves[nmoves].y = shape.y;
         nmoves++;
+        #ifdef STATS
+        npositions++;
+        #endif
     }
 
     void move(const Move move, const int score) noexcept {
@@ -919,6 +928,9 @@ public:
                     exit(0);
                 }
                 #endif
+                #ifdef STATS
+                nvariants++;
+                #endif
                 boards[v]->remove(moves[v]);
 
                 int profit = moves[v].score() + lists[v].update2(boards[v], moves[v].minX - 1, moves[v].maxX + 1, moves[v].minY - 1);
@@ -1108,6 +1120,9 @@ public:
                     print();
                     exit(0);
                 }
+                #endif
+                #ifdef STATS
+                nvariants++;
                 #endif
                 games[v].move(move);
                 boards[v]->remove(move);
@@ -1476,14 +1491,18 @@ void stats() noexcept {
     //int width = 20;
     //int height = 50;
     long total2 = 0;
+    int ngames = 0;
+    int nmoves = 0;
     for (int ncols = 5; ncols <= 19; ncols ++) {
         long total = 0;
         for (int i = 0; i < 1000; i++) {
+            ngames++;
             int width = (rand() % 4) * 10 + 20;//(rand() % 47) + 4;
             int height = width; //(rand() % 47) + 4;
             Board* board = Board::randomBoard(width, height, ncols);
             Board board2 = *board;
             const Game *game = compare(&board2);
+            nmoves += game->nmoves;
             long score = game->total * ncols * ncols / width / height;
             total += score;
             if (total > 6250000000L) {
@@ -1500,7 +1519,14 @@ void stats() noexcept {
     cout << endl;
 
     const int64_t end = clock();
-    cout << double(end - begin) / CLOCKS_PER_SEC << endl;
+    const double duration = double(end - begin) / CLOCKS_PER_SEC;
+    cout << duration << endl;
+    cout << "games    \t" << ngames << "\t\t" << double(ngames) / duration << " /s" << endl;
+    cout << "moves    \t" << nmoves << "\t\t" << double(nmoves) / duration << " /s" << endl;
+    #ifdef STATS
+    cout << "positions\t" << npositions << "\t" << double(npositions) / duration << " /s" << endl;
+    cout << "variants \t" << nvariants << "\t" << double(nvariants) / duration << " /s" << endl;
+    #endif
 }
 
 /*void testFill() noexcept {
@@ -1691,10 +1717,10 @@ void optimalSet2(int ncols, int width) noexcept {
 int main() noexcept {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    //stats();
+    stats();
     //testFill();
     //optimalSet2(5, 30);
-    play();
+    //play();
     //randomPlay();
     return 0;
 }
