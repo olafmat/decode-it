@@ -1405,6 +1405,9 @@ const Game* compare(Board *const board) noexcept {
         if (board->w < 35) {
             strategies.push_back(new MultiByAreaWithTabu<true, 5>(1));
         }
+    } else if (!board->colorHistogram[11]) {
+        strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
+        strategies.push_back(new MultiByAreaWithTabu<true, 1>(4));
     } else if (!board->colorHistogram[12]) {
         strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
     } else if (!board->colorHistogram[13]) {
