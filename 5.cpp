@@ -45,15 +45,15 @@ class NodeSet {
     uint64_t bset[MAX_CHUNKS];
 
 public:
-    void clear() {
+    void clear() noexcept {
         memset(bset, 0, sizeof(bset));
     }
 
-    NodeSet() {
+    NodeSet() noexcept {
         clear();
     }
 
-    void setAll() {
+    void setAll() noexcept {
         int last = nnodes >> 6;
         for (int a = 0; a < last; a++) {
             bset[a] = int64_t(-1);
@@ -61,19 +61,19 @@ public:
         bset[last] = (uint64_t(1) << (nnodes & 63)) - 1;
     }
 
-    inline void insert(const Node* node) {
+    inline void insert(const Node* node) noexcept {
         bset[node->idA] |= node->idU;
     }
 
-    inline void erase(const Node* node) {
+    inline void erase(const Node* node) noexcept {
         bset[node->idA] &= node->idNU;
     }
 
-    inline bool count(const Node* node) const {
+    inline bool count(const Node* node) const noexcept {
         return (bset[node->idA] & node->idU) != 0;
     }
 
-    int size() const {
+    int size() const noexcept {
         int len = 0;
         for (int a = 0; a < MAX_CHUNKS; a++) {
             uint64_t u = bset[a];
@@ -85,7 +85,7 @@ public:
         return len;
     }
 
-    bool empty() const {
+    bool empty() const noexcept {
         for (int a = 0; a < MAX_CHUNKS; a++) {
             if (bset[a] != uint64_t(0)) {
                 return false;
@@ -94,21 +94,20 @@ public:
         return true;
     }
 
-    inline void operator -=(NodeSet& b) {
+    inline void operator -=(const NodeSet& b) noexcept {
         for (int a = 0; a < MAX_CHUNKS; a++) {
             bset[a] &=~ b.bset[a];
         }
     }
 
-    inline void operator +=(NodeSet& b) {
+    inline void operator +=(const NodeSet& b) noexcept {
         for (int a = 0; a < MAX_CHUNKS; a++) {
             bset[a] |= b.bset[a];
         }
     }
 
-    NodeSet& operator=(NodeSet &src) {
+    inline void operator=(const NodeSet &src) noexcept {
         memcpy(bset, src.bset, sizeof(bset));
-        return *this;
     }
 
     struct iterator {
@@ -117,7 +116,7 @@ public:
         uint64_t b;
         int bit;
 
-        void operator++(int) {
+        void operator++(int) noexcept {
             if (a >= MAX_CHUNKS) {
                 return;
             }
@@ -138,23 +137,23 @@ public:
             }
         }
 
-        inline operator bool() {
+        inline operator bool() const noexcept {
             return a < MAX_CHUNKS;
         }
 
-        inline bool operator != (int x) const {
+        inline bool operator != (int x) const noexcept {
             return a < MAX_CHUNKS;
         }
 
-        inline Node* operator*() const {
+        inline Node* operator*() const noexcept {
             //cout << this << " " << a << " " << bit << " " << nodeArr[(a << 6) + bit] <<endl;
             return nodeArr[(a << 6) + bit];
         }
     };
 
-    inline iterator begin() {
+    inline iterator begin() const noexcept {
         iterator it;
-        it.bset = bset;
+        it.bset = (uint64_t*)bset;
         it.a = -1;
         it.b = 0;
         it.bit = -1;
@@ -168,7 +167,7 @@ public:
         uint64_t b;
         int n;
 
-        void operator++(int) {
+        void operator++(int) noexcept {
             if (n >= nnodes) {
                 return;
             }
@@ -188,23 +187,23 @@ public:
             }
         }
 
-        inline operator bool() const {
+        inline operator bool() const noexcept {
             return n < nnodes;
         }
 
-        inline bool operator != (int x) const {
+        inline bool operator != (int x) const noexcept {
             return n < nnodes;
         }
 
-        inline Node* operator*() const {
+        inline Node* operator*() const noexcept {
             //cout << this << " " << a << " " << n << " " << nnodes << " " << nodeArr[n] <<endl;
             return nodeArr[n];
         }
     };
 
-    inline niterator nbegin() {
+    inline niterator nbegin() const noexcept {
         niterator it;
-        it.bset = bset;
+        it.bset = (uint64_t*)bset;
         it.a = -1;
         it.b = 0;
         it.n = -1;
@@ -212,11 +211,11 @@ public:
         return it;
     }
 
-    inline int end() const {
+    inline int end() const noexcept {
         return 0;
     }
 
-    void print() {
+    void print() const noexcept {
         for (NodeSet::iterator it = begin(); it; it++) {
             cout << (*it)->name << " ";
         }
@@ -231,14 +230,14 @@ NodeSet dom;
 NodeSet dominated;
 int seed = 76858720;
 
-inline int fastRand() {
+inline int fastRand() noexcept {
   seed = (214013 * seed + 2531011);
   return (seed >> 16) & 0x7FFF;
 }
 
-bool isDominated1(Node *node0) {
+bool isDominated1(const Node *node0) noexcept {
     for (int it = node0->nedges - 1; it >= 0; it--) {
-        Node* node1 = node0->edges[it];
+        const Node* node1 = node0->edges[it];
         if (dom.count(node1)) {
             return true;
         }
@@ -246,12 +245,12 @@ bool isDominated1(Node *node0) {
     return false;
 }
 
-bool isDominated2(Node *node1, Node* node0) {
+bool isDominated2(const Node *node1, const Node* node0) noexcept {
     if (dom.count(node1)) {
         return true;
     }
     for (int it = node1->nedges - 1; it >= 0; it--) {
-        Node* node2 = node1->edges[it];
+        const Node* node2 = node1->edges[it];
         if (node2 != node0 && dom.count(node2)) {
             return true;
         }
@@ -259,12 +258,12 @@ bool isDominated2(Node *node1, Node* node0) {
     return false;
 }
 
-bool isDominated3(Node *node1, Node* node0) {
+bool isDominated3(const Node *node1, const Node* node0) noexcept {
     if (node1->score < 0) {
         return true;
     }
     for (int it = node1->nedges - 1; it >= 0; it--) {
-        Node* node2 = node1->edges[it];
+        const Node* node2 = node1->edges[it];
         if (node2 != node0 && node2->score < 0) {
             return true;
         }
@@ -272,11 +271,11 @@ bool isDominated3(Node *node1, Node* node0) {
     return false;
 }
 
-void refreshScore(Node *node0) {
-    bool isDom = isDominated1(node0);
+void refreshScore(Node *node0) noexcept {
+    const bool isDom = isDominated1(node0);
     int sum = isDom ? 0 : node0->freq;
     for (int it = node0->nedges - 1; it >= 0; it--) {
-        Node* node1 = node0->edges[it];
+        const Node* node1 = node0->edges[it];
         if (!isDominated2(node1, node0)) {
             sum += node1->freq;
         }
@@ -294,11 +293,11 @@ void refreshScore(Node *node0) {
     }
 }
 
-void refreshScore2(Node *node0) {
-    bool isDom = dominated.count(node0);
+void refreshScore2(Node *node0) noexcept {
+    const bool isDom = dominated.count(node0);
     int sum = isDom ? 0 : node0->freq;
     for (int it = node0->nedges - 1; it >= 0; it--) {
-        Node* node1 = node0->edges[it];
+        const Node* node1 = node0->edges[it];
         if (!isDominated3(node1, node0)) {
             sum += node1->freq;
         }
@@ -311,7 +310,7 @@ void refreshScore2(Node *node0) {
 }
 
 
-void addNode(Node *node) {
+void addNode(Node *node) noexcept {
     //cout << "adding " << node->name << " " << node->score << endl;
     dom.insert(node);
     refreshScore(node);
@@ -321,7 +320,7 @@ void addNode(Node *node) {
     //cout << node->score << endl;
 }
 
-void removeFromDom(Node* node) {
+void removeFromDom(Node* node) noexcept {
     dom.erase(node);
     refreshScore(node);
     for (int it = node->nedges - 1; it >= 0; it--) {
@@ -367,7 +366,7 @@ void updateConf(Node *node, int n0, int n1, int n2) {
     node->conf = n0;
 }*/
 
-void loadData() {
+void loadData() noexcept {
 	int t;
 	cin >> t;
     cutoff = clock() + CLOCKS_PER_SEC * (t > 100 ? 5 : 2) - CLOCKS_PER_SEC / 50;
@@ -404,7 +403,7 @@ void loadData() {
     }
 }
 
-void findDominatingSet() {
+void findDominatingSet() noexcept {
     /*bool change = true;
     while(change) {
         change = false;
@@ -472,9 +471,9 @@ void findDominatingSet() {
     }
 }
 
-void printResults();
+void printResults() noexcept;
 
-void findDominatingSet2() {
+void findDominatingSet2() noexcept {
     NodeSet best;
     int bestScore2 = 0x3ffffff;
     //int n = 0;
@@ -558,7 +557,7 @@ void findDominatingSet2() {
     }
 }
 
-/*int totalWeight(NodeSet& dom) {
+/*int totalWeight(const NodeSet& dom) noexcept {
     int total = 0;
     for (NodeSet::iterator it = dom.begin(); it; it++) {
         total += (*it)->weight;
@@ -566,7 +565,7 @@ void findDominatingSet2() {
     return total;
 }
 
-Node* pickRandom(NodeSet& s) {
+Node* pickRandom(const NodeSet& s) noexcept {
     while (true) {
         int i = fastRand() % s.size();
         NodeSet::iterator it = begin(s);
@@ -580,7 +579,7 @@ Node* pickRandom(NodeSet& s) {
     }
 }
 
-Node* bms(int step) {
+Node* bms(int step) noexcept {
     int k = double(fastRand()) / 32767 < exp(-step) ? 1024 : 50 + (fastRand() % 10);
     Node* u2 = pickRandom(dom);
     double score1 = score(u2);
@@ -596,7 +595,7 @@ Node* bms(int step) {
     return u;
 }
 
-void removeFromDom(Node* node) {
+void removeFromDom(Node* node) noexcept {
     dom.erase(node);
     if (!isDominated(node, node)) {
         ndom.insert(node);
@@ -610,14 +609,14 @@ void removeFromDom(Node* node) {
     }
 }
 
-void print() {
+void print() const noexcept {
     for (NodeSet::iterator it = dom.begin(); it != dom.end(); it++) {
         Node* node = *it;
         cout << node->name << " " << node->conf << " " << score(node) << endl;
     }
 }
 
-void optimize() {
+void optimize() noexcept {
     NodeSet dom2 = dom;
     int nonImpr = 0;
     int totalW = totalWeight(dom);
@@ -717,7 +716,7 @@ void optimize() {
     }
 }*/
 
-void printResults() {
+void printResults() noexcept {
     cout << dom.size() << endl;
     int total = 0;
     for (NodeSet::iterator it = dom.begin(); it; it++) {
@@ -728,7 +727,7 @@ void printResults() {
     cout << total << endl;
 }
 
-void freeMemory() {
+void freeMemory() noexcept {
     for (int it = 0; it < nnodes; it++) {
         delete nodeArr[it];
     }
@@ -771,7 +770,7 @@ void handler(int sig) {
     exit(1);
 }
 
-int main() {
+int main() noexcept {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
     loadData();
