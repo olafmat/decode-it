@@ -1382,14 +1382,23 @@ const Game* compare(Board *const board) noexcept {
             strategies.push_back(new MultiByAreaWithTabu<true, 10>(1));
         }
     } else if (!board->colorHistogram[7]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
-        strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
-        strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
-        strategies.push_back(new EmptySlot());
-        strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
+        if (board->w < 25) {
+            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
+            strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
+            strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
+            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+            strategies.push_back(new EmptySlot());
+            strategies.push_back(new MultiByAreaWithTabu<true, 2>(2));
+        } else {
+            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
+            strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
+            strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
+            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+            strategies.push_back(new EmptySlot());
+            strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
+            strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
+            strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
+        }
     } else if (!board->colorHistogram[8]) {
         strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
         strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
@@ -1719,10 +1728,10 @@ void optimalSet2(int ncols, int width) noexcept {
 int main() noexcept {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
-    stats();
+    //stats();
     //testFill();
     //optimalSet2(5, 30);
-    //play();
+    play();
     //randomPlay();
     return 0;
 }
