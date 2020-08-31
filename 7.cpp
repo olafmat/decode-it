@@ -1393,10 +1393,9 @@ const Game* compare(Board *const board) noexcept {
         if (board->w < 25) {
             M(17,1) E E M(5,1)
         } else if (board->w < 35) {
-            M(21,1) M(1,1) M(1,2) M(5,1)
+            M(19,1) M(1,1) E M(5,1)
         } else if (board->w < 45) {
             M(17,1) E E M(5,1)
-            //M(21,1) M(1,1) M(1,2)
         } else {
             M(21,1) M(1,1) M(1,2)
         }
