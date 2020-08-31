@@ -1455,7 +1455,11 @@ const Game* compare(Board *const board) noexcept {
         } else if (board->w < 45) {
             M(21,0) M(3,1)
         } else {
-            M(22,0)
+            if (!board->colorHistogram[18]) {
+                M(22,0)
+            } else {
+                M(23,0)
+            }
         }
     }
     /*for (int c = 1; c <= MAX_COLOR; c++) {
