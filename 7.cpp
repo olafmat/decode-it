@@ -1385,9 +1385,9 @@ const Game* compare(Board *const board) noexcept {
         } else if (board->w < 35) {
             M(7,1) M(5,2) M(3,3)
         } else if (board->w < 45) {
-            M(7,1) M(5,2) M(3,3) M(3,1) M(2,2) E E M(3,1) M(1,3) M(1,4) M(1,1)
+            M(7,1) M(5,2) M(3,3) M(3,1) E E E M(3,1) M(1,3)
         } else {
-            M(7,1) M(5,2) M(3,3) M(3,1) M(2,2) E E M(3,1) M(1,3) M(1,4) M(1,1)
+            M(7,1) M(5,2) M(2,3) M(3,1) M(2,2) E E E E M(1,4)
         }
     } else if (!board->colorHistogram[10]) {
         M(21,1) M(1,1) M(1,2)
@@ -1474,20 +1474,21 @@ void stats() noexcept {
     for (int ncols = 5; ncols <= 19; ncols ++) {
         long total = 0;
         for (int i = 0; i < 1000; i++) {
-            ngames++;
             int width = (rand() % 4) * 10 + 20;//(rand() % 47) + 4;
             int height = width; //(rand() % 47) + 4;
             Board* board = Board::randomBoard(width, height, ncols);
             Board board2 = *board;
             const Game *game = compare(&board2);
-            nmoves += game->nmoves;
-            long score = game->total * ncols * ncols / width / height;
-            total += score;
-            if (total > 6250000000L) {
-                cout << "too big " << i << " " << total << " " << game->total << endl;
+            if (game != NULL) {
+                ngames++;
+                nmoves += game->nmoves;
+                long score = game->total * ncols * ncols / width / height;
+                total += score;
+                if (total > 6250000000L) {
+                    cout << "too big " << i << " " << total << " " << game->total << endl;
+                }
+                total2 += score;
             }
-            total2 += score;
-
             delete board;
         }
         cout << ncols << " " << total;
