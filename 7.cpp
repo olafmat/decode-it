@@ -1408,12 +1408,13 @@ const Game* compare(Board *const board) noexcept {
         if (board->w < 25) {
             M(5,1)
         }
-        M(1,1) //M(1,2) //M(1,3) M(1,4) M(1,5)
+        M(1,1)
     } else {
         M(21,0)
         if (board->w < 25) {
             M(3,1)
         }
+        M(3,0)
     }
     #undef E
     #undef M
