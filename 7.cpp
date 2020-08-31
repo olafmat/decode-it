@@ -1428,7 +1428,7 @@ const Game* compare(Board *const board) noexcept {
     } else if (!board->colorHistogram[15]) {
         M(24,1)
     } else if (!board->colorHistogram[16]) {
-        M(24,1)
+        M(23,1)
     } else {
         if (board->w < 25) {
             M(21,0) M(3,1) M(2,0)
