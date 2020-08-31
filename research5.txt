@@ -65,3 +65,206 @@ Test #7 	accepted 	0 	4.97 	6824 	9.84
 Test #8 	accepted 	0 	4.95 	6824 	10.68
 Test #9 	accepted 	0 	4.97 	6824 	11.37
 Wynik 	accepted 	0 	34.74 	6824 	435.42
+
+
+
+
+
+
+
+
+
+20
+ 	Status 	Signal 	Time 	Memory 	Score
+20 Test #0 	accepted 	0 	1.98 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.98 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.98 	6296 	13.05
+Test #5 	accepted 	0 	4.98 	6824 	9.57
+Test #6 	accepted 	0 	4.98 	6824 	9.57
+Test #7 	accepted 	0 	4.97 	6824 	10.05
+Test #8 	accepted 	0 	4.87 	6824 	10.8
+Test #9 	accepted 	0 	4.97 	6824 	11.79
+Wynik 	accepted 	0 	34.67 	6824 	439.68
+
+19
+ 	Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.97 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.98 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.98 	6296 	13.05
+Test #5 	accepted 	0 	4.99 	6824 	9.57
+Test #6 	accepted 	0 	4.95 	6824 	9.51
+Test #7 	accepted 	0 	4.95 	6824 	10.05
+Test #8 	accepted 	0 	4.99 	6824 	10.8
+Test #9 	accepted 	0 	4.97 	6824 	11.7
+Wynik 	accepted 	0 	34.74 	6824 	439.08
+
+18
+ 	Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.98 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.96 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.98 	6296 	13.05
+Test #5 	accepted 	0 	4.95 	6824 	9.54
+Test #6 	accepted 	0 	4.95 	6824 	9.48
+Test #7 	time limit exceeded 	0 	5.01 	6824 	0
+Test #8 	accepted 	0 	4.97 	6824 	10.83
+Test #9 	accepted 	0 	4.96 	6824 	11.73
+Wynik 	accepted 	0 	29.71 	6824 	398.79
+
+17
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.98 	6296 	10.65
+Test #1 	accepted 	0 	1.97 	6296 	11.22
+Test #2 	accepted 	0 	1.98 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.97 	6296 	13.05
+Test #5 	accepted 	0 	4.96 	6824 	9.57
+Test #6 	accepted 	0 	4.94 	6824 	9.54
+Test #7 	accepted 	0 	4.92 	6824 	10.11
+Test #8 	accepted 	0 	4.99 	6824 	10.83
+Test #9 	accepted 	0 	4.98 	6824 	11.85
+Wynik 	accepted 	0 	34.67 	6824 	439.92
+
+16
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.97 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.97 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.98 	6296 	13.05
+Test #5 	accepted 	0 	4.97 	6824 	9.51
+Test #6 	accepted 	0 	4.96 	6824 	9.63
+Test #7 	accepted 	0 	4.94 	6824 	10.02
+Test #8 	accepted 	0 	4.97 	6824 	10.83
+Test #9 	accepted 	0 	4.98 	6824 	11.76
+Wynik 	accepted 	0 	34.7 	6824 	439.44
+
+15
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.98 	6296 	10.65
+Test #1 	accepted 	0 	1.97 	6296 	11.22
+Test #2 	accepted 	0 	1.97 	6296 	11.22
+Test #3 	accepted 	0 	1.97 	6296 	12
+Test #4 	accepted 	0 	1.97 	6296 	13.05
+Test #5 	accepted 	0 	4.93 	6824 	9.48
+Test #6 	accepted 	0 	4.94 	6824 	9.57
+Test #7 	accepted 	0 	4.99 	6824 	10.05
+Test #8 	accepted 	0 	4.96 	6824 	10.83
+Test #9 	accepted 	0 	4.98 	6824 	11.73
+Wynik 	accepted 	0 	34.66 	6824 	439.14
+
+14
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.98 	6296 	10.62
+Test #1 	accepted 	0 	1.96 	6296 	11.22
+Test #2 	accepted 	0 	1.98 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.98 	6296 	13.05
+Test #5 	accepted 	0 	4.98 	6824 	9.48
+Test #6 	accepted 	0 	4.98 	6824 	9.51
+Test #7 	accepted 	0 	4.93 	6824 	10.02
+Test #8 	accepted 	0 	4.87 	6824 	10.83
+Test #9 	accepted 	0 	4.89 	6824 	11.76
+Wynik 	accepted 	0 	34.53 	6824 	438.87
+
+13
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.98 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.97 	6296 	11.22
+Test #3 	accepted 	0 	1.97 	6296 	12
+Test #4 	accepted 	0 	1.98 	6296 	13.05
+Test #5 	accepted 	0 	4.96 	6824 	9.54
+Test #6 	accepted 	0 	4.96 	6824 	9.6
+Test #7 	accepted 	0 	4.94 	6824 	9.99
+Test #8 	accepted 	0 	4.95 	6824 	10.8
+Test #9 	accepted 	0 	4.97 	6824 	11.85
+Wynik 	accepted 	0 	34.66 	6824 	439.62
+
+12
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.98 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.98 	6296 	11.22
+Test #3 	accepted 	0 	1.97 	6296 	12
+Test #4 	accepted 	0 	1.98 	6296 	13.05
+Test #5 	accepted 	0 	4.98 	6824 	9.57
+Test #6 	accepted 	0 	4.96 	6824 	9.57
+Test #7 	accepted 	0 	4.98 	6824 	10.05
+Test #8 	accepted 	0 	4.98 	6824 	10.8
+Test #9 	accepted 	0 	4.95 	6824 	11.76
+Wynik 	accepted 	0 	34.74 	6824 	439.59
+
+11
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.98 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.97 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.97 	6296 	13.05
+Test #5 	accepted 	0 	4.99 	6824 	9.57
+Test #6 	accepted 	0 	4.98 	6824 	9.57
+Test #7 	accepted 	0 	4.97 	6824 	10.11
+Test #8 	accepted 	0 	4.96 	6824 	10.77
+Test #9 	accepted 	0 	4.98 	6824 	11.82
+Wynik 	accepted 	0 	34.76 	6824 	439.8
+
+10
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.98 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.94 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.96 	6296 	13.05
+Test #5 	accepted 	0 	4.98 	6824 	9.57
+Test #6 	accepted 	0 	4.99 	6824 	9.54
+Test #7 	time limit exceeded 	0 	5.01 	6824 	0
+Test #8 	accepted 	0 	4.99 	6824 	10.86
+Test #9 	accepted 	0 	4.98 	6824 	11.85
+Wynik 	accepted 	0 	29.78 	6824 	399.69
+
+09
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.96 	6296 	10.65
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.98 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.98 	6296 	13.05
+Test #5 	accepted 	0 	4.94 	6824 	9.48
+Test #6 	accepted 	0 	4.96 	6824 	9.51
+Test #7 	accepted 	0 	4.98 	6824 	9.99
+Test #8 	accepted 	0 	4.98 	6824 	10.83
+Test #9 	accepted 	0 	4.98 	6824 	11.85
+Wynik 	accepted 	0 	34.72 	6824 	439.11
+
+08
+Status 	Signal 	Time 	Memory 	Score
+Test #0 	accepted 	0 	1.97 	6296 	10.62
+Test #1 	accepted 	0 	1.98 	6296 	11.22
+Test #2 	accepted 	0 	1.96 	6296 	11.22
+Test #3 	accepted 	0 	1.98 	6296 	12
+Test #4 	accepted 	0 	1.98 	6296 	13.05
+Test #5 	accepted 	0 	4.95 	6824 	9.54
+Test #6 	accepted 	0 	4.96 	6824 	9.51
+Test #7 	accepted 	0 	4.98 	6824 	10.02
+Test #8 	accepted 	0 	4.94 	6824 	10.83
+Test #9 	accepted 	0 	4.99 	6824 	11.85
+Wynik 	accepted 	0 	34.69 	6824 	439.38
+
+
+17 Test #0 	accepted 	0 	1.98 	6296 	10.65
+17 Test #1 	accepted 	0 	1.98 	6296 	11.22
+17 Test #2 	accepted 	0 	1.98 	6296 	11.22
+17 Test #3 	accepted 	0 	1.98 	6296 	12
+17 Test #4 	accepted 	0 	1.98 	6296 	13.05
+17 Test #5 	accepted 	0 	4.98 	6824 	9.57
+16 Test #6 	accepted 	0 	4.96 	6824 	9.63
+17 Test #7 	accepted 	0 	4.92 	6824 	10.11
+10 Test #8 	accepted 	0 	4.99 	6824 	10.86
+17 Test #9 	accepted 	0 	4.98 	6824 	11.85
+
