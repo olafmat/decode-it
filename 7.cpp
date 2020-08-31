@@ -497,7 +497,7 @@ struct ShapeList {
         dest->minY = board->h + 1;
         dest->maxY = -1;
         dest->c = board->board[x][y];
-        dest->size = addSegment(board, x, y, y + 1, true, true, dest); //addPoint(board, x, y, dest);
+        dest->size = addSegment(board, x, y, y + 1, true, true, dest);
         #ifdef VALIDATION
         if (dest->size <= 1) {
             cout << "INV " << x << " " << y << endl;
@@ -506,16 +506,7 @@ struct ShapeList {
         }
         #endif
         dest->area = int16_t(dest->maxX - dest->minX) * dest->minY;
-        dest->vs = (dest->maxX == dest->minX && !board->board[dest->minX][dest->maxY + 1]); // ||
-            //(!board->board[dest->minX - 1][dest->y] && !board->board[dest->maxX + 1][dest->minY]);
-        /*bool vs = true;
-        for (int x = dest->minX; x <= dest->maxX; x++) {
-            if (board->board[x][dest->maxY + 1]) {
-                vs = false;
-                break;
-            }
-        }
-        dest->vs = vs;*/
+        dest->vs = (dest->maxX == dest->minX && !board->board[dest->minX][dest->maxY + 1]);
         dest->rand = fastRand();
     }
 
@@ -1169,19 +1160,16 @@ public:
                 const ShapeList listAux = lists[bestVer1];
                 const Game gameAux = games[bestVer1];
                 for (v = 1; v < versions; v++) {
-                    //cout << "copy " << 0 << " to " << v << endl;
                     *boards[v] = *boards[0];
                     lists[v] = lists[0];
                     games[v] = games[0];
                 }
-                //cout << "copy saved " << bestVer1 << " to " << 0 << endl;
                 *boards[0] = boardAux;
                 lists[0] = listAux;
                 games[0] = gameAux;
             } else {
                 for (; v < versions1; v++) {
                     if (v != bestVer1 && v != bestVer2) {
-                        //cout << "copy " << bestVer1 << " to " << v << endl;
                         *boards[v] = *boards[bestVer1];
                         lists[v] = lists[bestVer1];
                         games[v] = games[bestVer1];
@@ -1189,7 +1177,6 @@ public:
                 }
                 for (; v < versions; v++) {
                     if (v != bestVer2) {
-                        //cout << "copy " << bestVer2 << " to " << v << endl;
                         *boards[v] = *boards[bestVer2];
                         lists[v] = lists[bestVer2];
                         games[v] = games[bestVer2];
@@ -1197,18 +1184,12 @@ public:
                 }
                 if (bestVer2 < versions1) {
                     const int from = bestVer2 ? 0 : 1;
-                    //cout << "copy " << from << " to " << bestVer2 << endl;
                     *boards[bestVer2] = *boards[from];
                     lists[bestVer2] = lists[from];
                     games[bestVer2] = games[from];
                 }
             }
-            /*if (checkMax) {
-                board->updateHistogram(move.c, move.size);
-                if (board->maxPossibleScore < bestScore) {
-                    break;
-                }
-            }*/
+
 
             #ifdef VALIDATION
             for (int v = 0; v < versions; v++) {
@@ -1470,7 +1451,6 @@ const Game* compare(Board *const board) noexcept {
             } else {
                 M(21,0)
             }
-            /*M(21,0) M(3,1)*/
         } else {
             if (!board->colorHistogram[18]) {
                 M(22,0)
@@ -1586,177 +1566,6 @@ void stats() noexcept {
     #endif
 }
 
-/*void testFill() noexcept {
-    int n = 0;
-    while (true) {
-        Board* board = Board::randomBoard(8, 8, 3);
-        ShapeList list(3);
-        list.update(board);
-        board->print();
-        list.print();
-        break;
-        #ifdef VALIDATION
-        if (!validate(board, list)) {
-            break;
-        }
-        #endif
-        n++;
-        if (n % 1000000 == 0) {
-            cout << n << " " << double(clock()) / CLOCKS_PER_SEC << endl;
-        }
-    }
-}
-
-struct Combo {
-    string strategy;
-    int64_t time;
-    long result;
-};
-
-bool comboComparator(const Combo& a, const Combo& b) noexcept {
-    int64_t diff = a.time - b.time;
-    if (diff < 0) {
-        return true;
-    }
-    if (diff > 0) {
-        return false;
-    }
-    return a.result > b.result;
-}
-
-void optimalSet(int ncols) noexcept {
-    static vector<Combo> results;
-    Game games[200];
-
-    for (int a0 = 0; a0 <= 20 && a0 <= ncols; a0++) {
-    for (int t0 = 0; t0 <= 10 && t0 <= ncols; t0++) {
-    for (int w0 = 0; w0 <= 10 && w0 <= ncols; w0++) {
-    for (int a1 = 0; a1 <= 10 && a1 <= a0; a1++) {
-    for (int t1 = 0; t1 <= 10 && t1 <= t0; t1++) {
-    for (int bca = 0; bca <= 1; bca++) {
-        vector<Strategy*> strategies;
-        for (int c = 1; c <= a0; c++) {
-            strategies.push_back(new ByAreaWithTabu(c));
-        }
-        for (int c = 1; c <= t0; c++) {
-            strategies.push_back(new FromTopWithTabu(c));
-        }
-        for (int c = 1; c <= w0; c++) {
-            strategies.push_back(new ByWidthWithTabu(c));
-        }
-        for (int c = 1; c <= a1; c++) {
-            strategies.push_back(new ByAreaWithTabu(c));
-        }
-        for (int c = 1; c <= t1; c++) {
-            strategies.push_back(new FromTopWithTabu(c));
-        }
-        //for (int c = 1; c <= w1; c++) {
-          //  strategies.push_back(new ByWidthWithTabu(c));
-        }//
-        if (bca) {
-            strategies.push_back(new ByColorAndArea());
-        }
-
-        long total = 0;
-        srand(1);
-        int64_t begin = clock();
-        for (int i = 0; i < 10000; i++) {
-            int width = 5;//(rand() % 47) + 4;
-            int height = 5;//(rand() % 47) + 4;
-            Board* board = Board::randomBoard(width, height, ncols);
-            board->sortColors();
-            Game *game = compare(board, strategies, games);
-            total += game->total * ncols * ncols / width / height;
-            delete board;
-        }
-        int64_t end = clock();
-        int64_t time = end - begin;
-
-        Combo combo;
-        char name[200];
-        sprintf(name, "A%d T%d W%d A%d T%d BCA%d", a0, t0, w0, a1, t1, bca);
-        combo.strategy = name;
-        combo.time = time;
-        combo.result = total;
-        results.push_back(combo);
-    }}}}
-    cout << a0 << ' ' <<t0 << endl;
-    }}
-
-    sort(results.begin(), results.end(), comboComparator);
-
-    long best = 0;
-    for (int i = 0; i < results.size(); i++) {
-        Combo &combo = results[i];
-        if (combo.result > best) {
-            best = combo.result;
-            cout << combo.strategy << '\t' << double(combo.time) / CLOCKS_PER_SEC << '\t' << combo.result << endl;
-        }
-    }
-}
-
-void optimalSet2(int ncols, int width) noexcept {
-    vector<Strategy*> strategies;
-    Game games[200];
-
-    for (int n = 0; n < 60; n++) {
-        Strategy *best = NULL;
-        double bestScore = 0;
-        long bestTotal = 0;
-        uint64_t bestTime = 0;
-        for (int k = 0; k < 3 * ncols + 2; k++) {
-            Strategy * strategy;
-            if (k < ncols) {
-                strategy = new ByAreaWithTabu(k + 1);
-            } else if (k < ncols + ncols) {
-                strategy = new FromTopWithTabu(k - ncols + 1);
-            } else if (k < ncols * 3) {
-                strategy = new ByWidthWithTabu(k - ncols * 2 + 1);
-            } else if (k == ncols * 3) {
-                strategy = new ByColorAndArea();
-            } else {
-                strategy = new FromTop();
-            }
-
-            if (k == 0) {
-                strategies.push_back(strategy);
-            } else {
-                strategies[n] = strategy;
-            }
-
-            long total = 0;
-            //srand(2);
-            int64_t begin = clock();
-            for (int i = 0; i < 10000; i++) {
-                //int width = 20;//(random() % 47) + 4;
-                int height = width;//(random() % 47) + 4;
-                Board* board = Board::randomBoard(width, height, ncols);
-                board->sortColors();
-                Game *game = compare(board, strategies, games);
-                total += game->total * ncols * ncols / width / height;
-                delete board;
-            }
-            int64_t end = clock();
-            int64_t time = end - begin;
-
-            double score = total; //double(total) / time;
-            if (score > bestScore) {
-                if (best)
-                    delete best;
-                best = strategy;
-                bestScore = score;
-                bestTotal = total;
-                bestTime = time;
-            } else {
-                delete strategy;
-            }
-        }
-        strategies[n] = best;
-        cout << bestScore << "\t" << bestTotal << "\t" << double(bestTime) / CLOCKS_PER_SEC << "\t";
-        best->print();
-    }
-}*/
-
 /*void handler(int sig) {
     void *array[10];
     size_t size;
@@ -1775,10 +1584,7 @@ int main() noexcept {
     //signal(SIGSEGV, handler);
     //signal(SIGBUS, handler);
     //stats();
-    //testFill();
-    //optimalSet2(5, 30);
     play();
-    //randomPlay();
     return 0;
 }
 
