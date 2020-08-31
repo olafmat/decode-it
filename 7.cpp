@@ -1342,132 +1342,67 @@ const Game* compare(Board *const board) noexcept {
     board->sortColors();
 
     vector<Strategy*> strategies;
+    #define E strategies.push_back(new EmptySlot());
+    #define M(v, c) \
+        if (first) { \
+            strategies.push_back(new MultiByAreaWithTabu<false, v>(c)); \
+            first = false; \
+        } else { \
+            strategies.push_back(new MultiByAreaWithTabu<true, v>(c)); \
+        };
+    bool first = true;
     if (!board->colorHistogram[6]) {
         if (board->w < 25) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 14>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 13>(2));
-            strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
-            strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 2>(2));
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+            M(14,1) M(13,2) M(2,3) M(2,1) E E M(2,2) M(3,1)
         } else if (board->w < 35) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 14>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 14>(2));
-            strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+            M(14,1) M(14,2) M(2,3) E M(1,2) E E M(3,1)
         } else if (board->w < 45) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 10>(2));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 9>(1));
+            M(7,1) M(10,2) E E E E E M(1,1) M(9,1)
         } else {
-            strategies.push_back(new MultiByAreaWithTabu<false, 8>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
-            strategies.push_back(new MultiByAreaWithTabu<true, 10>(4));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 10>(1));
+            M(8,1) M(5,2) M(10,4) E E E E M(10,1)
         }
     } else if (!board->colorHistogram[7]) {
         if (board->w < 25) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(2));
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 2>(2));
+            E E M(3,2) M(3,1) E M(2,2)
         } else if (board->w < 35) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 2>(1));
+            M(7,1) M(5,2) E E E E M(1,1) M(2,1)
         } else {
-            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
+            M(7,1) E M(3,3)
         }
     } else if (!board->colorHistogram[8]) {
         if (board->w < 25) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 7>(2));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 2>(2));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+            M(7,1) M(7,2) E E M(2,2) E E M(3,1)
         } else if (board->w < 35) {
-            strategies.push_back(new MultiByAreaWithTabu<false, 8>(1));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+            M(8,1) E E E E E E M(3,1)
+        } else if (board->w < 45) {
+            M(7,1) E E M(3,1) E E E M(3,1)
         } else {
-            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(2));
-            strategies.push_back(new MultiByAreaWithTabu<true, 2>(3));
-            strategies.push_back(new EmptySlot());
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+            E E E E M(3,2) M(2,3)
         }
     } else if (!board->colorHistogram[9]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
-        strategies.push_back(new MultiByAreaWithTabu<true, 3>(3));
-        strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 2>(2));
-        strategies.push_back(new EmptySlot());
-        strategies.push_back(new EmptySlot());
-        strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(3));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(4));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
+        M(7,1) M(5,2) M(3,3) M(3,1) M(2,2) E E M(3,1) M(1,3) M(1,4) M(1,1)
     } else if (!board->colorHistogram[10]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 21>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(2));
+        M(21,1) M(1,1) M(1,2)
         if (board->w < 35) {
-            strategies.push_back(new MultiByAreaWithTabu<true, 5>(1));
+            M(5,1)
         }
     } else if (!board->colorHistogram[11]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(4));
+        M(24,1) M(1,4)
     } else if (!board->colorHistogram[12]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
+        M(24,1)
     } else if (!board->colorHistogram[13]) {
-        strategies.push_back(new MultiByAreaWithTabu<false, 24>(1));
-        strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
+        M(24,1) M(1,1)
         if (board->w < 25) {
-            strategies.push_back(new MultiByAreaWithTabu<true, 5>(1));
+            M(5,1)
         }
     } else {
-        strategies.push_back(new MultiByAreaWithTabu<false, 21>(0));
+        M(21,0)
         if (board->w < 25) {
-            strategies.push_back(new MultiByAreaWithTabu<true, 3>(1));
+            M(3,1)
         }
     }
+    #undef E
+    #undef M
 
     Game games[strategies.size()];
     const Game* best = compare(board, strategies, games);
