@@ -228,7 +228,7 @@ uint8_t cutoff3;
 unordered_map<string, Node*> names;
 NodeSet dom;
 NodeSet dominated;
-int seed = 76858720;
+int seed = 76858717;
 
 inline int fastRand() noexcept {
   seed = (214013 * seed + 2531011);
