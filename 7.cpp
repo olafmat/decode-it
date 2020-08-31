@@ -506,7 +506,16 @@ struct ShapeList {
         }
         #endif
         dest->area = int16_t(dest->maxX - dest->minX) * dest->minY;
-        dest->vs = dest->maxX == dest->minX && !board->board[dest->minX][dest->maxY + 1];
+        dest->vs = (dest->maxX == dest->minX && !board->board[dest->minX][dest->maxY + 1]); // ||
+            //(!board->board[dest->minX - 1][dest->y] && !board->board[dest->maxX + 1][dest->minY]);
+        /*bool vs = true;
+        for (int x = dest->minX; x <= dest->maxX; x++) {
+            if (board->board[x][dest->maxY + 1]) {
+                vs = false;
+                break;
+            }
+        }
+        dest->vs = vs;*/
         dest->rand = fastRand();
     }
 
@@ -1340,6 +1349,9 @@ const Game* compare(const Board *const board, vector<Strategy*>& strategies, Gam
 
 const Game* compare(Board *const board) noexcept {
     board->sortColors();
+    /*if (board->maxPossibleScore < 1000) {
+        return NULL;
+    }*/
 
     vector<Strategy*> strategies;
     #define E strategies.push_back(new EmptySlot());
@@ -1350,6 +1362,9 @@ const Game* compare(Board *const board) noexcept {
         } else { \
             strategies.push_back(new MultiByAreaWithTabu<true, v>(c)); \
         };
+    #define D(v1, v2, c) \
+        strategies.push_back(new DoubleByAreaWithTabu<v1, v2>(c)); \
+        first = false;
     bool first = true;
     if (!board->colorHistogram[6]) {
         if (board->w < 25) {
@@ -1361,6 +1376,7 @@ const Game* compare(Board *const board) noexcept {
         } else {
             E M(5,2) M(10,4) M(5,1) E E E M(10,1)
         }
+        //D(5, 5, 1)
     } else if (!board->colorHistogram[7]) {
         if (board->w < 25) {
             E E M(3,2) M(3,1) E M(2,2)
@@ -1442,8 +1458,16 @@ const Game* compare(Board *const board) noexcept {
             M(22,0)
         }
     }
+    /*for (int c = 1; c <= MAX_COLOR; c++) {
+        if (board->colorHistogram[c] > 400) {
+            //for (int k = 1; k <= 10; k++) {
+            D(20,2,c)
+            //}
+        }
+    }*/
     #undef E
     #undef M
+    #undef D
 
     Game games[strategies.size()];
     const Game* best = compare(board, strategies, games);
