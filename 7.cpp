@@ -1372,7 +1372,7 @@ const Game* compare(Board *const board) noexcept {
             strategies.push_back(new MultiByAreaWithTabu<true, 1>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 9>(1));
         } else {
-            strategies.push_back(new MultiByAreaWithTabu<false, 7>(1));
+            strategies.push_back(new MultiByAreaWithTabu<false, 8>(1));
             strategies.push_back(new MultiByAreaWithTabu<true, 5>(2));
             strategies.push_back(new MultiByAreaWithTabu<true, 10>(4));
             strategies.push_back(new EmptySlot());
