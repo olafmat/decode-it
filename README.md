@@ -5,3 +5,7 @@ The repo does not include source data and task texts as being under copyright of
 I took the fourth place:
 
 ![Final standings](final%20standings.png?raw=true)
+
+Results of each competition task:
+
+![Results](results.png?raw=true)
