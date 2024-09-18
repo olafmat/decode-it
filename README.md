@@ -1,4 +1,4 @@
-# My submissions to the Decode-IT competition organized by pracuj.pl in 2020
+# My submissions to the Decode-IT algorithmic competition organized by pracuj.pl in 2020
 
 The repo does not include source data and task texts as being under copyright of the competition creator.
 
